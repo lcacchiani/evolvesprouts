@@ -21,21 +21,33 @@ _api_key_cache: str | None = None
 _PDF_PLUGIN_ID = "file-parser"
 _DEFAULT_PDF_ENGINE = "mistral-ocr"
 
-# Transient upstream failures that are worth a single fast retry inside the
-# same Lambda invocation. These cover provider rate limits (429), gateway
+# Transient upstream failures that are worth a fast retry inside the same
+# Lambda invocation. These cover provider rate limits (429), gateway
 # timeouts (504), and other temporarily-unavailable responses both as HTTP
 # status codes and as the ``error.code`` field that OpenRouter sometimes
 # returns inside a 200 envelope (for example ``code=504`` when the upstream
 # model timed out but the OpenRouter edge replied 200).
 _RETRYABLE_HTTP_STATUSES = frozenset({408, 425, 429, 500, 502, 503, 504})
 _RETRYABLE_ENVELOPE_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
-_MAX_RETRY_ATTEMPTS = 2  # initial attempt + 1 retry
-_RETRY_BACKOFF_SECONDS = 1.5
+_MAX_RETRY_ATTEMPTS = 3  # initial attempt + 2 retries
+# Exponential backoff between attempts (seconds): ``[i]`` is the wait BEFORE
+# attempt ``i + 2``. Length must be at least ``_MAX_RETRY_ATTEMPTS - 1``.
+_RETRY_BACKOFF_SCHEDULE_SECONDS: tuple[float, ...] = (2.0, 4.0)
 _MAX_RETRY_AFTER_SECONDS = 5.0
 
 
 def parse_invoice_from_assets(assets: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
-    """Parse invoice details from expense attachment assets."""
+    """Parse invoice details from expense attachment assets.
+
+    Single OpenRouter chat completion (with internal retry on transient
+    upstream errors), then parse the result. This is intentionally the same
+    one-call shape as the original synchronous parser at PR #1624 / commit
+    b6f8990b that was working before the bulk-import flow moved to async —
+    layered engine fallbacks were tried and rolled back because they
+    amplify rate limits and introduce more failure modes than they fix.
+    Unescaped-quote ``JSONDecodeError`` cases are still handled by
+    ``_loads_with_repair`` instead of by forcing JSON mode.
+    """
     if not assets:
         raise ValueError("At least one asset is required for parsing")
 
@@ -153,7 +165,18 @@ def _openrouter_chat_completion(
     has_pdf_attachment: bool,
     timeout: int,
 ) -> str:
-    """POST to OpenRouter and return the raw HTTP response body string."""
+    """POST to OpenRouter and return the raw HTTP response body string.
+
+    Note: this intentionally does NOT set ``response_format={"type":
+    "json_object"}``. JSON mode was added in commit ``3874b3b6`` to mask a
+    ``JSONDecodeError`` triggered by unescaped quotes in line-item
+    descriptions, but it caused models to emit empty ``{}`` /
+    ``completion_tokens=0`` on borderline PDFs (a worse failure shape).
+    The same JSONDecodeError it was meant to mask is now handled by the
+    ``_loads_with_repair`` pathway, so we drop JSON mode and let the model
+    emit natural JSON the same way it did in the original synchronous
+    parser at commit ``b6f8990b``.
+    """
     endpoint_url = _require_env("OPENROUTER_CHAT_COMPLETIONS_URL")
     model = _require_env("OPENROUTER_MODEL")
     api_key = _get_api_key()
@@ -161,10 +184,6 @@ def _openrouter_chat_completion(
     payload: dict[str, Any] = {
         "model": model,
         "temperature": 0,
-        # Force JSON-mode so the model cannot emit prose, fences, or partial
-        # objects. Combined with the schema prompts this dramatically reduces
-        # the JSONDecodeError rate on bulk parses with quoted descriptions.
-        "response_format": {"type": "json_object"},
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content_blocks},
@@ -215,7 +234,7 @@ def _openrouter_chat_completion(
 
         if (http_retryable or envelope_retryable) and attempt < _MAX_RETRY_ATTEMPTS:
             response_headers = response.get("headers")
-            delay = _retry_delay_seconds(response_headers)
+            delay = _retry_delay_seconds(response_headers, attempt)
             preview = _format_openrouter_error_preview(body)
             logger.warning(
                 "OpenRouter transient error; retrying",
@@ -292,8 +311,16 @@ def _envelope_error_code(body: str) -> int | None:
     return None
 
 
-def _retry_delay_seconds(response_headers: Any) -> float:
-    """Return the backoff delay before the next attempt, honoring ``Retry-After``."""
+def _retry_delay_seconds(response_headers: Any, attempt: int) -> float:
+    """Return the backoff delay before the next attempt, honoring ``Retry-After``.
+
+    ``attempt`` is the 1-indexed attempt that just failed (so the next
+    attempt is ``attempt + 1``). Without an explicit ``Retry-After``, the
+    delay is taken from the exponential schedule
+    ``_RETRY_BACKOFF_SCHEDULE_SECONDS`` (e.g. 2s, 4s, ...). The schedule is
+    indexed by ``attempt - 1``; if the schedule is shorter than the number
+    of retries, the last value is reused.
+    """
     if isinstance(response_headers, Mapping):
         for key, value in response_headers.items():
             if isinstance(key, str) and key.lower() == "retry-after":
@@ -301,7 +328,12 @@ def _retry_delay_seconds(response_headers: Any) -> float:
                 if parsed is not None:
                     return min(max(parsed, 0.0), _MAX_RETRY_AFTER_SECONDS)
                 break
-    return _RETRY_BACKOFF_SECONDS
+    if not _RETRY_BACKOFF_SCHEDULE_SECONDS:
+        return 0.0
+    idx = max(0, attempt - 1)
+    if idx >= len(_RETRY_BACKOFF_SCHEDULE_SECONDS):
+        idx = len(_RETRY_BACKOFF_SCHEDULE_SECONDS) - 1
+    return float(_RETRY_BACKOFF_SCHEDULE_SECONDS[idx])
 
 
 def _parse_retry_after_seconds(value: Any) -> float | None:

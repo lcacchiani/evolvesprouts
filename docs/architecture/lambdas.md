@@ -535,22 +535,30 @@ their primary responsibilities.
 - Call pattern: the bulk parser issues exactly **one** OpenRouter chat
   completion per import (mirroring the single-invoice parser at
   `parse_invoice_from_assets`), with the same system prompt and the
-  configured PDF engine. Earlier iterations layered a multi-engine retry on
-  top of this call; that turned every transient provider rate limit into a
-  guaranteed multi-failure cascade against the same account, so the bulk
-  path now matches the single path's reliability profile by doing the same
-  amount of work. If a specific PDF only parses with a non-default engine,
-  set `OPENROUTER_PDF_ENGINE` accordingly.
+  configured PDF engine. **No JSON mode**; **no engine fallback chain**.
+  This is the original synchronous call shape from PR #1624 / commit
+  `b6f8990b` that worked before this path moved to async &mdash; layered
+  fixes (JSON mode, multi-engine retries) were tried in subsequent
+  iterations and rolled back because they introduced more failure modes
+  than they fixed. Unescaped-quote `JSONDecodeError` cases (the original
+  symptom that prompted JSON mode) are still handled, by the
+  `_loads_with_repair` pathway instead.
+- Transient retry (every chat completion): each `_openrouter_chat_completion`
+  call retries up to **2 additional times** (3 attempts total) with
+  exponential backoff (2s, 4s) on transient upstream failures &mdash; HTTP
+  status `408`, `425`, `429`, `500`, `502`, `503`, `504`, AND on 2xx
+  responses whose envelope contains an `error.code` in the same set
+  (OpenRouter sometimes returns 200 with `code=504` when an upstream model
+  call timed out). `Retry-After` headers are honored, capped to 5s.
+  Non-retryable statuses (4xx other than 408/425/429) propagate
+  immediately. The same retry policy applies to the JSON-repair sub-call.
 - Single-invoice fallback: when the one bulk attempt produces no usable
   rows for any reason (empty model response, refusal, JSON parse failure,
-  HTTP error including 4xx/5xx, or zero rows after coercion), the bulk
-  parser falls back to `parse_invoice_from_assets` on the same attachment
-  and returns its result wrapped as a one-element list. The acceptance
-  criterion this satisfies is "bulk works at least as well as single": when
-  the proven single-invoice path can extract anything from the PDF, the
-  bulk parser returns at least that one row instead of failing the entire
-  import. If the fallback also fails, both errors are surfaced together in
-  one message so neither failure is hidden.
+  HTTP error including 4xx/5xx after retries, or zero rows after coercion),
+  the bulk parser falls back to `parse_invoice_from_assets` on the same
+  attachment and returns its result wrapped as a one-element list. If the
+  fallback also fails, both errors are surfaced together in one message so
+  neither failure is hidden.
 - 4xx error formatting: OpenRouter error bodies are condensed to their
   `error.message` + `error.code` before being raised or logged so the
   persisted bulk-import job row stays readable and does not echo unrelated

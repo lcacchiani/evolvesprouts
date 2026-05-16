@@ -103,7 +103,10 @@ def test_parse_invoice_sends_images_as_image_url(monkeypatch: Any) -> None:
     assert image_input["type"] == "image_url"
     assert image_input["image_url"]["url"].startswith("data:image/png;base64,")
     assert "plugins" not in payload
-    assert payload["response_format"] == {"type": "json_object"}
+    assert "response_format" not in payload, (
+        "JSON mode is intentionally NOT set; see _openrouter_chat_completion "
+        "docstring for the rationale tied to commits 3874b3b6 and b6f8990b."
+    )
 
 
 def test_parse_invoice_sends_pdfs_as_file_with_explicit_plugin(
@@ -552,9 +555,19 @@ def _bulk_chat_completion_body(content_text: str) -> str:
     )
 
 
-def test_parse_bulk_expense_invoices_sets_json_response_format(
+def test_parse_bulk_expense_invoices_does_not_set_json_response_format(
     monkeypatch: Any,
 ) -> None:
+    """Bulk parse must NOT force JSON mode.
+
+    See ``_openrouter_chat_completion`` docstring: JSON mode (commit
+    3874b3b6) caused models to emit empty ``{}`` / ``completion_tokens=0``
+    responses on borderline PDFs, which is the exact cascade the user
+    flagged when migrating to async. The same ``JSONDecodeError`` it was
+    introduced to mask is now handled by the ``_loads_with_repair``
+    pathway, so the request payload reverts to the original sync-era shape
+    from commit b6f8990b.
+    """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
 
@@ -606,7 +619,7 @@ def test_parse_bulk_expense_invoices_sets_json_response_format(
     )
 
     assert len(captured_payloads) == 1
-    assert captured_payloads[0]["response_format"] == {"type": "json_object"}
+    assert "response_format" not in captured_payloads[0]
 
 
 def test_parse_bulk_expense_invoices_repairs_invalid_json(monkeypatch: Any) -> None:
@@ -939,15 +952,20 @@ def test_parse_bulk_expense_invoices_falls_back_to_single_on_provider_error(
 ) -> None:
     """A persistent 429 on the bulk call falls back to the single parser.
 
-    Each chat-completion call retries once on retryable upstream failures
-    (see ``_RETRYABLE_HTTP_STATUSES``), so a hard-failure scenario with two
-    parser attempts (bulk + single fallback) issues 2 retries each = 4
-    ``http_invoke`` calls in total before surfacing a combined error that
+    Each chat-completion call retries up to ``_MAX_RETRY_ATTEMPTS - 1`` times
+    on retryable upstream failures, so a hard-failure scenario where every
+    attempt returns 429 issues:
+
+    - 3 attempts on the bulk call (initial + 2 retries), then
+    - 3 attempts on the single-invoice fallback (single shape, no engine
+      chain; see commit reverting JSON mode + engine fallback for details).
+
+    = 6 ``http_invoke`` calls total before surfacing a combined error that
     names both failures so neither is hidden.
     """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     class _FakeS3Client:
         def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
@@ -978,8 +996,9 @@ def test_parse_bulk_expense_invoices_falls_back_to_single_on_provider_error(
             timeout=25,
         )
 
-    assert call_count["n"] == 4, (
-        "expected (bulk + 1 retry) + (single fallback + 1 retry) = 4 calls"
+    assert call_count["n"] == 6, (
+        "expected (bulk x 3 attempts) + (single fallback first engine x 3 "
+        "attempts) = 6 http_invoke calls"
     )
     msg = str(exc_info.value)
     assert "Bulk parse failed" in msg
@@ -993,7 +1012,7 @@ def test_openrouter_chat_completion_retries_once_on_429_then_succeeds(
     """A 429 on the first attempt is retried once and the second response is used."""
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     call_log: list[dict[str, Any]] = []
 
@@ -1032,7 +1051,7 @@ def test_openrouter_chat_completion_retries_on_envelope_504_in_2xx(
     """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     call_log: list[dict[str, Any]] = []
 
@@ -1072,7 +1091,7 @@ def test_openrouter_chat_completion_does_not_retry_on_400(monkeypatch: Any) -> N
     """A 400 (non-retryable) is surfaced immediately without a second attempt."""
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     call_log: list[dict[str, Any]] = []
 
@@ -1097,13 +1116,17 @@ def test_openrouter_chat_completion_does_not_retry_on_400(monkeypatch: Any) -> N
     assert "status 400" in str(exc_info.value)
 
 
-def test_openrouter_chat_completion_persistent_429_raises_after_retry(
+def test_openrouter_chat_completion_persistent_429_raises_after_all_retries(
     monkeypatch: Any,
 ) -> None:
-    """When both attempts return 429 the final error still carries the status."""
+    """When every attempt returns 429 the final error still carries the status.
+
+    With ``_MAX_RETRY_ATTEMPTS = 3`` (initial + 2 retries) we expect exactly
+    3 ``http_invoke`` calls before the final ``RuntimeError`` propagates.
+    """
     _set_common_env(monkeypatch)
     _mock_secrets(monkeypatch)
-    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
 
     call_log: list[dict[str, Any]] = []
 
@@ -1124,7 +1147,7 @@ def test_openrouter_chat_completion_persistent_429_raises_after_retry(
             timeout=5,
         )
 
-    assert len(call_log) == 2, "expected one initial call + one retry"
+    assert len(call_log) == parser._MAX_RETRY_ATTEMPTS == 3
     msg = str(exc_info.value)
     assert "status 429" in msg
     assert "Provider returned error" in msg
@@ -1171,8 +1194,17 @@ def test_openrouter_chat_completion_honors_retry_after_header(
 
 
 def test_retry_delay_seconds_caps_excessive_retry_after() -> None:
-    delay = parser._retry_delay_seconds({"Retry-After": "60"})
+    delay = parser._retry_delay_seconds({"Retry-After": "60"}, attempt=1)
     assert delay == parser._MAX_RETRY_AFTER_SECONDS
+
+
+def test_retry_delay_seconds_uses_exponential_schedule_when_no_retry_after() -> None:
+    """Without a ``Retry-After`` header the exponential schedule is used."""
+    schedule = parser._RETRY_BACKOFF_SCHEDULE_SECONDS
+    assert len(schedule) >= parser._MAX_RETRY_ATTEMPTS - 1
+    for attempt_index, expected in enumerate(schedule, start=1):
+        assert parser._retry_delay_seconds({}, attempt=attempt_index) == expected
+    assert parser._retry_delay_seconds({}, attempt=len(schedule) + 5) == schedule[-1]
 
 
 def test_envelope_error_code_returns_none_for_non_json_or_no_error() -> None:
@@ -1412,3 +1444,72 @@ def test_parse_bulk_expense_invoices_raises_with_snippet_when_repair_fails(
     msg = str(exc_info.value)
     assert "even after repair" in msg
     assert "MARKER_TOKEN" in msg
+
+
+# ---------------------------------------------------------------------------
+# Single-invoice parser shape (sync-era one-call shape — see commit b6f8990b)
+# ---------------------------------------------------------------------------
+
+
+def test_parse_invoice_makes_a_single_chat_completion_call(monkeypatch: Any) -> None:
+    """``parse_invoice_from_assets`` is one call, no engine chain.
+
+    The earlier engine fallback chain (added in PR #1681 then reverted
+    here) layered three engines on top of every single-invoice parse. That
+    multiplied the cost / rate-limit footprint of every call and was a
+    direct response to empty-response failures caused by JSON mode (see
+    ``_openrouter_chat_completion`` docstring). With JSON mode dropped the
+    chain is no longer needed; the parser is back to the original one-call
+    shape from commit b6f8990b that the user has consistently said worked.
+    """
+    _set_common_env(monkeypatch)
+    _mock_secrets(monkeypatch)
+    monkeypatch.setattr(parser, "_RETRY_BACKOFF_SCHEDULE_SECONDS", ())
+
+    class _FakeS3Client:
+        def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:
+            return {"Body": _FakeBody(b"%PDF-1.4")}
+
+    call_log: list[dict[str, Any]] = []
+
+    def _fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
+        call_log.append(kwargs)
+        return {
+            "status": 200,
+            "body": _bulk_chat_completion_body(
+                json.dumps(
+                    {
+                        "vendor_name": "Single Shop",
+                        "invoice_number": "S1",
+                        "invoice_date": "2026-05-15",
+                        "due_date": None,
+                        "currency": "USD",
+                        "subtotal": 4,
+                        "tax": 0,
+                        "total": 4,
+                        "line_items": [],
+                        "confidence": 0.9,
+                    }
+                )
+            ),
+        }
+
+    monkeypatch.setattr(parser, "get_s3_client", lambda: _FakeS3Client())
+    monkeypatch.setattr(parser, "http_invoke", _fake_http_invoke)
+
+    result = parser.parse_invoice_from_assets(
+        [
+            {
+                "id": "asset-single",
+                "s3_key": "k",
+                "file_name": "bulk.pdf",
+                "content_type": "application/pdf",
+            }
+        ]
+    )
+
+    assert len(call_log) == 1, "single-invoice parser must make exactly one call"
+    sent_payload = json.loads(call_log[0]["body"])
+    assert "response_format" not in sent_payload, "JSON mode is intentionally off"
+    assert sent_payload["plugins"][0]["pdf"]["engine"] == "mistral-ocr"
+    assert result["vendor_name"] == "Single Shop"
