@@ -294,6 +294,46 @@ describe('ClientInvoicesPanel', () => {
     });
   });
 
+  it('record customer payment editor creates manual inbound payment without an enrollment', async () => {
+    billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
+      items: [],
+      truncated: false,
+    });
+    render(<ClientInvoicesPanel />);
+
+    await waitFor(() => expect(billingMocks.listCustomerInvoices).toHaveBeenCalled());
+    await waitFor(() => expect(billingMocks.listRecentEnrollmentsForInvoicing).toHaveBeenCalled());
+
+    const user = userEvent.setup();
+    const enrollmentSelect = document.getElementById(
+      'billing-create-pay-enrollment-select',
+    ) as HTMLSelectElement;
+    await waitFor(() => {
+      expect(enrollmentSelect).toBeTruthy();
+      expect(
+        Array.from(enrollmentSelect.options).some((o) => o.value === '__none__'),
+      ).toBe(true);
+    });
+    await user.selectOptions(enrollmentSelect, '__none__');
+    const amountInput = document.getElementById('billing-create-pay-amount') as HTMLInputElement;
+    await user.clear(amountInput);
+    await user.type(amountInput, '10');
+
+    await user.click(screen.getByRole('button', { name: 'Create customer payment' }));
+
+    await waitFor(() => {
+      expect(billingMocks.createManualInboundCustomerPayment).toHaveBeenCalledWith({
+        direction: 'inbound',
+        enrollmentId: null,
+        amount: '10',
+        currency: 'HKD',
+        method: 'bank_transfer',
+        status: 'pending',
+        externalReference: null,
+      });
+    });
+  });
+
   it('record customer payment editor shows error when createManualInboundCustomerPayment fails', async () => {
     const eid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     billingMocks.listRecentEnrollmentsForInvoicing.mockResolvedValue({
