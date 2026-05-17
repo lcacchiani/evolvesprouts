@@ -17,6 +17,7 @@ import type { components } from '@/types/generated/admin-api.generated';
 import {
   normalizeConsultationPricingModelFromApi,
   normalizeDiscountTypeFromApi,
+  normalizeEventbriteSyncStatusFromApi,
   normalizeEventCategoryFromApi,
   type DiscountCode,
   type DiscountCodeFilters,
@@ -325,6 +326,7 @@ export function parseInstance(value: unknown): ServiceInstance {
     capacityEnrolledCount:
       typeof item.capacity_enrolled_count === 'number' ? item.capacity_enrolled_count : 0,
     waitlistEnabled: asBoolean(item.waitlist_enabled, false),
+    eventbriteSyncStatus: normalizeEventbriteSyncStatusFromApi(item.eventbrite_sync_status),
     externalUrl: asNullableString(item.external_url),
     partnerOrganizations: Array.isArray(item.partner_organizations)
       ? item.partner_organizations

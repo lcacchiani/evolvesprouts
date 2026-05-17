@@ -472,6 +472,7 @@ describe('InstanceDetailPanel', () => {
       capacityLeftOverride: 4,
       capacityLeftEffective: 4,
       waitlistEnabled: true,
+      eventbriteSyncStatus: 'pending',
       externalUrl: null,
       partnerOrganizations: [],
       instructorId: 'inst-1',
@@ -580,6 +581,7 @@ describe('InstanceDetailPanel', () => {
       capacityLeftOverride: null,
       capacityLeftEffective: null,
       waitlistEnabled: false,
+      eventbriteSyncStatus: 'pending',
       externalUrl: null,
       partnerOrganizations: [],
       instructorId: null,
@@ -978,6 +980,7 @@ describe('InstanceDetailPanel', () => {
       capacityLeftOverride: 3,
       capacityLeftEffective: null,
       waitlistEnabled: false,
+      eventbriteSyncStatus: 'pending',
       externalUrl: null,
       partnerOrganizations: [],
       instructorId: null,
@@ -1066,6 +1069,7 @@ describe('InstanceDetailPanel', () => {
       capacityLeftOverride: 5,
       capacityLeftEffective: 5,
       waitlistEnabled: false,
+      eventbriteSyncStatus: 'pending',
       externalUrl: null,
       partnerOrganizations: [],
       instructorId: null,
@@ -1158,6 +1162,7 @@ describe('InstanceDetailPanel', () => {
       capacityLeftOverride: 2,
       capacityLeftEffective: 2,
       waitlistEnabled: false,
+      eventbriteSyncStatus: 'pending',
       externalUrl: null,
       partnerOrganizations: [],
       instructorId: null,
@@ -1228,5 +1233,80 @@ describe('InstanceDetailPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Update instance' }));
     const payload = onUpdate.mock.calls[0][2] as Record<string, unknown>;
     expect(payload.capacity_left_override).toBeNull();
+  });
+
+  it('shows Eventbrite sync status before save actions when editing an instance', () => {
+    const instance: ServiceInstance = {
+      id: 'inst-eb',
+      serviceId: 'service-1',
+      parentServiceTitle: null,
+      parentServiceTier: null,
+      parentServiceType: 'training_course',
+      title: 'EB status',
+      slug: 'eb-status',
+      description: null,
+      coverImageS3Key: null,
+      status: 'scheduled',
+      deliveryMode: 'online',
+      locationId: 'location-1',
+      maxCapacity: null,
+      capacityLeftOverride: null,
+      capacityLeftEffective: null,
+      waitlistEnabled: false,
+      eventbriteSyncStatus: 'failed',
+      externalUrl: null,
+      partnerOrganizations: [],
+      instructorId: null,
+      cohort: null,
+      notes: '',
+      tagIds: [],
+      createdBy: 'admin',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      resolvedTitle: null,
+      resolvedSlug: 'eb-status',
+      resolvedDescription: null,
+      resolvedCoverImageS3Key: null,
+      resolvedDeliveryMode: null,
+      resolvedLocationId: 'location-1',
+      sessionSlots: [],
+      trainingDetails: {
+        trainingFormat: 'group',
+        price: '50',
+        currency: 'HKD',
+        pricingUnit: 'per_person',
+      },
+      resolvedTrainingDetails: {
+        trainingFormat: 'group',
+        price: '50',
+        currency: 'HKD',
+        pricingUnit: 'per_person',
+      },
+      eventTicketTiers: [],
+      resolvedEventTicketTiers: [],
+      consultationDetails: null,
+      resolvedConsultationDetails: null,
+    };
+
+    render(
+      <InstanceDetailPanel
+        {...defaultEntityTagProps}
+        instance={instance}
+        selectedServiceId='service-1'
+        serviceOptions={[buildServiceSummary({ locationId: 'location-1' })]}
+        locationOptions={[buildLocationSummary()]}
+        isLoadingLocations={false}
+        serviceType='training_course'
+        isLoading={false}
+        error=''
+        onSelectService={vi.fn()}
+        onCancelSelection={vi.fn()}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Eventbrite: Failed')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update instance' })).toBeInTheDocument();
   });
 });

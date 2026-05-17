@@ -4797,6 +4797,12 @@ components:
     InstanceStatus:
       type: string
       enum: [scheduled, open, full, in_progress, completed, cancelled]
+    EventbriteSyncStatus:
+      type: string
+      enum: [pending, syncing, synced, failed, skipped]
+      description: >
+        Eventbrite async publish pipeline state on `service_instances`. `skipped` is used for
+        rows that intentionally do not sync (for example consultation booking children).
     DiscountType:
       type: string
       enum: [percentage, absolute, referral]
@@ -5240,7 +5246,7 @@ components:
           description: Partner organization venue id when set (FK locations).
     ServiceInstance:
       type: object
-      required: [id, service_id, status, slug, resolved_slug]
+      required: [id, service_id, status, slug, resolved_slug, eventbrite_sync_status]
       properties:
         id:
           type: string
@@ -5302,6 +5308,9 @@ components:
             is null (even if `capacity_left_override` is stored on the row).
         waitlist_enabled:
           type: boolean
+        eventbrite_sync_status:
+          $ref: "#/components/schemas/EventbriteSyncStatus"
+          description: Eventbrite publish pipeline state for this instance row.
         external_url:
           type: string
           format: uri

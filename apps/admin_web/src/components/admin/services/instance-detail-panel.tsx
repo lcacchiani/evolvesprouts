@@ -54,7 +54,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useInstructorUsers } from '@/hooks/use-instructor-users';
 import { conflictFieldUserMessage } from '@/lib/admin-api-conflict-messages';
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
-import { buildSessionSlotsUtcPayload, mapSessionSlotsFromApiToForm } from '@/lib/format';
+import { buildSessionSlotsUtcPayload, formatEnumLabel, mapSessionSlotsFromApiToForm } from '@/lib/format';
 import { filterLocationsForInstance } from '@/lib/instance-location-options';
 import type { EntityTagRef } from '@/lib/entity-api';
 import { computeSuggestedInstanceSlug, INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
@@ -914,6 +914,12 @@ export function InstanceDetailPanel({
       {entityTagsError ? <AdminInlineError>{entityTagsError}</AdminInlineError> : null}
       {locationError ? <AdminInlineError>{locationError}</AdminInlineError> : null}
       {error ? <AdminInlineError>{error}</AdminInlineError> : null}
+
+      {isEditMode && instance ? (
+        <div className='text-sm text-slate-600'>
+          <p>Eventbrite: {formatEnumLabel(instance.eventbriteSyncStatus)}</p>
+        </div>
+      ) : null}
     </AdminEditorCard>
   );
 }

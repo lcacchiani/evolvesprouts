@@ -166,6 +166,7 @@ const INSTANCE_FOR_SEARCH: ServiceInstance = {
   capacityLeftOverride: null,
   capacityLeftEffective: null,
   waitlistEnabled: false,
+  eventbriteSyncStatus: 'pending',
   externalUrl: null,
   partnerOrganizations: [],
   instructorId: null,

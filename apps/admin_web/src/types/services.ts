@@ -86,6 +86,27 @@ export const INSTANCE_STATUSES = defineEnumValues<InstanceStatus>()(
   ['scheduled', 'open', 'full', 'in_progress', 'completed', 'cancelled'] as const satisfies readonly InstanceStatus[]
 );
 
+export type EventbriteSyncStatus = ApiSchemas['EventbriteSyncStatus'];
+export const EVENTBRITE_SYNC_STATUSES = defineEnumValues<EventbriteSyncStatus>()(
+  ['pending', 'syncing', 'synced', 'failed', 'skipped'] as const satisfies readonly EventbriteSyncStatus[]
+);
+
+const EVENTBRITE_SYNC_STATUS_SET = new Set<string>(EVENTBRITE_SYNC_STATUSES);
+
+/**
+ * Map API `eventbrite_sync_status` to a known enum value for display and typing.
+ * Unknown values fall back to `pending`.
+ */
+export function normalizeEventbriteSyncStatusFromApi(raw: unknown): EventbriteSyncStatus {
+  if (typeof raw !== 'string') {
+    return 'pending';
+  }
+  const normalized = raw.trim().toLowerCase();
+  return EVENTBRITE_SYNC_STATUS_SET.has(normalized)
+    ? (normalized as EventbriteSyncStatus)
+    : 'pending';
+}
+
 export type DiscountType = ApiSchemas['DiscountType'];
 export const DISCOUNT_TYPES = defineEnumValues<DiscountType>()(
   ['percentage', 'absolute', 'referral'] as const satisfies readonly DiscountType[]
@@ -286,6 +307,8 @@ export interface ServiceInstance {
   /** Enrollments that count toward capacity (registered, confirmed, completed). From admin API. */
   capacityEnrolledCount?: number;
   waitlistEnabled: boolean;
+  /** Eventbrite async publish pipeline state from admin instance payloads. */
+  eventbriteSyncStatus: EventbriteSyncStatus;
   externalUrl: string | null;
   partnerOrganizations: PartnerOrgRef[];
   instructorId: string | null;
