@@ -5774,6 +5774,11 @@ export interface components {
         /** @enum {string} */
         InstanceStatus: "scheduled" | "open" | "full" | "in_progress" | "completed" | "cancelled";
         /**
+         * @description Eventbrite async publish pipeline state on `service_instances`. `skipped` is used for rows that intentionally do not sync (for example consultation booking children).
+         * @enum {string}
+         */
+        EventbriteSyncStatus: "pending" | "syncing" | "synced" | "failed" | "skipped";
+        /**
          * @description Discount type. `referral` codes are tracking-only: the server always
          *     coerces `discount_value` to "0" and `currency` to "HKD", and the public
          *     discount-validate endpoint rejects referral codes.
@@ -5993,6 +5998,8 @@ export interface components {
             /** @description Read-only effective spots remaining for display: `max(0, max_capacity - capacity_enrolled_count)` capped by `capacity_left_override` when both `max_capacity` and `capacity_left_override` are set; null when `max_capacity` is null (even if `capacity_left_override` is stored on the row). */
             readonly capacity_left_effective?: number | null;
             waitlist_enabled?: boolean;
+            /** @description Eventbrite publish pipeline state for this instance row. */
+            eventbrite_sync_status: components["schemas"]["EventbriteSyncStatus"];
             /**
              * Format: uri
              * @description Optional external registration or info URL (http/https only). Distinct from Eventbrite sync URLs on the instance.

@@ -22,6 +22,7 @@ const BASE_INSTANCE: ServiceInstance = {
   capacityLeftOverride: null,
   capacityLeftEffective: null,
   waitlistEnabled: false,
+  eventbriteSyncStatus: 'pending',
   externalUrl: null,
   partnerOrganizations: [],
   instructorId: null,

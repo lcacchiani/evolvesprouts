@@ -449,6 +449,7 @@ describe('services-api', () => {
       location_id: null,
       max_capacity: 1,
       waitlist_enabled: false,
+      eventbrite_sync_status: 'skipped',
       external_url: null,
       partner_organizations: [],
       instructor_id: null,
@@ -475,5 +476,49 @@ describe('services-api', () => {
     expect(parsed.slug).toBe('booking-slug');
     expect(parsed.serviceId).toBe('svc-1');
     expect(parsed.parentServiceKey).toBe('family-consultation-essentials');
+    expect(parsed.eventbriteSyncStatus).toBe('skipped');
+  });
+
+  it('parseInstance defaults eventbrite_sync_status to pending when omitted', () => {
+    const parsed = parseInstance({
+      id: 'inst-eb-default',
+      service_id: 'svc-1',
+      parent_service_title: null,
+      parent_service_tier: null,
+      parent_service_type: 'event',
+      parent_service_key: null,
+      title: null,
+      slug: 'eb-default-slug',
+      description: null,
+      cover_image_s3_key: null,
+      status: 'scheduled',
+      delivery_mode: null,
+      location_id: null,
+      max_capacity: null,
+      waitlist_enabled: false,
+      external_url: null,
+      partner_organizations: [],
+      instructor_id: null,
+      cohort: null,
+      notes: null,
+      tag_ids: [],
+      created_by: 'admin-sub',
+      created_at: '2026-03-01T10:00:00Z',
+      updated_at: '2026-03-01T10:00:00Z',
+      resolved_title: null,
+      resolved_slug: 'eb-default-slug',
+      resolved_description: null,
+      resolved_cover_image_s3_key: null,
+      resolved_delivery_mode: null,
+      resolved_location_id: null,
+      session_slots: [],
+      training_details: null,
+      resolved_training_details: null,
+      event_ticket_tiers: [],
+      resolved_event_ticket_tiers: [],
+      consultation_details: null,
+      resolved_consultation_details: null,
+    });
+    expect(parsed.eventbriteSyncStatus).toBe('pending');
   });
 });

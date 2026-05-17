@@ -20,6 +20,7 @@ from app.db.models import (
 from app.db.models.enums import (
     CAPACITY_ENROLLMENT_STATUSES,
     ConsultationPricingModel,
+    EventbriteSyncStatus,
     ServiceType,
 )
 from app.utils.logging import get_logger
@@ -291,6 +292,11 @@ def serialize_instance(
             capacity_left_override=instance.capacity_left_override,
         ),
         "waitlist_enabled": instance.waitlist_enabled,
+        "eventbrite_sync_status": (
+            instance.eventbrite_sync_status.value
+            if instance.eventbrite_sync_status is not None
+            else EventbriteSyncStatus.PENDING.value
+        ),
         "external_url": instance.external_url,
         "partner_organizations": [
             {
