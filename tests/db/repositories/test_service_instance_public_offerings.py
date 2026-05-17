@@ -179,3 +179,124 @@ def test_list_public_offerings_omits_empty_slug_instances() -> None:
         ids = [r.id for r in rows if r.id in (inst_null, inst_slug)]
         assert inst_null not in ids
         assert inst_slug in ids
+
+
+@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+def test_list_public_offerings_includes_recent_finished_events_only() -> None:
+    """Finished ``event`` instances within 90 days stay on the public feed."""
+    url = _database_url()
+    assert url is not None
+    engine = create_engine(_sqlalchemy_engine_url(url))
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+
+    ref = datetime(2035, 3, 1, 10, 0, 0, tzinfo=UTC)
+    ends_recent = ref - timedelta(days=20)
+    starts_recent = ends_recent - timedelta(hours=2)
+    ends_old = ref - timedelta(days=120)
+    starts_old = ends_old - timedelta(hours=2)
+
+    area_id = uuid4()
+    loc_id = uuid4()
+    service_id = uuid4()
+    inst_recent = uuid4()
+    inst_old = uuid4()
+
+    with SessionLocal() as session:
+        session.add(
+            GeographicArea(
+                id=area_id,
+                parent_id=None,
+                name="Area FE",
+                name_translations={},
+                level="country",
+                code="HK",
+                active=True,
+                display_order=0,
+                sovereign_country_id=None,
+            )
+        )
+        session.add(
+            Location(
+                id=loc_id,
+                area_id=area_id,
+                name="Venue FE",
+                address="2 St",
+                lat=None,
+                lng=None,
+            )
+        )
+        session.add(
+            Service(
+                id=service_id,
+                service_type=ServiceType.EVENT,
+                title="Finished Feed Svc",
+                service_key=f"fin-feed-{service_id.hex[:8]}",
+                booking_system=None,
+                description=None,
+                cover_image_s3_key=None,
+                delivery_mode=ServiceDeliveryMode.IN_PERSON,
+                status=ServiceStatus.PUBLISHED,
+                created_by="pytest",
+                location_id=loc_id,
+            )
+        )
+        session.add(
+            EventDetails(
+                service_id=service_id,
+                event_category=EventCategory.WORKSHOP,
+                default_price=Decimal("10.00"),
+                default_currency="HKD",
+            )
+        )
+        for inst_id, slug_suffix, starts_at, ends_at in (
+            (inst_recent, inst_recent.hex[:8], starts_recent, ends_recent),
+            (inst_old, inst_old.hex[:8], starts_old, ends_old),
+        ):
+            session.add(
+                ServiceInstance(
+                    id=inst_id,
+                    service_id=service_id,
+                    title=f"Finished {slug_suffix}",
+                    slug=f"pytest-fin-ev-{slug_suffix}",
+                    description=None,
+                    cover_image_s3_key=None,
+                    status=InstanceStatus.COMPLETED,
+                    delivery_mode=ServiceDeliveryMode.IN_PERSON,
+                    location_id=loc_id,
+                    max_capacity=10,
+                    waitlist_enabled=False,
+                    instructor_id=None,
+                    cohort=None,
+                    notes=None,
+                    external_url=None,
+                    created_by="pytest",
+                )
+            )
+            session.add(
+                InstanceSessionSlot(
+                    instance_id=inst_id,
+                    location_id=loc_id,
+                    starts_at=starts_at,
+                    ends_at=ends_at,
+                    sort_order=0,
+                )
+            )
+            session.add(
+                EventTicketTier(
+                    instance_id=inst_id,
+                    name="tier",
+                    description=None,
+                    price=Decimal("10.00"),
+                    currency="HKD",
+                    max_quantity=None,
+                    sort_order=0,
+                )
+            )
+        session.commit()
+
+    with SessionLocal() as session:
+        repo = ServiceInstanceRepository(session)
+        rows = repo.list_public_offerings(limit=200, now=ref)
+        row_ids = {r.id for r in rows}
+        assert inst_recent in row_ids
+        assert inst_old not in row_ids

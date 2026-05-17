@@ -591,7 +591,7 @@ that intersect nominal local windows (09:00–12:00 → `am`, 14:00–18:00 → 
 `CALENDAR_BLOCKERS_WALL_TIMEZONE` (default `Asia/Hong_Kong`). Session-derived eligibility
 reuses the same SQL predicates as `ServiceInstanceRepository.list_public_offerings`
 (via `public_calendar_blocker_instance_predicates`), excluding feed-only filters
-(``ends_at >= now``, slug/service_key/limit).
+(active session cutoff, finished-event lookback, slug/service_key/limit).
 
 **Public `purpose`:** Only `consultation_booking` is allowed in this release; other
 values return **400**.

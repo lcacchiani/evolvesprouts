@@ -160,6 +160,7 @@ their primary responsibilities.
   `/www/v1/calendar/public` (public calendar feed: returns **event** and
   **training_course** `service_instances` for published services; consultation
   is intentionally excluded. Instances with an empty `service_instances.slug` are omitted.
+  Visibility: instances with any session not yet ended, or **event** instances whose last session ended within the prior 90 days (finished **training_course** rows are omitted).
   Each item includes `service_type`,
   `slug` (public instance slug from `service_instances.slug`), parent `service_key`
   (nullable `services.service_key`; required for public discount validate and reservation
@@ -174,7 +175,7 @@ their primary responsibilities.
   from `services.booking_system` or defaults from service type (MBA training
   cohorts default to `my-best-auntie-booking` when `services.service_key` is
   `my-best-auntie-training-course`). Results order by earliest upcoming session slot ascending
-  with `service_instances.id` as tie-break. Optional query filters:
+  with `service_instances.id` as tie-break (finished **event** rows sort after active rows). Optional query filters:
   `slug` (matched case-insensitively against `service_instances.slug`), `service_type`,
   `service_key` (matched case-insensitively against `services.service_key`; invalid values
   ignored). `slug` echoes from `service_instances`; when `max_capacity` is set,

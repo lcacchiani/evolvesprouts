@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
@@ -29,6 +29,9 @@ from app.db.repositories.base import BaseRepository
 
 InstanceDetails = TrainingInstanceDetails | list[EventTicketTier] | None
 
+# ~3 calendar months: finished event instances remain visible on the public calendar feed.
+PUBLIC_CALENDAR_FINISHED_EVENT_LOOKBACK = timedelta(days=90)
+
 _PUBLIC_CALENDAR_BLOCKER_DEFAULT_TYPES: tuple[ServiceType, ...] = (
     ServiceType.EVENT,
     ServiceType.TRAINING_COURSE,
@@ -43,7 +46,8 @@ def public_calendar_blocker_instance_predicates(
 
     Pass ``service_types`` to mirror :meth:`ServiceInstanceRepository.list_public_offerings`
     (when ``None``, defaults to event + training_course). Excludes list limit, slug,
-    service_key filters, earliest-slot ordering, and the ``ends_at >= now`` feed filter.
+    service_key filters, earliest-slot ordering, and the public calendar feed-only
+    visibility rules (active session cutoff and finished-event lookback).
     """
     types_tuple = (
         _PUBLIC_CALENDAR_BLOCKER_DEFAULT_TYPES if not service_types else service_types
@@ -257,6 +261,11 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
     ) -> list[ServiceInstance]:
         """List public calendar rows for published event and training services.
 
+        Rows include instances with any session not yet ended (``ends_at >= now``),
+        plus **event**-type instances whose last session ended within
+        :data:`PUBLIC_CALENDAR_FINISHED_EVENT_LOOKBACK` (training courses never
+        match this historical branch).
+
         When ``slug`` is set, it is compared to ``lower(service_instances.slug)``;
         the public handler passes a pre-normalized lowercase slug, and callers
         that pass mixed case are still matched defensively via ``lower()`` on the
@@ -289,12 +298,29 @@ class ServiceInstanceRepository(BaseRepository[ServiceInstance]):
                 )
             )
         )
+        has_active_or_upcoming_slot = ServiceInstance.session_slots.any(
+            InstanceSessionSlot.ends_at >= now - datetime.resolution
+        )
+        latest_session_end = (
+            select(func.max(InstanceSessionSlot.ends_at))
+            .where(InstanceSessionSlot.instance_id == ServiceInstance.id)
+            .correlate(ServiceInstance)
+            .scalar_subquery()
+        )
+        lookback_start = now - PUBLIC_CALENDAR_FINISHED_EVENT_LOOKBACK
+        finished_recent_event = and_(
+            Service.service_type == ServiceType.EVENT,
+            latest_session_end.isnot(None),
+            latest_session_end < now,
+            latest_session_end >= lookback_start,
+        )
+        feed_scope = (
+            or_(has_active_or_upcoming_slot, finished_recent_event)
+            if ServiceType.EVENT in types_tuple
+            else has_active_or_upcoming_slot
+        )
         statement = (
-            statement.where(
-                ServiceInstance.session_slots.any(
-                    InstanceSessionSlot.ends_at >= now - datetime.resolution
-                )
-            )
+            statement.where(feed_scope)
             .options(
                 selectinload(ServiceInstance.session_slots).joinedload(
                     InstanceSessionSlot.location

@@ -271,8 +271,17 @@ paths:
         Source of truth is the backend `service_instances` projection for
         published `event` and `training_course` services (consultation is never
         included). Instances with an empty `service_instances.slug` are
-        omitted from this feed. Results are ordered by the earliest upcoming session slot,
-        then `service_instances.id` for a stable tie-break.
+        omitted from this feed.
+
+        Visibility: each instance must either have at least one session slot with
+        `ends_at` not before the server clock (upcoming or in progress), **or**
+        (only when the parent service type is `event`) have all slots ended with the
+        latest `ends_at` within the prior 90 days. Fully concluded `training_course`
+        instances are never returned on this feed.
+
+        Results are ordered by the earliest upcoming session slot,
+        then `service_instances.id` for a stable tie-break (finished `event` rows
+        sort with a null earliest-upcoming value).
 
         Optional filters: `service_type`, `slug`, `service_key`. Filters
         combine via logical AND; contradictory combinations return `events: []`.
@@ -291,7 +300,8 @@ paths:
             enum: [event, training_course]
           description: >
             Restrict feed to one service type. Omitted = both event and
-            training_course are returned. Consultation is never exposed.
+            training_course are returned (finished-event lookback applies only to
+            `event`). Consultation is never exposed.
         - name: slug
           in: query
           required: false
@@ -351,8 +361,17 @@ paths:
         Source of truth is the backend `service_instances` projection for
         published `event` and `training_course` services (consultation is never
         included). Instances with an empty `service_instances.slug` are
-        omitted from this feed. Results are ordered by the earliest upcoming session slot,
-        then `service_instances.id` for a stable tie-break.
+        omitted from this feed.
+
+        Visibility: each instance must either have at least one session slot with
+        `ends_at` not before the server clock (upcoming or in progress), **or**
+        (only when the parent service type is `event`) have all slots ended with the
+        latest `ends_at` within the prior 90 days. Fully concluded `training_course`
+        instances are never returned on this feed.
+
+        Results are ordered by the earliest upcoming session slot,
+        then `service_instances.id` for a stable tie-break (finished `event` rows
+        sort with a null earliest-upcoming value).
 
         Optional filters: `service_type`, `slug`, `service_key`. Filters
         combine via logical AND; contradictory combinations return `events: []`.
@@ -371,7 +390,8 @@ paths:
             enum: [event, training_course]
           description: >
             Restrict feed to one service type. Omitted = both event and
-            training_course are returned. Consultation is never exposed.
+            training_course are returned (finished-event lookback applies only to
+            `event`). Consultation is never exposed.
         - name: slug
           in: query
           required: false
