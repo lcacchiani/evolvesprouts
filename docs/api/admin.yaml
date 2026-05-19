@@ -3240,7 +3240,7 @@ paths:
         Returns all invoices for the tenant; **admin authorization is required** (API Gateway admin group).
         Filter by optional `currency` (three-letter ISO code), `status`, optional `settlement`
         (issued invoices only: `open`, `partially_paid`, `paid`, `no_charge` for zero-total issued invoices,
-        or `not_completed` for issued positive-total rows that are neither paid nor no-charge; combined with `status` using AND),
+        or `not_completed` for draft invoices and issued positive-total rows that are neither paid nor no-charge; combined with `status` using AND),
         and free-text `q` (case-insensitive substring match on `invoice_number`, bill-to display name,
         email, location snapshot text, and ISO `invoice_date` formatted as `YYYY-MM-DD`).
       security:
@@ -3259,8 +3259,8 @@ paths:
             Issued-invoice settlement slice for admin filtering: `open` (issued with balance_due > 0),
             `partially_paid` (issued with amount_allocated > 0 and balance_due > 0), `paid`
             (issued, balance_due zero, amount_allocated > 0, total > 0), `no_charge`
-            (issued with total = 0), or `not_completed` (issued with total > 0 that are not in the
-            `paid` or `no_charge` slices). Combined with `status` using AND.
+            (issued with total = 0), or `not_completed` (draft invoices, or issued with total > 0
+            that are not in the `paid` or `no_charge` slices). Combined with `status` using AND.
           schema:
             type: string
             enum: [open, partially_paid, paid, no_charge, not_completed]
