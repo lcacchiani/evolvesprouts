@@ -2067,10 +2067,11 @@ def test_list_invoices_filters_by_currency_and_status(
         (
             "not_completed",
             (
+                ":status_1",
+                " or customer_invoices.status = :status_2",
                 "customer_invoices.total",
                 "customer_invoices.balance_due",
                 "customer_invoices.amount_allocated",
-                "customer_invoices.status",
             ),
         ),
     ],
