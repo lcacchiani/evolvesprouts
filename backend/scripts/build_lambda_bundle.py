@@ -39,10 +39,24 @@ def _cleanup_bundle(output_dir: Path) -> None:
         cache_file.unlink()
 
 
+# Lambda Python 3.12 runs on Amazon Linux 2023 (glibc 2.34), so wheels tagged
+# manylinux_2_28 are compatible. Newer projects (for example psycopg-binary
+# 3.3.x) raised their manylinux baseline and no longer publish
+# manylinux_2_17_aarch64 wheels, so we must request the newer tags. We still
+# accept manylinux_2_17_aarch64 as a fallback for older transitive deps that
+# only publish that tag. pip will pick the most specific available wheel.
+_LAMBDA_PIP_PLATFORMS: tuple[str, ...] = (
+    "manylinux_2_28_aarch64",
+    "manylinux_2_27_aarch64",
+    "manylinux_2_17_aarch64",
+)
+
+
 def _requirements_cache_key(requirements: Path) -> str:
     hasher = hashlib.sha256()
     hasher.update(requirements.read_bytes())
-    hasher.update(b"\nplatform=manylinux_2_17_aarch64")
+    for platform in _LAMBDA_PIP_PLATFORMS:
+        hasher.update(f"\nplatform={platform}".encode())
     hasher.update(b"\nimplementation=cp")
     hasher.update(b"\npython_version=3.12")
     return hasher.hexdigest()
@@ -121,32 +135,34 @@ def _build_dependency_cache(
         shutil.rmtree(temp_cache_dir)
     temp_cache_dir.mkdir(parents=True, exist_ok=True)
 
+    pip_command: list[str] = [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "-r",
+        "requirements.txt",
+        "-t",
+        str(temp_cache_dir),
+        "--no-compile",
+        "--disable-pip-version-check",
+    ]
+    # Use Lambda-compatible wheels (Amazon Linux 2023 / manylinux_2_28 baseline,
+    # glibc 2.34) on ARM64 (Graviton2) - matches Lambda runtime config.
+    for platform in _LAMBDA_PIP_PLATFORMS:
+        pip_command.extend(["--platform", platform])
+    pip_command.extend(
+        [
+            "--only-binary=:all:",
+            "--implementation",
+            "cp",
+            "--python-version",
+            "3.12",
+        ]
+    )
+
     try:
-        _run_pip(
-            [
-                sys.executable,
-                "-m",
-                "pip",
-                "install",
-                "-r",
-                "requirements.txt",
-                "-t",
-                str(temp_cache_dir),
-                "--no-compile",
-                "--disable-pip-version-check",
-                # Use Lambda-compatible wheels (Amazon Linux 2023 / manylinux)
-                # ARM64 architecture (Graviton2) - matches Lambda config
-                "--platform",
-                "manylinux_2_17_aarch64",
-                "--only-binary=:all:",
-                "--implementation",
-                "cp",
-                "--python-version",
-                "3.12",
-            ],
-            cwd=source_root,
-            env=env,
-        )
+        _run_pip(pip_command, cwd=source_root, env=env)
         _cleanup_bundle(temp_cache_dir)
         if cache_dir.exists():
             shutil.rmtree(cache_dir)
