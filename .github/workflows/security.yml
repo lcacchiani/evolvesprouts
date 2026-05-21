@@ -40,9 +40,16 @@ jobs:
 
       - name: Run pip-audit
         working-directory: backend
+        # Ignored advisories:
+        # - PYSEC-2025-183 / CVE-2025-45768: disputed by the pyjwt maintainer
+        #   (advisory states "this is disputed by the Supplier because the key
+        #   length is chosen by the application that uses the library").
+        #   Affects all pyjwt versions with no published fix version, so it is
+        #   not actionable here. Application code that signs/verifies JWTs is
+        #   responsible for enforcing minimum key length.
         run: |
-          pip-audit -r requirements.txt --desc on --format json --output audit-results.json || true
-          pip-audit -r requirements.txt --desc on
+          pip-audit -r requirements.txt --desc on --ignore-vuln PYSEC-2025-183 --format json --output audit-results.json || true
+          pip-audit -r requirements.txt --desc on --ignore-vuln PYSEC-2025-183
 
       - name: Upload audit results
         uses: actions/upload-artifact@v7
