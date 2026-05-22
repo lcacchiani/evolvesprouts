@@ -51,6 +51,98 @@ def _inv_line(**kwargs: object) -> SimpleNamespace:
     return SimpleNamespace(**defaults)
 
 
+def test_contact_bill_to_with_family_membership_renders_address_end_to_end(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """End-to-end: CONTACT bill-to → membership fallback resolver → PDF includes address.
+
+    Reproduces the production report ("contact has a location but the address
+    isn't on the PDF") by wiring the real resolver to the real renderer. The
+    contact has no own ``location_id`` (admin contact mutations forbid it for
+    family-linked contacts); the address must surface from the family's
+    ``location_id`` via ``_contact_membership_location_snapshot``.
+    """
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Contact, Family, Location
+
+    _base_invoice_env(monkeypatch)
+
+    cid = uuid4()
+    fid = uuid4()
+    lid = uuid4()
+    contact = SimpleNamespace(
+        id=cid,
+        email="parent@example.com",
+        first_name="Pat",
+        last_name="Ng",
+        location_id=None,
+    )
+    fam = SimpleNamespace(id=fid, family_name="Ng Family", location_id=lid)
+    loc = SimpleNamespace(name="Ng Family Home", address="1 Lane\nKowloon")
+
+    session = MagicMock()
+
+    def _get(model: object, pk: object) -> object | None:
+        if model is Contact and pk == cid:
+            return contact
+        if model is Family and pk == fid:
+            return fam
+        if model is Location and pk == lid:
+            return loc
+        return None
+
+    session.get.side_effect = _get
+    fam_result = MagicMock()
+    fam_result.scalar_one_or_none.return_value = fam
+    session.execute.return_value = fam_result
+
+    inv = SimpleNamespace(
+        invoice_number="INV-MEM-1",
+        currency="HKD",
+        subtotal=Decimal("100"),
+        tax_total=Decimal("0"),
+        total=Decimal("100"),
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_family_id=None,
+        bill_to_organization_id=None,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)
+
+    assert inv.bill_to_display_name == "Pat Ng"
+    assert inv.bill_to_email == "parent@example.com"
+    # Family fallback drops the venue name.
+    assert inv.bill_to_location_text == "1 Lane\nKowloon"
+
+    pdf = render_invoice_pdf(
+        invoice=inv,
+        lines=[
+            _inv_line(
+                description="Workshop",
+                unit_amount=Decimal("100"),
+                line_total=Decimal("100"),
+            )
+        ],
+        preview=False,
+    )
+    text = _pdf_text(pdf)
+    assert "Pat Ng" in text
+    assert "1 Lane" in text
+    assert "Kowloon" in text
+    # Email is suppressed when a location snapshot is present (postal block).
+    assert "parent@example.com" not in text
+
+
 def test_bill_to_location_text_renders_in_pdf(monkeypatch: pytest.MonkeyPatch) -> None:
     _base_invoice_env(monkeypatch)
     inv = SimpleNamespace(
