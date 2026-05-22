@@ -664,8 +664,8 @@ Migration `0055_customer_billing_ar` introduces:
   in `INVOICE_DISPLAY_TIMEZONE` as before. PDF rendering prefers these columns when set.
 - Migration `0064_invoice_bill_to_location` adds nullable `bill_to_location_text` on
   `customer_invoices` (CRM snapshot of linked `locations` venue/address plus geographic
-  district and country labels when resolvable, refreshed when drafts are resolved, on every
-  draft PDF download so previews track CRM edits, and again immediately before issuance).
+  district and country labels when resolvable, refreshed when drafts are resolved and again
+  immediately before issuance).
 - Migration `0066_cp_enroll_extref_uq` adds a partial unique index on
   `customer_payments (enrollment_id, external_reference)` when `external_reference` is not null,
   so duplicate manual inbound references for the same enrollment return HTTP 409 from the admin API.
