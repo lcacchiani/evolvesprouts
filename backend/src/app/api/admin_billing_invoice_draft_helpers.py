@@ -241,18 +241,10 @@ def _contact_membership_location_snapshot(
     When a contact is linked to a family or organization, ``Contact.location_id`` is
     intentionally null — admin contact mutations forbid setting it, so the address is
     owned by the family/organization record (see ``admin_contacts_mutations``). For
-    CONTACT bill-to invoices we still want the address on the PDF, so iterate through
-    each family the contact belongs to, mirroring the FAMILY bill-to resolution
-    (use ``family.location_id`` first; if absent, fall back to the family's primary
-    contact's ``location_id`` for legacy data where the address sat on the primary
-    contact instead of the family). Render with ``include_venue_name=False`` to match
-    the FAMILY bill-to convention. Then iterate through the contact's organization
-    memberships using ``organization.location_id`` with ``include_venue_name=True``
-    (matching the ORGANIZATION branch). Return the first non-empty snapshot text;
-    if no membership yields an address, return ``None``.
-
-    Iterating (rather than ``LIMIT 1``) handles the case where a contact belongs to
-    multiple families/orgs and only some have a populated address.
+    CONTACT bill-to invoices we still want the address on the PDF, so fall back to the
+    first family the contact belongs to that has a ``location_id`` (rendered without
+    the venue name, matching the FAMILY bill-to branch), then the first organization
+    with a ``location_id`` (with venue name, matching the ORGANIZATION branch).
     """
     contact_id = getattr(contact, "id", None)
     if contact_id is None:
@@ -261,26 +253,15 @@ def _contact_membership_location_snapshot(
         select(Family)
         .join(FamilyMember, FamilyMember.family_id == Family.id)
         .where(FamilyMember.contact_id == contact_id)
+        .where(Family.location_id.is_not(None))
         .order_by(Family.family_name, FamilyMember.id)
+        .limit(1)
     )
-    for fam in session.execute(fam_stmt).scalars():
-        loc_id = getattr(fam, "location_id", None)
-        if loc_id is None:
-            primary_stmt = (
-                select(Contact)
-                .join(FamilyMember, FamilyMember.contact_id == Contact.id)
-                .where(FamilyMember.family_id == fam.id)
-                .where(FamilyMember.is_primary_contact.is_(True))
-                .limit(1)
-            )
-            primary = session.execute(primary_stmt).scalar_one_or_none()
-            if primary is not None:
-                loc_id = getattr(primary, "location_id", None)
-        if loc_id is None:
-            continue
+    fam = session.execute(fam_stmt).scalar_one_or_none()
+    if fam is not None:
         text = _bill_to_location_snapshot_text(
             session,
-            loc_id,
+            getattr(fam, "location_id", None),
             include_venue_name=False,
         )
         if text:
@@ -292,15 +273,15 @@ def _contact_membership_location_snapshot(
             OrganizationMember.organization_id == Organization.id,
         )
         .where(OrganizationMember.contact_id == contact_id)
+        .where(Organization.location_id.is_not(None))
         .order_by(Organization.name, OrganizationMember.id)
+        .limit(1)
     )
-    for org in session.execute(org_stmt).scalars():
-        loc_id = getattr(org, "location_id", None)
-        if loc_id is None:
-            continue
+    org = session.execute(org_stmt).scalar_one_or_none()
+    if org is not None:
         text = _bill_to_location_snapshot_text(
             session,
-            loc_id,
+            getattr(org, "location_id", None),
             include_venue_name=True,
         )
         if text:
