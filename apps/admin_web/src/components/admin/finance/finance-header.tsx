@@ -15,7 +15,7 @@ export const FINANCE_TAB_KEYS: readonly FinanceView[] = FINANCE_TAB_ITEMS.map(
   (item) => item.key
 );
 
-export const DEFAULT_FINANCE_VIEW: FinanceView = 'expenses';
+export const DEFAULT_FINANCE_VIEW: FinanceView = 'client-invoices';
 
 export interface FinanceHeaderProps {
   activeView: FinanceView;

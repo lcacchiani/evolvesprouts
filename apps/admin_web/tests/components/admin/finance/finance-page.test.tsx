@@ -120,22 +120,23 @@ describe('FinancePage', () => {
     expect(screen.getByRole('button', { name: 'Vendors' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Client Invoices' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Tax' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Expense Details' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Create draft invoice' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Vendors' }));
     expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
     expect(mockListAllAdminExpenses).toHaveBeenCalled();
     expect(window.location.search).toBe('?tab=vendors');
 
-    await user.click(screen.getByRole('button', { name: 'Client Invoices' }));
-    expect(screen.getByRole('heading', { name: 'Create draft invoice' })).toBeInTheDocument();
-    expect(window.location.search).toBe('?tab=client-invoices');
-
     await user.click(screen.getByRole('button', { name: 'Tax' }));
     expect(screen.getByRole('heading', { name: 'Tax fiscal snapshot' })).toBeInTheDocument();
     expect(window.location.search).toBe('?tab=tax');
 
     await user.click(screen.getByRole('button', { name: 'Expenses' }));
+    expect(screen.getByRole('heading', { name: 'Expense Details' })).toBeInTheDocument();
+    expect(window.location.search).toBe('?tab=expenses');
+
+    await user.click(screen.getByRole('button', { name: 'Client Invoices' }));
+    expect(screen.getByRole('heading', { name: 'Create draft invoice' })).toBeInTheDocument();
     expect(window.location.search).toBe('');
   });
 
@@ -148,6 +149,7 @@ describe('FinancePage', () => {
   });
 
   it('renders expense editor before bulk PDF import and submitted expenses list', () => {
+    window.history.replaceState(null, '', '/finance?tab=expenses');
     render(<FinancePage />);
 
     const editorHeading = screen.getByRole('heading', { name: 'Expense Details' });
@@ -167,6 +169,7 @@ describe('FinancePage', () => {
   });
 
   it('renders expense currency as a dropdown', () => {
+    window.history.replaceState(null, '', '/finance?tab=expenses');
     render(<FinancePage />);
     const currencyField = screen.getByLabelText('Currency');
     expect(currencyField.tagName).toBe('SELECT');

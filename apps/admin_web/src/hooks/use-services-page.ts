@@ -27,7 +27,7 @@ export const SERVICES_VIEW_KEYS: readonly ServicesView[] = [
   'venues',
   'partners',
 ];
-export const DEFAULT_SERVICES_VIEW: ServicesView = 'catalog';
+export const DEFAULT_SERVICES_VIEW: ServicesView = 'instances';
 
 /** Instances list toolbar status filter; empty string means all statuses. */
 export type InstancesListStatusFilter = '' | 'not_completed' | 'completed';
