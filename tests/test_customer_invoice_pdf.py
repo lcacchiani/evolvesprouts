@@ -94,9 +94,21 @@ def test_contact_bill_to_with_family_membership_renders_address_end_to_end(
         return None
 
     session.get.side_effect = _get
-    fam_result = MagicMock()
-    fam_result.scalar_one_or_none.return_value = fam
-    session.execute.return_value = fam_result
+
+    def _execute(stmt: object) -> MagicMock:
+        compiled = str(stmt).lower()
+        result = MagicMock()
+        if "is_primary_contact" in compiled:
+            result.scalar_one_or_none.return_value = None
+            return result
+        if "from families" in compiled or "join family_members" in compiled:
+            result.scalars.return_value = [fam]
+            return result
+        result.scalars.return_value = []
+        result.scalar_one_or_none.return_value = None
+        return result
+
+    session.execute.side_effect = _execute
 
     inv = SimpleNamespace(
         invoice_number="INV-MEM-1",

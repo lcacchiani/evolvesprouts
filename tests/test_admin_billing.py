@@ -2041,7 +2041,6 @@ def test_get_invoice_pdf_heals_empty_bill_to_snapshot_for_issued(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.execute.return_value.scalar_one_or_none.return_value = inv
 
         def _get(model: Any, pk: Any) -> Any:
             if model is Contact and pk == cid:
@@ -2056,15 +2055,26 @@ def test_get_invoice_pdf_heals_empty_bill_to_snapshot_for_issued(
 
         s.get.side_effect = _get
 
-        # Family-membership query returns the family; subsequent queries (e.g.
-        # _build_bill_to_snapshot's CustomerInvoice loads via session.get) are
-        # unaffected.
-        fam_result = MagicMock()
-        fam_result.scalar_one_or_none.return_value = fam
-        # First execute: invoice load; second execute: family-membership lookup.
-        invoice_result = MagicMock()
-        invoice_result.scalar_one_or_none.return_value = inv
-        s.execute.side_effect = [invoice_result, fam_result]
+        # Differentiate execute calls: invoice load (selectinload from
+        # customer_invoices) returns the invoice; family iteration via
+        # ``scalars()`` returns ``[fam]``; org iteration returns ``[]``.
+        def _execute(stmt: Any) -> Any:
+            compiled = str(stmt).lower()
+            result = MagicMock()
+            if "from customer_invoices" in compiled:
+                result.scalar_one_or_none.return_value = inv
+                return result
+            if "is_primary_contact" in compiled:
+                result.scalar_one_or_none.return_value = None
+                return result
+            if "from families" in compiled or "join family_members" in compiled:
+                result.scalars.return_value = [fam]
+                return result
+            result.scalar_one_or_none.return_value = None
+            result.scalars.return_value = []
+            return result
+
+        s.execute.side_effect = _execute
         yield s
 
     _patch_billing_sessions(monkeypatch, _fake_session)
@@ -2153,13 +2163,17 @@ def test_get_invoice_pdf_does_not_heal_when_resolution_still_empty(
 
         s.get.side_effect = _get
 
-        invoice_result = MagicMock()
-        invoice_result.scalar_one_or_none.return_value = inv
-        empty_result = MagicMock()
-        empty_result.scalar_one_or_none.return_value = None
-        # Sequence: invoice load, family-membership query (None), org-membership
-        # query (None).
-        s.execute.side_effect = [invoice_result, empty_result, empty_result]
+        def _execute(stmt: Any) -> Any:
+            compiled = str(stmt).lower()
+            result = MagicMock()
+            if "from customer_invoices" in compiled:
+                result.scalar_one_or_none.return_value = inv
+                return result
+            result.scalar_one_or_none.return_value = None
+            result.scalars.return_value = []
+            return result
+
+        s.execute.side_effect = _execute
         yield s
 
     _patch_billing_sessions(monkeypatch, _fake_session)
@@ -5353,6 +5367,40 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_includes_location_text()
     assert inv.bill_to_location_text == "Harbour Studio\n1 Pier\nCentral"
 
 
+def _membership_execute_factory(
+    *,
+    families: list[Any] | None = None,
+    organizations: list[Any] | None = None,
+    primary_contact: Any | None = None,
+):
+    """Build a ``session.execute`` side_effect for the contact-membership fallback.
+
+    Differentiates queries by inspecting the compiled SQL: the family/organization
+    membership lookups iterate via ``scalars()``; the primary-contact-by-family
+    lookup (used when a family has no own ``location_id``) uses
+    ``scalar_one_or_none()``.
+    """
+
+    def _execute(stmt: Any) -> Any:
+        compiled = str(stmt).lower()
+        result = MagicMock()
+        if "is_primary_contact" in compiled:
+            result.scalar_one_or_none.return_value = primary_contact
+            return result
+        if "from families" in compiled or "join family_members" in compiled:
+            result.scalars.return_value = list(families or [])
+            return result
+        if "from organizations" in compiled or "join organization_members" in compiled:
+            result.scalars.return_value = list(organizations or [])
+            return result
+        # Fallback for any other queries (e.g. invoice loads in the heal path).
+        result.scalar_one_or_none.return_value = None
+        result.scalars.return_value = []
+        return result
+
+    return _execute
+
+
 def test_resolve_bill_to_party_from_invoice_fks_contact_falls_back_to_family_location() -> None:
     """Contact bill-to with no own location uses the contact's family location.
 
@@ -5391,10 +5439,7 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_falls_back_to_family_loc
         return None
 
     session.get.side_effect = _get
-
-    fam_result = MagicMock()
-    fam_result.scalar_one_or_none.return_value = fam
-    session.execute.return_value = fam_result
+    session.execute.side_effect = _membership_execute_factory(families=[fam])
 
     inv = SimpleNamespace(
         bill_to_kind=BillingBillToKind.CONTACT,
@@ -5405,6 +5450,65 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_falls_back_to_family_loc
     )
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_location_text == "1 Lane\nKowloon"
+
+
+def test_resolve_bill_to_party_from_invoice_fks_contact_uses_family_primary_location_fallback() -> None:
+    """Contact bill-to: when family has no own location, use primary contact's location.
+
+    Mirrors the FAMILY bill-to branch's primary-contact-location fallback so legacy
+    data where the family entity has no ``location_id`` but its primary contact does
+    still surfaces an address on contact-billed invoices.
+    """
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Contact, Location
+
+    cid = uuid4()
+    fid = uuid4()
+    pid = uuid4()
+    lid = uuid4()
+    contact = SimpleNamespace(
+        id=cid,
+        email="kid@example.com",
+        first_name="Sam",
+        last_name="Ng",
+        location_id=None,
+    )
+    fam = SimpleNamespace(id=fid, family_name="Ng Family", location_id=None)
+    primary = SimpleNamespace(
+        id=pid,
+        first_name="Pat",
+        last_name="Ng",
+        email="pat@example.com",
+        location_id=lid,
+    )
+    loc = SimpleNamespace(name="Ng Home", address="3 Avenue\nCentral")
+
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Contact and pk == cid:
+            return contact
+        if model is Location and pk == lid:
+            return loc
+        return None
+
+    session.get.side_effect = _get
+    session.execute.side_effect = _membership_execute_factory(
+        families=[fam],
+        primary_contact=primary,
+    )
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_location_text == "3 Avenue\nCentral"
 
 
 def test_resolve_bill_to_party_from_invoice_fks_contact_falls_back_to_organization_location() -> None:
@@ -5441,19 +5545,9 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_falls_back_to_organizati
         return None
 
     session.get.side_effect = _get
-
-    fam_result = MagicMock()
-    fam_result.scalar_one_or_none.return_value = None
-    org_result = MagicMock()
-    org_result.scalar_one_or_none.return_value = org
-
-    def _execute(stmt: Any) -> Any:
-        compiled = str(stmt).lower()
-        if "families" in compiled or "family_members" in compiled:
-            return fam_result
-        return org_result
-
-    session.execute.side_effect = _execute
+    session.execute.side_effect = _membership_execute_factory(
+        organizations=[org],
+    )
 
     inv = SimpleNamespace(
         bill_to_kind=BillingBillToKind.CONTACT,
@@ -5534,10 +5628,7 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_no_membership_location_r
         return None
 
     session.get.side_effect = _get
-
-    none_result = MagicMock()
-    none_result.scalar_one_or_none.return_value = None
-    session.execute.return_value = none_result
+    session.execute.side_effect = _membership_execute_factory()
 
     inv = SimpleNamespace(
         bill_to_kind=BillingBillToKind.CONTACT,
