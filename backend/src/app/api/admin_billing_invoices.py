@@ -78,53 +78,6 @@ def _validate_bill_to_fk_for_issue(inv: CustomerInvoice) -> None:
             )
 
 
-def maybe_refresh_issued_bill_to_snapshot(
-    session: Session, inv: CustomerInvoice
-) -> bool:
-    """Heal an issued invoice whose ``bill_to_location_text`` is missing.
-
-    Older issued invoices may have an empty ``bill_to_location_text`` because the
-    snapshot resolver did not yet support the contact-membership fallback for
-    member contacts (admin contact mutations forbid setting ``Contact.location_id``
-    when the contact is linked to a family or organisation; see
-    ``admin_billing_invoice_draft_helpers._resolve_bill_to_party_from_invoice_fks``).
-
-    To repair these without violating issued-invoice immutability for already
-    populated snapshots, this helper:
-
-    - returns ``False`` when ``bill_to_location_text`` is already non-empty (no-op
-      so issued PDFs with valid addresses remain byte-stable);
-    - otherwise re-resolves the bill-to party; if re-resolution yields a non-empty
-      location, persists the new ``bill_to_*`` columns + regenerated
-      ``bill_to_snapshot`` JSON and re-renders the issued PDF;
-    - otherwise restores the original (empty) state and leaves the invoice
-      untouched.
-
-    Invoice number, totals, lines, and dates are never modified — only the
-    bill-to snapshot fields and the issued PDF artifact are regenerated, and
-    only when the address was missing.
-    """
-    existing = (inv.bill_to_location_text or "").strip()
-    if existing:
-        return False
-    prev_name = inv.bill_to_display_name
-    prev_email = inv.bill_to_email
-    prev_loc = inv.bill_to_location_text
-    prev_snap = inv.bill_to_snapshot
-    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)
-    new_loc = (inv.bill_to_location_text or "").strip()
-    if not new_loc:
-        inv.bill_to_display_name = prev_name
-        inv.bill_to_email = prev_email
-        inv.bill_to_location_text = prev_loc
-        inv.bill_to_snapshot = prev_snap
-        return False
-    inv.bill_to_snapshot = _build_bill_to_snapshot(session, inv)
-    session.flush()
-    refresh_invoice_pdf(session, inv)
-    return True
-
-
 def _build_bill_to_snapshot(session: Session, inv: CustomerInvoice) -> dict[str, Any]:
     snap: dict[str, Any] = {
         "kind": inv.bill_to_kind.value,

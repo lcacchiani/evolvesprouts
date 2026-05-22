@@ -231,83 +231,6 @@ def _bill_to_location_snapshot_text(
     return "\n".join(parts)
 
 
-def _contact_membership_location_snapshot(
-    session: Session,
-    *,
-    contact: Contact,
-) -> str | None:
-    """Snapshot text from the contact's family/organization location.
-
-    When a contact is linked to a family or organization, ``Contact.location_id`` is
-    intentionally null — admin contact mutations forbid setting it, so the address is
-    owned by the family/organization record (see ``admin_contacts_mutations``). For
-    CONTACT bill-to invoices we still want the address on the PDF, so iterate through
-    each family the contact belongs to, mirroring the FAMILY bill-to resolution
-    (use ``family.location_id`` first; if absent, fall back to the family's primary
-    contact's ``location_id`` for legacy data where the address sat on the primary
-    contact instead of the family). Render with ``include_venue_name=False`` to match
-    the FAMILY bill-to convention. Then iterate through the contact's organization
-    memberships using ``organization.location_id`` with ``include_venue_name=True``
-    (matching the ORGANIZATION branch). Return the first non-empty snapshot text;
-    if no membership yields an address, return ``None``.
-
-    Iterating (rather than ``LIMIT 1``) handles the case where a contact belongs to
-    multiple families/orgs and only some have a populated address.
-    """
-    contact_id = getattr(contact, "id", None)
-    if contact_id is None:
-        return None
-    fam_stmt = (
-        select(Family)
-        .join(FamilyMember, FamilyMember.family_id == Family.id)
-        .where(FamilyMember.contact_id == contact_id)
-        .order_by(Family.family_name, FamilyMember.id)
-    )
-    for fam in session.execute(fam_stmt).scalars():
-        loc_id = getattr(fam, "location_id", None)
-        if loc_id is None:
-            primary_stmt = (
-                select(Contact)
-                .join(FamilyMember, FamilyMember.contact_id == Contact.id)
-                .where(FamilyMember.family_id == fam.id)
-                .where(FamilyMember.is_primary_contact.is_(True))
-                .limit(1)
-            )
-            primary = session.execute(primary_stmt).scalar_one_or_none()
-            if primary is not None:
-                loc_id = getattr(primary, "location_id", None)
-        if loc_id is None:
-            continue
-        text = _bill_to_location_snapshot_text(
-            session,
-            loc_id,
-            include_venue_name=False,
-        )
-        if text:
-            return text
-    org_stmt = (
-        select(Organization)
-        .join(
-            OrganizationMember,
-            OrganizationMember.organization_id == Organization.id,
-        )
-        .where(OrganizationMember.contact_id == contact_id)
-        .order_by(Organization.name, OrganizationMember.id)
-    )
-    for org in session.execute(org_stmt).scalars():
-        loc_id = getattr(org, "location_id", None)
-        if loc_id is None:
-            continue
-        text = _bill_to_location_snapshot_text(
-            session,
-            loc_id,
-            include_venue_name=True,
-        )
-        if text:
-            return text
-    return None
-
-
 def _resolve_bill_to_party_from_invoice_fks(
     session: Session, *, inv: CustomerInvoice
 ) -> None:
@@ -324,12 +247,9 @@ def _resolve_bill_to_party_from_invoice_fks(
                 em = (c.email or "").strip()
                 if em:
                     inv.bill_to_email = em
-                text = _bill_to_location_snapshot_text(
+                inv.bill_to_location_text = _bill_to_location_snapshot_text(
                     session, getattr(c, "location_id", None)
                 )
-                if text is None:
-                    text = _contact_membership_location_snapshot(session, contact=c)
-                inv.bill_to_location_text = text
         return
     if inv.bill_to_kind == BillingBillToKind.FAMILY and inv.bill_to_family_id:
         fam = session.get(Family, inv.bill_to_family_id)

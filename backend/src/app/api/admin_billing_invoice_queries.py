@@ -11,10 +11,6 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.api.admin_billing_common import DEFAULT_BILLING_LIST_LIMIT, _session_with_audit
-from app.api.admin_billing_invoice_draft_helpers import (
-    _resolve_bill_to_party_from_invoice_fks,
-)
-from app.api.admin_billing_invoices import maybe_refresh_issued_bill_to_snapshot
 from app.api.admin_billing_invoice_serializers import (
     parse_optional_invoice_settlement,
     parse_optional_invoice_status,
@@ -211,18 +207,6 @@ def get_invoice_pdf_download(
         inv = session.execute(stmt).scalar_one_or_none()
         if inv is None:
             raise NotFoundError("CustomerInvoice", str(invoice_id))
-        # Drafts: re-resolve the bill-to snapshot from current CRM data so PDF
-        # previews reflect address/email/name edits made after draft creation.
-        # Issued invoices: heal missing ``bill_to_location_text`` only — older
-        # issued invoices may have an empty snapshot because the resolver did not
-        # yet support the contact-membership fallback. Issued invoices that
-        # already have a populated snapshot are never touched (PDF stays
-        # byte-stable). Void invoices keep their persisted snapshot.
-        if inv.status == BillingInvoiceStatus.DRAFT:
-            _resolve_bill_to_party_from_invoice_fks(session, inv=inv)
-            session.flush()
-        elif inv.status == BillingInvoiceStatus.ISSUED:
-            maybe_refresh_issued_bill_to_snapshot(session, inv)
         s3_key = ensure_invoice_pdf_storage(session, inv)
         download = generate_download_url(
             s3_key=s3_key,

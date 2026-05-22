@@ -664,19 +664,8 @@ Migration `0055_customer_billing_ar` introduces:
   in `INVOICE_DISPLAY_TIMEZONE` as before. PDF rendering prefers these columns when set.
 - Migration `0064_invoice_bill_to_location` adds nullable `bill_to_location_text` on
   `customer_invoices` (CRM snapshot of linked `locations` venue/address plus geographic
-  district and country labels when resolvable, refreshed when drafts are resolved, on every
-  draft PDF download so previews track CRM edits, and again immediately before issuance).
-  For CONTACT bill-to, when `contacts.location_id` is null (admin contact mutations forbid
-  setting it while the contact is linked to a family or organisation), the snapshot falls
-  back to the first family-membership family with a `location_id` (rendered without the
-  venue name to match FAMILY bill-to convention), then to the first organization
-  membership with a `location_id` (with venue name, matching ORGANIZATION bill-to).
-  ISSUED invoices whose `bill_to_location_text` is empty are healed on PDF download:
-  the resolver runs again, and if it now produces a non-empty location text, the
-  `bill_to_*` columns + `bill_to_snapshot` JSON are updated and the issued PDF is
-  regenerated in place. Issued invoices with a populated snapshot are never modified
-  (the issued PDF stays byte-stable). Invoice number, totals, lines, and dates are
-  never touched by the heal path.
+  district and country labels when resolvable, refreshed when drafts are resolved and again
+  immediately before issuance).
 - Migration `0066_cp_enroll_extref_uq` adds a partial unique index on
   `customer_payments (enrollment_id, external_reference)` when `external_reference` is not null,
   so duplicate manual inbound references for the same enrollment return HTTP 409 from the admin API.
