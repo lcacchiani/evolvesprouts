@@ -231,6 +231,64 @@ def _bill_to_location_snapshot_text(
     return "\n".join(parts)
 
 
+def _contact_membership_location_snapshot(
+    session: Session,
+    *,
+    contact: Contact,
+) -> str | None:
+    """Snapshot text from the contact's family/organization location.
+
+    When a contact is linked to a family or organization, ``Contact.location_id`` is
+    intentionally null — admin contact mutations forbid setting it, so the address is
+    owned by the family/organization record (see ``admin_contacts_mutations``). For
+    CONTACT bill-to invoices we still want the address on the PDF, so fall back to the
+    first family the contact belongs to that has a ``location_id`` (rendered without
+    the venue name, matching the FAMILY bill-to branch), then the first organization
+    with a ``location_id`` (with venue name, matching the ORGANIZATION branch).
+    """
+    contact_id = getattr(contact, "id", None)
+    if contact_id is None:
+        return None
+    fam_stmt = (
+        select(Family)
+        .join(FamilyMember, FamilyMember.family_id == Family.id)
+        .where(FamilyMember.contact_id == contact_id)
+        .where(Family.location_id.is_not(None))
+        .order_by(Family.family_name, FamilyMember.id)
+        .limit(1)
+    )
+    fam = session.execute(fam_stmt).scalar_one_or_none()
+    if fam is not None:
+        text = _bill_to_location_snapshot_text(
+            session,
+            getattr(fam, "location_id", None),
+            include_venue_name=False,
+        )
+        if text:
+            return text
+    org_stmt = (
+        select(Organization)
+        .join(
+            OrganizationMember,
+            OrganizationMember.organization_id == Organization.id,
+        )
+        .where(OrganizationMember.contact_id == contact_id)
+        .where(Organization.location_id.is_not(None))
+        .order_by(Organization.name, OrganizationMember.id)
+        .limit(1)
+    )
+    org = session.execute(org_stmt).scalar_one_or_none()
+    if org is not None:
+        text = _bill_to_location_snapshot_text(
+            session,
+            getattr(org, "location_id", None),
+            include_venue_name=True,
+        )
+        if text:
+            return text
+    return None
+
+
 def _resolve_bill_to_party_from_invoice_fks(
     session: Session, *, inv: CustomerInvoice
 ) -> None:
@@ -247,9 +305,12 @@ def _resolve_bill_to_party_from_invoice_fks(
                 em = (c.email or "").strip()
                 if em:
                     inv.bill_to_email = em
-                inv.bill_to_location_text = _bill_to_location_snapshot_text(
+                text = _bill_to_location_snapshot_text(
                     session, getattr(c, "location_id", None)
                 )
+                if text is None:
+                    text = _contact_membership_location_snapshot(session, contact=c)
+                inv.bill_to_location_text = text
         return
     if inv.bill_to_kind == BillingBillToKind.FAMILY and inv.bill_to_family_id:
         fam = session.get(Family, inv.bill_to_family_id)

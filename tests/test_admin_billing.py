@@ -5142,6 +5142,203 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_includes_location_text()
     assert inv.bill_to_location_text == "Harbour Studio\n1 Pier\nCentral"
 
 
+def test_resolve_bill_to_party_from_invoice_fks_contact_falls_back_to_family_location() -> None:
+    """Contact bill-to with no own location uses the contact's family location.
+
+    Admin contact mutations forbid setting ``Contact.location_id`` when the contact is
+    linked to a family or organization; the address lives on the family/organization.
+    The CONTACT bill-to resolver must fall back to the family's location so the
+    invoice PDF still shows an address (matching family/org bill-to behavior).
+    The fallback uses the family bill-to convention (drops the venue name to avoid
+    duplicating the household label).
+    """
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Contact, Location
+
+    cid = uuid4()
+    fid = uuid4()
+    lid = uuid4()
+    contact = SimpleNamespace(
+        id=cid,
+        email="kid@example.com",
+        first_name="Sam",
+        last_name="Ng",
+        location_id=None,
+    )
+    fam = SimpleNamespace(id=fid, family_name="Ng Family", location_id=lid)
+    loc = SimpleNamespace(name="Ng Family Home", address="1 Lane\nKowloon")
+
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Contact and pk == cid:
+            return contact
+        if model is Location and pk == lid:
+            return loc
+        return None
+
+    session.get.side_effect = _get
+
+    fam_result = MagicMock()
+    fam_result.scalar_one_or_none.return_value = fam
+    session.execute.return_value = fam_result
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_location_text == "1 Lane\nKowloon"
+
+
+def test_resolve_bill_to_party_from_invoice_fks_contact_falls_back_to_organization_location() -> None:
+    """When the contact has no family-with-location, fall back to organization location.
+
+    Organization fallback keeps the venue name so the org's trading name appears
+    (matching the existing ORGANIZATION bill-to branch).
+    """
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Contact, Location
+
+    cid = uuid4()
+    oid = uuid4()
+    lid = uuid4()
+    contact = SimpleNamespace(
+        id=cid,
+        email="emp@example.com",
+        first_name="Jordan",
+        last_name="Lee",
+        location_id=None,
+    )
+    org = SimpleNamespace(id=oid, name="Acme Learning Ltd", location_id=lid)
+    loc = SimpleNamespace(name="Acme HQ", address="20 Tower\nCentral")
+
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Contact and pk == cid:
+            return contact
+        if model is Location and pk == lid:
+            return loc
+        return None
+
+    session.get.side_effect = _get
+
+    fam_result = MagicMock()
+    fam_result.scalar_one_or_none.return_value = None
+    org_result = MagicMock()
+    org_result.scalar_one_or_none.return_value = org
+
+    def _execute(stmt: Any) -> Any:
+        compiled = str(stmt).lower()
+        if "families" in compiled or "family_members" in compiled:
+            return fam_result
+        return org_result
+
+    session.execute.side_effect = _execute
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_location_text == "Acme HQ\n20 Tower\nCentral"
+
+
+def test_resolve_bill_to_party_from_invoice_fks_contact_own_location_wins_over_membership() -> None:
+    """When the contact has its own location, the membership fallback is not consulted."""
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Contact, Location
+
+    cid = uuid4()
+    lid = uuid4()
+    contact = SimpleNamespace(
+        id=cid,
+        email="solo@example.com",
+        first_name="Alex",
+        last_name="Wong",
+        location_id=lid,
+    )
+    loc = SimpleNamespace(name="Solo Studio", address="42 Main")
+
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Contact and pk == cid:
+            return contact
+        if model is Location and pk == lid:
+            return loc
+        return None
+
+    session.get.side_effect = _get
+    # Membership query should never be consulted when the contact has its own location.
+    session.execute.side_effect = AssertionError(
+        "membership fallback queried even though contact has own location_id"
+    )
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_location_text == "Solo Studio\n42 Main"
+
+
+def test_resolve_bill_to_party_from_invoice_fks_contact_no_membership_location_returns_none() -> None:
+    """No own location and no family/org with a location → snapshot stays None."""
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _resolve_bill_to_party_from_invoice_fks,
+    )
+    from app.db.models import Contact
+
+    cid = uuid4()
+    contact = SimpleNamespace(
+        id=cid,
+        email="orphan@example.com",
+        first_name="Drew",
+        last_name="Park",
+        location_id=None,
+    )
+
+    session = MagicMock()
+
+    def _get(model: Any, pk: Any) -> Any:
+        if model is Contact and pk == cid:
+            return contact
+        return None
+
+    session.get.side_effect = _get
+
+    none_result = MagicMock()
+    none_result.scalar_one_or_none.return_value = None
+    session.execute.return_value = none_result
+
+    inv = SimpleNamespace(
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text="stale",
+    )
+    _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
+    assert inv.bill_to_location_text is None
+
+
 def test_resolve_bill_to_party_from_invoice_fks_family_primary_location_fallback() -> None:
     """When family has no location, use primary contact's linked location.
 
