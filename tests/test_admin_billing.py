@@ -1852,16 +1852,24 @@ def test_get_invoice_pdf_returns_signed_url(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     inv_id = uuid4()
-
-    class _Inv:
-        id = inv_id
-        status = BillingInvoiceStatus.DRAFT
-        lines = []
+    inv = SimpleNamespace(
+        id=inv_id,
+        status=BillingInvoiceStatus.DRAFT,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=None,
+        bill_to_family_id=None,
+        bill_to_organization_id=None,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+        lines=[],
+    )
 
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.execute.return_value.scalar_one_or_none.return_value = _Inv()
+        s.execute.return_value.scalar_one_or_none.return_value = inv
+        s.get.return_value = None
         yield s
 
     _patch_billing_sessions(monkeypatch, _fake_session)
@@ -1898,6 +1906,151 @@ def test_get_invoice_pdf_returns_signed_url(
     body = json.loads(r["body"])
     assert body["downloadUrl"] == "https://cdn.example.com/signed"
     assert body["expiresAt"] == "2026-12-31T00:00:00+00:00"
+
+
+def test_get_invoice_pdf_refreshes_bill_to_snapshot_for_draft(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Regression: opening a draft invoice PDF re-resolves the bill-to snapshot.
+
+    Reproduces the report that a contact's address is missing from the invoice PDF
+    when the contact's linked location was set after the draft was created.
+    """
+    from app.db.models import Location
+
+    inv_id = uuid4()
+    cid = uuid4()
+    lid = uuid4()
+    contact = SimpleNamespace(
+        id=cid,
+        email="jane@example.com",
+        first_name="Jane",
+        last_name="Doe",
+        location_id=lid,
+    )
+    loc = SimpleNamespace(
+        name="Harbour Studio",
+        address="1 Pier\nCentral",
+        area_id=None,
+    )
+    inv = SimpleNamespace(
+        id=inv_id,
+        status=BillingInvoiceStatus.DRAFT,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_family_id=None,
+        bill_to_organization_id=None,
+        bill_to_display_name=None,
+        bill_to_email=None,
+        bill_to_location_text=None,
+        lines=[],
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+        s.execute.return_value.scalar_one_or_none.return_value = inv
+
+        def _get(model: Any, pk: Any) -> Any:
+            if model is Contact and pk == cid:
+                return contact
+            if model is Location and pk == lid:
+                return loc
+            if model is CustomerInvoice and pk == inv_id:
+                return inv
+            return None
+
+        s.get.side_effect = _get
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_queries_mod,
+        "ensure_invoice_pdf_storage",
+        lambda _session, _inv: "billing/invoices/preview/x.pdf",
+    )
+    monkeypatch.setattr(
+        admin_billing_invoice_queries_mod,
+        "generate_download_url",
+        lambda *, s3_key, cache_bust_key=None: {
+            "download_url": "https://cdn.example.com/signed",
+            "expires_at": "2026-12-31T00:00:00+00:00",
+        },
+    )
+
+    ev = api_gateway_event(
+        method="GET",
+        path=f"/v1/admin/billing/invoices/{inv_id}/pdf",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", f"/v1/admin/billing/invoices/{inv_id}/pdf"
+    )
+    assert r["statusCode"] == 200
+    assert inv.bill_to_display_name == "Jane Doe"
+    assert inv.bill_to_email == "jane@example.com"
+    assert inv.bill_to_location_text == "Harbour Studio\n1 Pier\nCentral"
+
+
+def test_get_invoice_pdf_does_not_refresh_bill_to_snapshot_for_issued(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Issued invoices keep their snapshot so re-rendered PDFs stay stable."""
+    inv_id = uuid4()
+    cid = uuid4()
+    inv = SimpleNamespace(
+        id=inv_id,
+        status=BillingInvoiceStatus.ISSUED,
+        bill_to_kind=BillingBillToKind.CONTACT,
+        bill_to_contact_id=cid,
+        bill_to_family_id=None,
+        bill_to_organization_id=None,
+        bill_to_display_name="Snapshot Name",
+        bill_to_email="snapshot@example.com",
+        bill_to_location_text="Original Location\n1 Old Road",
+        issued_pdf_s3_key="billing/invoices/issued/x.pdf",
+        lines=[],
+    )
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        s = MagicMock()
+        s.execute.return_value.scalar_one_or_none.return_value = inv
+        # Any contact lookup would change the snapshot if the refresh ran.
+        s.get.return_value = None
+        yield s
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_queries_mod,
+        "ensure_invoice_pdf_storage",
+        lambda _session, _inv: "billing/invoices/issued/x.pdf",
+    )
+    monkeypatch.setattr(
+        admin_billing_invoice_queries_mod,
+        "generate_download_url",
+        lambda *, s3_key, cache_bust_key=None: {
+            "download_url": "https://cdn.example.com/signed",
+            "expires_at": "2026-12-31T00:00:00+00:00",
+        },
+    )
+
+    ev = api_gateway_event(
+        method="GET",
+        path=f"/v1/admin/billing/invoices/{inv_id}/pdf",
+        authorizer_context=admin_identity,
+    )
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", f"/v1/admin/billing/invoices/{inv_id}/pdf"
+    )
+    assert r["statusCode"] == 200
+    assert inv.bill_to_display_name == "Snapshot Name"
+    assert inv.bill_to_email == "snapshot@example.com"
+    assert inv.bill_to_location_text == "Original Location\n1 Old Road"
 
 
 def test_export_csv_rejects_invalid_export_version(
