@@ -11,7 +11,7 @@ import { PollQuestionField } from '@/components/polls/poll-question-field';
 import { PollResultsPanel } from '@/components/polls/poll-results-panel';
 import type { PollContent, PollQuestion, PollsCommonContent } from '@/content/poll-types';
 import { getOrCreatePollSessionId } from '@/lib/poll-session';
-import { persistPollAnswer } from '@/lib/polls-api';
+import { PollApiError, persistPollAnswer } from '@/lib/polls-api';
 
 export interface PollWizardProps {
   poll: PollContent;
@@ -177,16 +177,6 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     setStepIndex((index) => index + 1);
     setStepPhase('answer');
   }
-}
-
-function resolvePersistErrorMessage(
-  error: unknown,
-  common: PollsCommonContent,
-): string {
-  if (error instanceof PollApiError && error.statusCode === 0) {
-    return common.errors.missingApiConfig;
-  }
-  return common.errors.persistFailed;
 }
 
 function validateAnswer(
