@@ -9,3 +9,24 @@ body {
     'Segoe UI',
     sans-serif;
 }
+
+progress.poll-live-results-bar {
+  appearance: none;
+  border: none;
+  background-color: #e5e5e5;
+}
+
+progress.poll-live-results-bar::-webkit-progress-bar {
+  background-color: #e5e5e5;
+  border-radius: 9999px;
+}
+
+progress.poll-live-results-bar::-webkit-progress-value {
+  background-color: #171717;
+  border-radius: 9999px;
+}
+
+progress.poll-live-results-bar::-moz-progress-bar {
+  background-color: #171717;
+  border-radius: 9999px;
+}

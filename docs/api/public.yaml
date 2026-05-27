@@ -19,7 +19,9 @@ info:
     - Public calendar availability (`/v1/calendar/availability`, `/www/v1/calendar/availability`).
     - Media lead capture (`/v1/assets/free/request`, `/www/v1/assets/free/request`).
     - Training poll answer persistence (`PUT /v1/polls/{poll_slug}/answers`,
-      `/www/v1/polls/{poll_slug}/answers`) for `apps/training` (DynamoDB; API key only).
+      `/www/v1/polls/{poll_slug}/answers`) and live per-question aggregates
+      (`GET /v1/polls/{poll_slug}/questions/{question_id}/results`, `/www/...`) for
+      `apps/training` (DynamoDB; API key only).
     - Public website endpoints consumed by `apps/public_www`, exposed via the
       CloudFront `/www/*` proxy allowlist in
       `backend/infrastructure/lib/public-www-stack.ts`.
@@ -938,6 +940,118 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Persistence failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/polls/{poll_slug}/questions/{question_id}/results:
+    get:
+      summary: Live aggregate results for one poll question (direct API path)
+      description: >
+        Returns room-wide response counts for a single poll question. Used by
+        `apps/training` when `showResults` is enabled on a question. Counts all
+        rows in DynamoDB `evolvesprouts-poll-responses` for the poll partition
+        with matching `questionId` (one row per session per question; re-answers
+        overwrite). Requires `questionType=select` or `questionType=truefalse`.
+        Requires API key.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        - name: questionType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [select, truefalse]
+      responses:
+        "200":
+          description: Aggregated counts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollQuestionResultsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Aggregation failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/polls/{poll_slug}/questions/{question_id}/results:
+    get:
+      summary: Live aggregate results for one poll question (training website proxy path)
+      description: Same as `GET /v1/polls/{poll_slug}/questions/{question_id}/results` for same-origin calls from `apps/training`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        - name: questionType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [select, truefalse]
+      responses:
+        "200":
+          description: Aggregated counts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollQuestionResultsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Aggregation failed.
           content:
             application/json:
               schema:
@@ -2091,6 +2205,43 @@ components:
           type: string
           format: date-time
           description: UTC timestamp when the answer row was last written.
+    PollQuestionResultsResponse:
+      type: object
+      required:
+        - pollSlug
+        - questionId
+        - questionType
+        - totalResponses
+        - buckets
+      properties:
+        pollSlug:
+          type: string
+        questionId:
+          type: string
+        questionType:
+          type: string
+          enum: [select, truefalse]
+        totalResponses:
+          type: integer
+          minimum: 0
+        buckets:
+          type: array
+          items:
+            $ref: "#/components/schemas/PollQuestionResultsBucket"
+    PollQuestionResultsBucket:
+      type: object
+      required:
+        - label
+        - count
+      properties:
+        label:
+          type: string
+          description: >
+            Option label for `select`, or `true` / `false` for `truefalse`
+            (client maps to localized True/False labels).
+        count:
+          type: integer
+          minimum: 0
     ReservationSubmissionAccepted:
       type: object
       required:

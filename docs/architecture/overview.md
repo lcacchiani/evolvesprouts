@@ -40,9 +40,10 @@ Flutter Mobile / Next.js Admin
 ### Public website (Next.js static export)
 - Public marketing site in `apps/public_www`.
 - Training and poll pages in `apps/training` (static export at `training.evolvesprouts.com`, not indexed).
-  Poll answers persist via `PUT /www/v1/polls/{poll_slug}/answers` to the shared DynamoDB
-  table `evolvesprouts-poll-responses` (content-driven JSON per poll under
-  `apps/training/src/content/polls/`).
+  Poll answers persist via `PUT /www/v1/polls/{poll_slug}/answers` and live per-question
+  aggregates load via `GET /www/v1/polls/{poll_slug}/questions/{question_id}/results`
+  against the shared DynamoDB table `evolvesprouts-poll-responses` (content-driven JSON
+  per poll under `apps/training/src/content/polls/`).
 - First-party marketing paths are defined once in `apps/public_www/src/lib/public-www-routes.ts` and
   imported by `apps/public_www/src/lib/routes.ts` and the admin Website QR presets so public and admin
   stay aligned.

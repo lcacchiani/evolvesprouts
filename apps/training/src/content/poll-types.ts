@@ -5,6 +5,9 @@ export interface PollQuestionBase {
   id: string;
   screen: string;
   question: string;
+  /** Personal feedback after submit (correct/incorrect, presenter note, your answer). */
+  showAnswer: boolean;
+  /** Room-wide live aggregate bar chart from the server. */
   showResults: boolean;
 }
 
@@ -56,6 +59,11 @@ export interface PollsCommonContent {
   results: {
     yourAnswerTemplate: string;
   };
+  liveResults: {
+    heading: string;
+    totalResponsesTemplate: string;
+    countTemplate: string;
+  };
   completion: {
     title: string;
     description: string;
@@ -64,6 +72,7 @@ export interface PollsCommonContent {
     required: string;
     invalidEmail: string;
     persistFailed: string;
+    resultsLoadFailed: string;
     missingApiConfig: string;
   };
   a11y: {

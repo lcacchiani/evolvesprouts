@@ -1,15 +1,19 @@
-"""Public training poll answer persistence (DynamoDB)."""
+"""Public training poll answer persistence and live results (DynamoDB)."""
 
 from __future__ import annotations
 
 import re
 from typing import Any
 from collections.abc import Mapping
+from urllib.parse import parse_qs, urlparse
 
 from app.api.admin_request import parse_body
 from app.api.validators import validate_email
 from app.exceptions import ValidationError
-from app.services.poll_responses_store import upsert_poll_answer
+from app.services.poll_responses_store import (
+    aggregate_poll_question_results,
+    upsert_poll_answer,
+)
 from app.utils import json_response
 from app.utils.logging import get_logger
 from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
@@ -17,6 +21,8 @@ from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 logger = get_logger(__name__)
 
 _ANSWERS_SUFFIX = "/answers"
+_RESULTS_SUFFIX = "/results"
+_QUESTIONS_SEGMENT = "/questions/"
 _POLL_API_PREFIX = "/v1/polls/"
 _WWW_POLL_API_PREFIX = "/www/v1/polls/"
 
@@ -33,6 +39,7 @@ _SELECT_TYPES = frozenset({"select"})
 _TRUEFALSE_TYPES = frozenset({"truefalse"})
 _TEXT_TYPES = frozenset({"text"})
 _EMAIL_TYPES = frozenset({"email"})
+_AGGREGATABLE_TYPES = _SELECT_TYPES | _TRUEFALSE_TYPES
 
 
 def handle_public_polls_request(
@@ -41,35 +48,109 @@ def handle_public_polls_request(
     path: str,
 ) -> dict[str, Any]:
     """Route poll API requests under /v1/polls/* and /www/v1/polls/*."""
-    parsed = _parse_poll_answers_path(path)
-    if parsed is None:
-        return json_response(404, {"error": "Not found"}, event=event)
+    answers = _parse_poll_answers_path(path)
+    if answers is not None:
+        poll_slug, _suffix = answers
+        if method == "PUT":
+            return _handle_put_poll_answer(event, poll_slug=poll_slug)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
 
-    poll_slug, _suffix = parsed
-    if method == "PUT" and path.endswith(_ANSWERS_SUFFIX):
-        return _handle_put_poll_answer(event, poll_slug=poll_slug)
+    results = _parse_poll_question_results_path(path)
+    if results is not None:
+        poll_slug, question_id = results
+        if method == "GET":
+            return _handle_get_poll_question_results(
+                event,
+                poll_slug=poll_slug,
+                question_id=question_id,
+            )
+        return json_response(405, {"error": "Method not allowed"}, event=event)
 
-    return json_response(405, {"error": "Method not allowed"}, event=event)
+    return json_response(404, {"error": "Not found"}, event=event)
+
+
+def _parse_poll_path_remainder(path: str) -> str | None:
+    normalized = path.rstrip("/")
+    if normalized.startswith(_WWW_POLL_API_PREFIX):
+        return normalized[len(_WWW_POLL_API_PREFIX) :]
+    if normalized.startswith(_POLL_API_PREFIX):
+        return normalized[len(_POLL_API_PREFIX) :]
+    return None
 
 
 def _parse_poll_answers_path(path: str) -> tuple[str, str] | None:
-    normalized = path.rstrip("/")
-    if not normalized.endswith(_ANSWERS_SUFFIX):
+    remainder = _parse_poll_path_remainder(path)
+    if remainder is None or not remainder.endswith(_ANSWERS_SUFFIX):
         return None
+    poll_slug = remainder[: -len(_ANSWERS_SUFFIX)].strip("/")
+    if "/" in poll_slug or not poll_slug:
+        return None
+    if not PUBLIC_INSTANCE_SLUG_PATTERN.match(poll_slug):
+        return None
+    return poll_slug, _ANSWERS_SUFFIX
 
-    if normalized.startswith(_WWW_POLL_API_PREFIX):
-        remainder = normalized[len(_WWW_POLL_API_PREFIX) : -len(_ANSWERS_SUFFIX)]
-    elif normalized.startswith(_POLL_API_PREFIX):
-        remainder = normalized[len(_POLL_API_PREFIX) : -len(_ANSWERS_SUFFIX)]
-    else:
-        return None
 
-    remainder = remainder.strip("/")
-    if "/" in remainder or not remainder:
+def _parse_poll_question_results_path(path: str) -> tuple[str, str] | None:
+    remainder = _parse_poll_path_remainder(path)
+    if remainder is None or not remainder.endswith(_RESULTS_SUFFIX):
         return None
-    if not PUBLIC_INSTANCE_SLUG_PATTERN.match(remainder):
+    without_suffix = remainder[: -len(_RESULTS_SUFFIX)]
+    if _QUESTIONS_SEGMENT not in without_suffix:
         return None
-    return remainder, _ANSWERS_SUFFIX
+    poll_slug, question_id = without_suffix.split(_QUESTIONS_SEGMENT, 1)
+    poll_slug = poll_slug.strip("/")
+    question_id = question_id.strip("/")
+    if not poll_slug or not question_id or "/" in poll_slug or "/" in question_id:
+        return None
+    if not PUBLIC_INSTANCE_SLUG_PATTERN.match(poll_slug):
+        return None
+    if not _QUESTION_ID_PATTERN.match(question_id):
+        return None
+    return poll_slug, question_id
+
+
+def _handle_get_poll_question_results(
+    event: Mapping[str, Any],
+    *,
+    poll_slug: str,
+    question_id: str,
+) -> dict[str, Any]:
+    try:
+        question_type = _require_aggregatable_question_type(
+            _read_query_param(event, "questionType"),
+        )
+    except ValidationError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
+
+    result = aggregate_poll_question_results(
+        poll_slug=poll_slug,
+        question_id=question_id,
+        question_type=question_type,
+    )
+    return json_response(200, result, event=event)
+
+
+def _read_query_param(event: Mapping[str, Any], name: str) -> Any:
+    query = event.get("queryStringParameters")
+    if isinstance(query, Mapping) and name in query:
+        return query.get(name)
+    raw_path = event.get("rawPath") or event.get("path") or ""
+    if not isinstance(raw_path, str) or "?" not in raw_path:
+        return None
+    parsed = urlparse(raw_path)
+    values = parse_qs(parsed.query).get(name)
+    if not values:
+        return None
+    return values[0]
+
+
+def _require_aggregatable_question_type(value: Any) -> str:
+    if not isinstance(value, str):
+        raise ValidationError("questionType query parameter is required")
+    normalized = value.strip().lower()
+    if normalized not in _AGGREGATABLE_TYPES:
+        raise ValidationError("questionType must be select or truefalse")
+    return normalized
 
 
 def _handle_put_poll_answer(

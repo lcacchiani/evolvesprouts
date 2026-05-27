@@ -11,6 +11,7 @@ describe('isAnswerValid', () => {
     screen: 'Who are you?',
     question: 'I am a...',
     options: ['Parent'],
+    showAnswer: false,
     showResults: false,
   };
 
@@ -21,6 +22,7 @@ describe('isAnswerValid', () => {
     question: 'Test',
     answer: false,
     answerNote: 'Note',
+    showAnswer: true,
     showResults: true,
   };
 
@@ -33,19 +35,19 @@ describe('isAnswerValid', () => {
     ).toBe(true);
     expect(
       isAnswerValid(
-        { ...selectQuestion, type: 'text', showResults: false },
+        { ...selectQuestion, type: 'text', showAnswer: false, showResults: false },
         { ...emptyAnswerState(), freeText: 'hello' },
       ),
     ).toBe(true);
     expect(
       isAnswerValid(
-        { ...selectQuestion, type: 'email', showResults: false },
+        { ...selectQuestion, type: 'email', showAnswer: false, showResults: false },
         { ...emptyAnswerState(), freeText: 'a@b.co' },
       ),
     ).toBe(true);
     expect(
       isAnswerValid(
-        { ...selectQuestion, type: 'email', showResults: false },
+        { ...selectQuestion, type: 'email', showAnswer: false, showResults: false },
         { ...emptyAnswerState(), freeText: 'not-an-email' },
       ),
     ).toBe(false);

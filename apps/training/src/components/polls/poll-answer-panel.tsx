@@ -3,13 +3,13 @@
 import type { PollQuestion, PollsCommonContent } from '@/content/poll-types';
 import type { QuestionAnswerState } from '@/components/polls/poll-answer-state';
 
-export interface PollResultsPanelProps {
+export interface PollAnswerPanelProps {
   question: PollQuestion;
   common: PollsCommonContent;
   answer: QuestionAnswerState;
 }
 
-export function PollResultsPanel({ question, common, answer }: PollResultsPanelProps) {
+export function PollAnswerPanel({ question, common, answer }: PollAnswerPanelProps) {
   if (question.type === 'truefalse') {
     const isCorrect = answer.trueFalseValue === question.answer;
     return (

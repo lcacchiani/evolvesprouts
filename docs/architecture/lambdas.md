@@ -42,6 +42,8 @@ their primary responsibilities.
   `/v1/contact-us`,
   `/v1/polls/{poll_slug}/answers` (PUT; API key; persists training poll answers to DynamoDB
   `evolvesprouts-poll-responses`; same contract as `/www/v1/polls/{poll_slug}/answers`),
+  `/v1/polls/{poll_slug}/questions/{question_id}/results` (GET; API key; live aggregates for
+  `select` / `truefalse` questions; same contract as `/www/v1/polls/.../results`),
   `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*` (including `GET /v1/admin/locations?exclude_addresses=true`
