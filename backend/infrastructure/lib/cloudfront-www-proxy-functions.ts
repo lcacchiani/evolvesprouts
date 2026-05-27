@@ -53,10 +53,12 @@ function handler(event) {
     return request;
   }
 
-  if (
-    method === 'PUT' &&
+  var isPollAnswersPath =
     uri.indexOf('/www/v1/polls/') === 0 &&
-    uri.lastIndexOf('/answers') === uri.length - 8
+    uri.lastIndexOf('/answers') === uri.length - 8;
+  if (
+    (method === 'PUT' || method === 'OPTIONS') &&
+    isPollAnswersPath
   ) {
     request.uri = uri.substring(4);
     return request;
