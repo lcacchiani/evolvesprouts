@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildLocalizedPublicPageUrl,
+  buildSitePageUrl,
   normalizePublicSitePathInput,
   normalizePublicSiteSrcValue,
   sanitizePublicSiteSrcQueryInput,
@@ -52,6 +53,33 @@ describe('sanitizePublicSiteSrcQueryInput', () => {
   it('lowercases and maps invalid characters to hyphens', () => {
     expect(sanitizePublicSiteSrcQueryInput('Foo Bar')).toBe('foo-bar');
     expect(sanitizePublicSiteSrcQueryInput('a--')).toBe('a-');
+  });
+});
+
+describe('buildSitePageUrl', () => {
+  it('builds home and inner paths with trailing slash (no locale)', () => {
+    expect(
+      buildSitePageUrl({
+        baseUrl: 'https://training.example.com',
+        path: '/',
+      }),
+    ).toBe('https://training.example.com/');
+
+    expect(
+      buildSitePageUrl({
+        baseUrl: 'https://training.example.com',
+        path: '/polls/workshop-food-jun-26/',
+      }),
+    ).toBe('https://training.example.com/polls/workshop-food-jun-26/');
+  });
+
+  it('returns empty for invalid base', () => {
+    expect(
+      buildSitePageUrl({
+        baseUrl: '',
+        path: '/',
+      }),
+    ).toBe('');
   });
 });
 

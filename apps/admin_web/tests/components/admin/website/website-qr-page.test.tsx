@@ -5,6 +5,7 @@ import { WebsiteQrPage } from '@/components/admin/website/website-qr-page';
 
 vi.mock('@/lib/config', () => ({
   getPublicSiteBaseUrl: () => 'https://www.example.com',
+  getTrainingSiteBaseUrl: () => 'https://training.example.com',
 }));
 
 const generateSpy = vi.fn(async () => 'data:image/png;base64,AA');
@@ -93,6 +94,30 @@ describe('WebsiteQrPage', () => {
     });
   });
 
+  it('builds training site URL without locale when training site is selected', async () => {
+    render(<WebsiteQrPage />);
+
+    fireEvent.change(screen.getByLabelText('Site'), { target: { value: 'training' } });
+
+    await vi.waitFor(() => {
+      expect(screen.getByRole('link', { name: 'https://training.example.com/' })).toBeInTheDocument();
+    });
+
+    expect(screen.queryByLabelText('Locale')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Page'), {
+      target: { value: '/polls/workshop-food-jun-26' },
+    });
+
+    await vi.waitFor(() => {
+      expect(
+        screen.getByRole('link', {
+          name: 'https://training.example.com/polls/workshop-food-jun-26/',
+        }),
+      ).toBeInTheDocument();
+    });
+  });
+
   it('uses page- prefixed download filename and prepends normalized src when set', async () => {
     const originalCreateElement = document.createElement.bind(document);
     const createdAnchors: HTMLAnchorElement[] = [];
@@ -136,6 +161,40 @@ describe('WebsiteQrPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Download PNG (512)' }));
     await vi.waitFor(() => {
       expect(createdAnchors.at(-1)?.download).toBe('poster-page-home-en-512.png');
+    });
+  });
+
+  it('uses training suffix in download filename when training site is selected', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+    const createdAnchors: HTMLAnchorElement[] = [];
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string, options?: unknown) => {
+      if (tag !== 'a') {
+        return originalCreateElement(tag, options as DocumentCreateElementOptions | undefined);
+      }
+      const anchor = originalCreateElement('a', options as DocumentCreateElementOptions | undefined);
+      createdAnchors.push(anchor);
+      vi.spyOn(anchor, 'click').mockImplementation(() => {});
+      return anchor;
+    });
+
+    globalThis.fetch = vi.fn(async () => {
+      return new Response(new Uint8Array([1, 2, 3]), { status: 200 });
+    }) as typeof fetch;
+
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+    render(<WebsiteQrPage />);
+
+    fireEvent.change(screen.getByLabelText('Site'), { target: { value: 'training' } });
+
+    await vi.waitFor(() => {
+      expect(generateSpy).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Download PNG (512)' }));
+    await vi.waitFor(() => {
+      expect(createdAnchors.at(-1)?.download).toBe('page-home-training-512.png');
     });
   });
 });
