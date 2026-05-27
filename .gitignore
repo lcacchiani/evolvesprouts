@@ -26,6 +26,8 @@ lib64/
 !apps/public_www/tests/lib/**
 !apps/training/src/lib/
 !apps/training/src/lib/**
+!apps/training/tests/lib/
+!apps/training/tests/lib/**
 parts/
 sdist/
 var/
