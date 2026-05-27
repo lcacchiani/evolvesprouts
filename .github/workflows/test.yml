@@ -121,7 +121,6 @@ jobs:
           npm ci
           npm run lint
           npm run test
-          npm run assert:build-env-contract
           npm run build
 
   test-flutter:

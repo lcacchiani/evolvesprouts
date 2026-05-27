@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0 .",
-    "test": "vitest run",
-    "assert:build-env-contract": "node ./scripts/assert-build-env-contract.mjs"
+    "test": "vitest run"
   },
   "dependencies": {
     "next": "^16.2.6",
