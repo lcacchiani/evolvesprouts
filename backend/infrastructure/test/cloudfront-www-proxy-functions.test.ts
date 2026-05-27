@@ -54,6 +54,11 @@ function main(): void {
       "WWW_PROXY_ALLOWLIST_FUNCTION missing poll PUT /answers suffix rule",
     );
   }
+  if (!WWW_PROXY_ALLOWLIST_FUNCTION.includes("method === 'OPTIONS'")) {
+    throw new Error(
+      "WWW_PROXY_ALLOWLIST_FUNCTION must allow OPTIONS for poll answer preflight",
+    );
+  }
 
   if (!MEDIA_REQUEST_PROXY_FUNCTION.includes("/www/v1/assets/free/request")) {
     throw new Error("MEDIA_REQUEST_PROXY_FUNCTION missing media request path");
