@@ -150,8 +150,8 @@ export function PollWizard({ poll, common }: PollWizardProps) {
         question: currentQuestion,
         answer: currentAnswer,
       });
-    } catch {
-      setErrorMessage(common.errors.persistFailed);
+    } catch (error) {
+      setErrorMessage(resolvePersistErrorMessage(error, common));
       setIsSaving(false);
       return;
     }
