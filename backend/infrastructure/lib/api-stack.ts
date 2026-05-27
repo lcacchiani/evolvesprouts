@@ -302,6 +302,10 @@ export class ApiStack extends cdk.Stack {
       service: ec2.GatewayVpcEndpointAwsService.S3,
     });
 
+    vpc.addGatewayEndpoint("DynamoDbEndpoint", {
+      service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
+    });
+
     if (!existingVpcId) {
       const endpointSecurityGroup = new ec2.SecurityGroup(
         this,
