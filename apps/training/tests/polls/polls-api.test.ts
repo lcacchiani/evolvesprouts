@@ -16,6 +16,7 @@ describe('resolvePollApiConfig', () => {
 
   it('returns absolute /www origin when API base URL includes /www path', () => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://training.example.com/www');
+    vi.stubEnv('NEXT_PUBLIC_TRAINING_API_KEY', '');
     vi.stubEnv('NEXT_PUBLIC_WWW_CRM_API_KEY', 'crm-key');
 
     expect(resolvePollApiConfig()).toEqual({
