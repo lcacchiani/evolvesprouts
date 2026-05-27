@@ -1,0 +1,35 @@
+{
+  "title": "Workshop food — 26 June",
+  "slug": "workshop-food-jun-26",
+  "questions": [
+    {
+      "id": "meal-preference",
+      "type": "choice",
+      "selectionMode": "single",
+      "allowOther": false,
+      "text": "Which meal option do you prefer for the workshop lunch?",
+      "answers": [
+        { "id": "standard", "text": "Standard" },
+        { "id": "vegetarian", "text": "Vegetarian" },
+        { "id": "vegan", "text": "Vegan" }
+      ]
+    },
+    {
+      "id": "dietary-notes",
+      "type": "text",
+      "text": "List any allergies or dietary requirements we should know about."
+    },
+    {
+      "id": "snack-preferences",
+      "type": "choice",
+      "selectionMode": "multiple",
+      "allowOther": true,
+      "text": "Which afternoon snacks would you enjoy? (Select all that apply.)",
+      "answers": [
+        { "id": "fruit", "text": "Fresh fruit" },
+        { "id": "nuts", "text": "Mixed nuts" },
+        { "id": "crackers", "text": "Rice crackers" }
+      ]
+    }
+  ]
+}

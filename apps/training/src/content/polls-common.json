@@ -1,0 +1,23 @@
+{
+  "navigation": {
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish"
+  },
+  "choice": {
+    "otherLabel": "Other",
+    "otherPlaceholder": "Please specify"
+  },
+  "completion": {
+    "title": "Thank you",
+    "description": "Your responses have been saved."
+  },
+  "errors": {
+    "required": "Please answer this question before continuing.",
+    "persistFailed": "We could not save your answer. Please try again.",
+    "missingApiConfig": "This poll cannot be saved right now. Please try again later."
+  },
+  "a11y": {
+    "progressTemplate": "Question {current} of {total}"
+  }
+}

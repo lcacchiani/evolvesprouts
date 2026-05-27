@@ -18,6 +18,8 @@ info:
     - Public calendar feed (`/v1/calendar/public`, `/www/v1/calendar/public`).
     - Public calendar availability (`/v1/calendar/availability`, `/www/v1/calendar/availability`).
     - Media lead capture (`/v1/assets/free/request`, `/www/v1/assets/free/request`).
+    - Training poll answer persistence (`PUT /v1/polls/{poll_slug}/answers`,
+      `/www/v1/polls/{poll_slug}/answers`) for `apps/training` (DynamoDB; API key only).
     - Public website endpoints consumed by `apps/public_www`, exposed via the
       CloudFront `/www/*` proxy allowlist in
       `backend/infrastructure/lib/public-www-stack.ts`.
@@ -29,6 +31,8 @@ servers:
     description: Public website (same-origin `/www/*` proxy path)
   - url: https://www-staging.evolvesprouts.com
     description: Staging public website (same-origin `/www/*` proxy path)
+  - url: https://training.evolvesprouts.com
+    description: Training website (same-origin `/www/*` proxy path; not indexed)
 
 paths:
   /v1/assets/public:
@@ -880,6 +884,107 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "502":
           description: Upstream payment provider initialization failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/polls/{poll_slug}/answers:
+    put:
+      summary: Persist one poll question answer (direct API path)
+      description: >
+        Upserts a single question answer for a training-site poll session.
+        Used by `apps/training` when the respondent advances to the next question.
+        Answers are stored in the shared DynamoDB table `evolvesprouts-poll-responses`
+        (partition key `POLL#<poll_slug>`, sort key `SESSION#<session_id>#Q#<question_id>`).
+        Re-submitting the same session and question overwrites the prior row.
+        Requires API key; Turnstile is not used on this route.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+          description: Poll identifier (for example `workshop-food-jun-26`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PollAnswerPutRequest"
+      responses:
+        "200":
+          description: Answer persisted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollAnswerPutResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Persistence failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/polls/{poll_slug}/answers:
+    put:
+      summary: Persist one poll question answer (training website proxy path)
+      description: Same as `PUT /v1/polls/{poll_slug}/answers` for same-origin calls from `apps/training`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PollAnswerPutRequest"
+      responses:
+        "200":
+          description: Answer persisted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollAnswerPutResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Persistence failed.
           content:
             application/json:
               schema:
@@ -1935,6 +2040,64 @@ components:
         "data[id]":
           type: string
           maxLength: 64
+    PollAnswerPutRequest:
+      type: object
+      required:
+        - sessionId
+        - questionId
+        - questionType
+      properties:
+        pollSlug:
+          type: string
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+          description: Optional; when present must match the `{poll_slug}` path segment.
+        sessionId:
+          type: string
+          format: uuid
+          description: Client-generated session id (stored in browser session storage).
+        questionId:
+          type: string
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        questionType:
+          type: string
+          enum: [choice, text]
+        selectionMode:
+          type: string
+          enum: [single, multiple]
+          description: Required when `questionType` is `choice`.
+        answerIds:
+          type: array
+          items:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+          description: Selected predefined answers for `choice` questions.
+        otherText:
+          type: string
+          maxLength: 2000
+          description: Free-text when the respondent selects Other (choice questions).
+        freeText:
+          type: string
+          maxLength: 4000
+          description: Response body for `text` questions.
+    PollAnswerPutResponse:
+      type: object
+      required:
+        - pollSlug
+        - sessionId
+        - questionId
+        - updatedAt
+      properties:
+        pollSlug:
+          type: string
+        sessionId:
+          type: string
+          format: uuid
+        questionId:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+          description: UTC timestamp when the answer row was last written.
     ReservationSubmissionAccepted:
       type: object
       required:

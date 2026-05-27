@@ -15,6 +15,9 @@ const REQUIRED_ALLOWLIST_PATHS = [
   "/www/v1/contact-us",
 ];
 
+const REQUIRED_POLL_PUT_PREFIX = "/www/v1/polls/";
+const REQUIRED_POLL_PUT_SUFFIX = "/answers";
+
 function assertContainsAll(haystack: string, needles: string[], label: string): void {
   for (const needle of needles) {
     if (!haystack.includes(needle)) {
@@ -40,6 +43,17 @@ function main(): void {
     REQUIRED_ALLOWLIST_PATHS,
     "WWW_PROXY_ALLOWLIST_FUNCTION",
   );
+
+  if (!WWW_PROXY_ALLOWLIST_FUNCTION.includes(REQUIRED_POLL_PUT_PREFIX)) {
+    throw new Error(
+      "WWW_PROXY_ALLOWLIST_FUNCTION missing poll PUT prefix allowlist rule",
+    );
+  }
+  if (!WWW_PROXY_ALLOWLIST_FUNCTION.includes(REQUIRED_POLL_PUT_SUFFIX)) {
+    throw new Error(
+      "WWW_PROXY_ALLOWLIST_FUNCTION missing poll PUT /answers suffix rule",
+    );
+  }
 
   if (!MEDIA_REQUEST_PROXY_FUNCTION.includes("/www/v1/assets/free/request")) {
     throw new Error("MEDIA_REQUEST_PROXY_FUNCTION missing media request path");

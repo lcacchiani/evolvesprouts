@@ -17,6 +17,7 @@ import * as sns from "aws-cdk-lib/aws-sns";
 import * as snsSubscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as customresources from "aws-cdk-lib/custom-resources";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { Construct, IConstruct } from "constructs";
 import * as path from "path";
 import { hashDirectory, hashFile, hashValue } from "./cdk-source-hash";
@@ -1676,6 +1677,18 @@ export class ApiStack extends cdk.Stack {
       )
     );
 
+    const pollResponsesTable = new dynamodb.Table(this, "PollResponsesTable", {
+      tableName: name("poll-responses"),
+      partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true,
+      },
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
     // Admin function
     const adminFunction = createPythonFunction("EvolvesproutsAdminFunction", {
       handler: "lambda/admin/handler.lambda_handler",
@@ -1720,6 +1733,11 @@ export class ApiStack extends cdk.Stack {
     });
     database.grantAdminUserSecretRead(adminFunction);
     database.grantConnect(adminFunction, "evolvesprouts_admin");
+    pollResponsesTable.grantReadWriteData(adminFunction);
+    adminFunction.addEnvironment(
+      "POLL_RESPONSES_TABLE_NAME",
+      pollResponsesTable.tableName,
+    );
     assetsBucket.grantReadWrite(adminFunction);
     secretsmanager.Secret.fromSecretCompleteArn(
       this,
@@ -2932,6 +2950,9 @@ export class ApiStack extends cdk.Stack {
     addPublicApiKeyMethod(reservations, "POST");
     addPublicApiKeyMethod(reservations.addResource("payment-intent"), "POST");
     addPublicApiKeyMethod(v1.addResource("contact-us"), "POST");
+    const polls = v1.addResource("polls");
+    const pollBySlug = polls.addResource("{poll_slug}");
+    addPublicApiKeyMethod(pollBySlug.addResource("answers"), "PUT");
     const publicDiscounts = v1.addResource("discounts");
     addPublicApiKeyMethod(publicDiscounts.addResource("validate"), "POST");
     const mailchimpWebhook = v1.addResource("mailchimp").addResource("webhook");

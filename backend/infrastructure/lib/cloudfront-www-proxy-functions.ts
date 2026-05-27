@@ -53,6 +53,15 @@ function handler(event) {
     return request;
   }
 
+  if (
+    method === 'PUT' &&
+    uri.indexOf('/www/v1/polls/') === 0 &&
+    uri.lastIndexOf('/answers') === uri.length - 8
+  ) {
+    request.uri = uri.substring(4);
+    return request;
+  }
+
   return {
     statusCode: 403,
     statusDescription: 'Forbidden',
