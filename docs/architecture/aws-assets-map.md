@@ -24,6 +24,24 @@ The same CDK app also defines static website stacks:
 
 - `evolvesprouts-admin-web` (`backend/infrastructure/lib/admin-web-stack.ts`)
 - `evolvesprouts-public-www` (`backend/infrastructure/lib/public-www-stack.ts`)
+- `evolvesprouts-training` (`backend/infrastructure/lib/training-stack.ts`)
+
+### Training website stack
+
+| Stack Name | Domain Parameter | Certificate Parameter | Notes |
+|-----------|------------------|-----------------------|-------|
+| `evolvesprouts-training` | `TrainingDomainName` | `TrainingCertificateArn` | Production training site; `X-Robots-Tag: noindex, nofollow, noarchive` on all responses |
+
+Stack outputs:
+
+- `TrainingBucketName`
+- `TrainingDistributionId`
+- `TrainingDistributionDomain`
+- `TrainingLoggingBucketName`
+
+Training CloudFront mirrors public WWW `/www/*` API proxy behaviors (`TrainingApiBaseUrl`, `TrainingMediaRequestApiBaseUrl`) for upcoming poll integrations. S3 bucket prefixes: `evolvesprouts-training` and `evolvesprouts-training-logs` (each under 63 characters with account and region suffixes).
+
+Deploy app artifacts with `scripts/deploy/deploy-training.sh` after `cd apps/training && npm run build`.
 
 ### Public WWW environments in one stack
 

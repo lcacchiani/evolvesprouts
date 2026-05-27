@@ -1,0 +1,84 @@
+name: Deploy Training Web
+
+on:
+  repository_dispatch:
+    types: [deploy-training]
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/training/**"
+      - "scripts/deploy/deploy-training.sh"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-training
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Resolve training site origin from infrastructure params
+        id: resolve_training_site_origin
+        run: |
+          SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('TrainingDomainName', '')).strip())")"
+          if [ -z "$SITE_DOMAIN" ]; then
+            echo "TrainingDomainName is required in backend/infrastructure/params/production.json"
+            exit 1
+          fi
+          echo "site_origin=https://${SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+          cache: npm
+          cache-dependency-path: apps/training/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/training
+
+      - name: Restore Next.js build cache
+        uses: actions/cache@v5
+        with:
+          path: apps/training/.next/cache
+          key: ${{ runner.os }}-nextjs-training-${{ hashFiles('apps/training/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-nextjs-training-
+
+      - name: Build training web
+        run: npm run build
+        working-directory: apps/training
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          NEXT_PUBLIC_SITE_ORIGIN: ${{ steps.resolve_training_site_origin.outputs.site_origin }}
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+
+      - name: Configure AWS credentials
+        if: ${{ vars.AWS_ACCOUNT_ID != '' && vars.AWS_REGION != '' }}
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: GitHubActions-${{ github.run_id }}
+
+      - name: Deploy training web
+        if: ${{ vars.AWS_ACCOUNT_ID != '' && vars.AWS_REGION != '' }}
+        run: |
+          if [ -f "scripts/deploy/deploy-training.sh" ]; then
+            bash "scripts/deploy/deploy-training.sh"
+          else
+            echo "Deploy script not found: scripts/deploy/deploy-training.sh"
+            exit 1
+          fi
+        env:
+          TRAINING_STACK_NAME: evolvesprouts-training

@@ -2,6 +2,18 @@
 
 Use `production.json` as a template for CDK parameters.
 
+## Training website parameters
+
+`production.json` includes training website parameters:
+
+- `TrainingDomainName`
+- `TrainingCertificateArn`
+- `TrainingApiBaseUrl`
+- `TrainingMediaRequestApiBaseUrl`
+- `WafWebAclArn` (shared with other static sites)
+
+`TrainingDomainName` is also passed to the backend stack for API Gateway CORS allowlisting.
+
 ## Public website parameters
 
 `production.json` now includes both production and staging parameters for the

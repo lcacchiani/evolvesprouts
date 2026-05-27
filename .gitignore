@@ -202,6 +202,8 @@ apps/admin_web/.next/
 apps/admin_web/out/
 apps/public_www/.next/
 apps/public_www/out/
+apps/training/.next/
+apps/training/out/
 apps/public_www/figma/mdm/artifacts/
 
 # Playwright

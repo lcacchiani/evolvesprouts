@@ -10,8 +10,8 @@
 - Use path-aware rules:
   - If a change touches `backend/**`, backend + security + docs rules apply.
   - If a change touches `apps/evolvesprouts_app/**`, Flutter rules apply.
-  - If a change touches `apps/admin_web/**` or `apps/public_www/**`,
-    web rules apply.
+  - If a change touches `apps/admin_web/**`, `apps/public_www/**`, or
+    `apps/training/**`, web rules apply.
   - If a change touches multiple areas, satisfy all relevant sections.
 - If two rules conflict, follow the more specific rule for the changed path.
 
@@ -21,7 +21,8 @@ repo root
 |-- apps/
 |   |-- evolvesprouts_app/    # Flutter mobile app
 |   |-- admin_web/            # Next.js admin app
-|   `-- public_www/           # Next.js public website
+|   |-- public_www/           # Next.js public website
+|   `-- training/             # Next.js training site (polls, workshops)
 |-- backend/
 |   |-- db/                   # Alembic + seed SQL
 |   |-- infrastructure/       # AWS CDK stacks (TypeScript)
@@ -157,7 +158,7 @@ repo root
 
 ## Web testing requirements (MANDATORY for web behavior changes)
 
-- Applies to `apps/admin_web` and `apps/public_www`.
+- Applies to `apps/admin_web`, `apps/public_www`, and `apps/training`.
 - When UI/API changes alter web behavior, update existing tests and fixtures
   in the app's current testing framework.
 - If coverage is missing, add focused tests in the app's existing toolchain.
@@ -210,7 +211,7 @@ repo root
 
 ## Next.js and TypeScript rules
 
-### Applies to `apps/admin_web/**` and `apps/public_www/**`
+### Applies to `apps/admin_web/**`, `apps/public_www/**`, and `apps/training/**`
 
 - Use TypeScript for app code.
 - Prefer functional components and declarative composition.
