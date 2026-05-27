@@ -257,6 +257,7 @@ Default share-link allowlist values are injected into
 | Resource Type | Logical ID | Service | Notes |
 |--------------|------------|---------|-------|
 | Gateway Endpoint | `S3Endpoint` | S3 | Gateway endpoint (no cost) |
+| Gateway Endpoint | `DynamoDbEndpoint` | DynamoDB | Gateway endpoint for in-VPC Lambdas (e.g. poll answer upserts to `evolvesprouts-poll-responses`) |
 | Interface Endpoint | `SecretsManagerEndpoint` | Secrets Manager | For DB secret access |
 | Interface Endpoint | `StsEndpoint` | STS | For IAM auth token generation |
 | Interface Endpoint | `CloudWatchLogsEndpoint` | CloudWatch Logs | For Lambda logging |
