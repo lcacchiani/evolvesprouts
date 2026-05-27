@@ -86,15 +86,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Resolve training site origin from infrastructure params
-        id: resolve_training_site_origin
+      - name: Resolve training site env from infrastructure params
+        id: resolve_training_site_env
         run: |
           SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('TrainingDomainName', '')).strip())")"
+          PUBLIC_WWW_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('PublicWwwDomainName', '')).strip())")"
           if [ -z "$SITE_DOMAIN" ]; then
             echo "TrainingDomainName is required in backend/infrastructure/params/production.json"
             exit 1
           fi
+          if [ -z "$PUBLIC_WWW_DOMAIN" ]; then
+            echo "PublicWwwDomainName is required in backend/infrastructure/params/production.json"
+            exit 1
+          fi
           echo "site_origin=https://${SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
+          echo "public_www_origin=https://${PUBLIC_WWW_DOMAIN}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -107,7 +113,8 @@ jobs:
         working-directory: apps/training
         env:
           NEXT_TELEMETRY_DISABLED: "1"
-          NEXT_PUBLIC_SITE_ORIGIN: ${{ steps.resolve_training_site_origin.outputs.site_origin }}
+          NEXT_PUBLIC_SITE_ORIGIN: ${{ steps.resolve_training_site_env.outputs.site_origin }}
+          NEXT_PUBLIC_PUBLIC_WWW_ORIGIN: ${{ steps.resolve_training_site_env.outputs.public_www_origin }}
           NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
         run: |
           npm ci
