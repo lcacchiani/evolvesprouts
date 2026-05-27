@@ -274,9 +274,10 @@ Security model:
 
 The training website stack (`backend/infrastructure/lib/training-stack.ts`)
 uses the same default-deny `/www/*` allowlist and media-request rewrite as the
-public WWW stack. When adding or changing a public API path, update **both**
-CloudFront Functions (or extract shared allowlist source) so production public
-WWW and training origins stay aligned.
+public WWW stack via shared sources in
+`backend/infrastructure/lib/cloudfront-www-proxy-functions.ts`. When adding or
+changing a public API path, update that module so production public WWW and
+training origins stay aligned.
 
 Process to add a new public API path:
 

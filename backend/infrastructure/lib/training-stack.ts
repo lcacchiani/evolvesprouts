@@ -5,6 +5,13 @@ import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 
+import {
+  MEDIA_REQUEST_PROXY_FUNCTION,
+  STATIC_EXPORT_PATH_REWRITE_FUNCTION,
+  WWW_API_ERROR_RESPONSE_FUNCTION,
+  WWW_PROXY_ALLOWLIST_FUNCTION,
+} from "./cloudfront-www-proxy-functions";
+
 const TRAINING_HEADER_CONTENT_SECURITY_POLICY = [
   "base-uri 'self'",
   "object-src 'none'",
@@ -179,27 +186,9 @@ export class TrainingStack extends cdk.Stack {
         comment:
           "Rewrite extensionless and trailing-slash paths to index.html for static export.",
         runtime: cloudfront.FunctionRuntime.JS_2_0,
-        code: cloudfront.FunctionCode.fromInline(`
-function handler(event) {
-  var request = event.request;
-  var uri = request.uri;
-
-  if (uri.startsWith('/_next/')) {
-    return request;
-  }
-
-  if (uri.endsWith('/')) {
-    request.uri = uri + 'index.html';
-    return request;
-  }
-
-  if (uri.indexOf('.') === -1) {
-    request.uri = uri + '/index.html';
-  }
-
-  return request;
-}
-`),
+        code: cloudfront.FunctionCode.fromInline(
+          STATIC_EXPORT_PATH_REWRITE_FUNCTION,
+        ),
       },
     );
 
@@ -210,41 +199,7 @@ function handler(event) {
         comment:
           "Allow only explicitly approved public API method/path pairs on /www/*.",
         runtime: cloudfront.FunctionRuntime.JS_2_0,
-        code: cloudfront.FunctionCode.fromInline(`
-function handler(event) {
-  var request = event.request;
-  var method = request.method || '';
-  var uri = request.uri || '';
-
-  var allowlist = {
-    'GET': {
-      '/www/v1/calendar/public': true,
-      '/www/v1/calendar/availability': true,
-      '/www/v1/assets/free': true
-    },
-    'POST': {
-      '/www/v1/discounts/validate': true,
-      '/www/v1/reservations': true,
-      '/www/v1/reservations/payment-intent': true,
-      '/www/v1/contact-us': true
-    }
-  };
-  if (allowlist[method] && allowlist[method][uri]) {
-    request.uri = uri.substring(4);
-    return request;
-  }
-
-  return {
-    statusCode: 403,
-    statusDescription: 'Forbidden',
-    headers: {
-      'content-type': { value: 'application/json; charset=utf-8' },
-      'cache-control': { value: 'no-store' }
-    },
-    body: '{"message":"Forbidden"}'
-  };
-}
-`),
+        code: cloudfront.FunctionCode.fromInline(WWW_PROXY_ALLOWLIST_FUNCTION),
       },
     );
 
@@ -255,29 +210,7 @@ function handler(event) {
         comment:
           "Allow /www/v1/assets/free/request and rewrite path for execute-api origin.",
         runtime: cloudfront.FunctionRuntime.JS_2_0,
-        code: cloudfront.FunctionCode.fromInline(`
-function handler(event) {
-  var request = event.request;
-  var method = request.method || '';
-  var uri = request.uri || '';
-  var isAllowedMethod = method === 'POST' || method === 'OPTIONS';
-
-  if (uri === '/www/v1/assets/free/request' && isAllowedMethod) {
-    request.uri = '/v1/assets/free/request';
-    return request;
-  }
-
-  return {
-    statusCode: 403,
-    statusDescription: 'Forbidden',
-    headers: {
-      'content-type': { value: 'application/json; charset=utf-8' },
-      'cache-control': { value: 'no-store' }
-    },
-    body: '{"message":"Forbidden"}'
-  };
-}
-`),
+        code: cloudfront.FunctionCode.fromInline(MEDIA_REQUEST_PROXY_FUNCTION),
       },
     );
 
@@ -288,25 +221,7 @@ function handler(event) {
         comment:
           "Convert HTML error pages to JSON for /www API proxy behaviors.",
         runtime: cloudfront.FunctionRuntime.JS_2_0,
-        code: cloudfront.FunctionCode.fromInline(`
-function handler(event) {
-  var response = event.response;
-  var statusCode = parseInt(response.statusCode, 10);
-  if (statusCode < 400 || statusCode >= 600) {
-    return response;
-  }
-  var ct = response.headers['content-type'];
-  var contentType = (ct && ct.value) ? ct.value : '';
-  if (contentType.indexOf('text/html') !== -1) {
-    response.statusCode = 502;
-    response.statusDescription = 'Bad Gateway';
-    response.headers['content-type'] = { value: 'application/json; charset=utf-8' };
-    response.headers['cache-control'] = { value: 'no-store' };
-    response.body = '{"error":"The request could not be processed. Please try again."}';
-  }
-  return response;
-}
-`),
+        code: cloudfront.FunctionCode.fromInline(WWW_API_ERROR_RESPONSE_FUNCTION),
       },
     );
 
