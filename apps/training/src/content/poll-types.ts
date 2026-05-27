@@ -1,31 +1,38 @@
 import pollsCommonJson from '@/content/polls-common.json';
 import workshopFoodJun26Json from '@/content/polls/workshop-food-jun-26.json';
 
-export type PollSelectionMode = 'single' | 'multiple';
-
-export type PollQuestionType = 'choice' | 'text';
-
-export interface PollAnswerOption {
+export interface PollQuestionBase {
   id: string;
-  text: string;
+  screen: string;
+  question: string;
+  showResults: boolean;
 }
 
-export interface PollChoiceQuestion {
-  id: string;
-  type: 'choice';
-  selectionMode: PollSelectionMode;
-  allowOther: boolean;
-  text: string;
-  answers: PollAnswerOption[];
+export interface PollSelectQuestion extends PollQuestionBase {
+  type: 'select';
+  options: string[];
+  presenterNote?: string;
 }
 
-export interface PollTextQuestion {
-  id: string;
+export interface PollTrueFalseQuestion extends PollQuestionBase {
+  type: 'truefalse';
+  answer: boolean;
+  answerNote: string;
+}
+
+export interface PollTextQuestion extends PollQuestionBase {
   type: 'text';
-  text: string;
 }
 
-export type PollQuestion = PollChoiceQuestion | PollTextQuestion;
+export interface PollEmailQuestion extends PollQuestionBase {
+  type: 'email';
+}
+
+export type PollQuestion =
+  | PollSelectQuestion
+  | PollTrueFalseQuestion
+  | PollTextQuestion
+  | PollEmailQuestion;
 
 export interface PollContent {
   title: string;
@@ -38,10 +45,16 @@ export interface PollsCommonContent {
     back: string;
     next: string;
     finish: string;
+    continue: string;
   };
-  choice: {
-    otherLabel: string;
-    otherPlaceholder: string;
+  truefalse: {
+    trueLabel: string;
+    falseLabel: string;
+    correctHeading: string;
+    incorrectHeading: string;
+  };
+  results: {
+    yourAnswerTemplate: string;
   };
   completion: {
     title: string;
@@ -49,6 +62,7 @@ export interface PollsCommonContent {
   };
   errors: {
     required: string;
+    invalidEmail: string;
     persistFailed: string;
     missingApiConfig: string;
   };
@@ -85,5 +99,3 @@ export function getPollContent(slug: string): PollContent | null {
 export function buildPollPath(slug: PollSlug | string): string {
   return `/polls/${slug}/`;
 }
-
-export const POLL_OTHER_ANSWER_ID = 'other';

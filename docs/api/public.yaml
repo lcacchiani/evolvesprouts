@@ -2060,25 +2060,18 @@ components:
           pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
         questionType:
           type: string
-          enum: [choice, text]
-        selectionMode:
+          enum: [select, truefalse, text, email]
+        selectedOption:
           type: string
-          enum: [single, multiple]
-          description: Required when `questionType` is `choice`.
-        answerIds:
-          type: array
-          items:
-            type: string
-            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          description: Selected predefined answers for `choice` questions.
-        otherText:
-          type: string
-          maxLength: 2000
-          description: Free-text when the respondent selects Other (choice questions).
+          maxLength: 500
+          description: Selected option label for `select` questions.
+        booleanAnswer:
+          type: boolean
+          description: Respondent answer for `truefalse` questions.
         freeText:
           type: string
           maxLength: 4000
-          description: Response body for `text` questions.
+          description: Response body for `text` and `email` questions.
     PollAnswerPutResponse:
       type: object
       required:

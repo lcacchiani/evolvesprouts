@@ -2,9 +2,14 @@
 
 import { useMemo, useState } from 'react';
 
+import {
+  emptyAnswerState,
+  isAnswerValid,
+  type QuestionAnswerState,
+} from '@/components/polls/poll-answer-state';
 import { PollQuestionField } from '@/components/polls/poll-question-field';
+import { PollResultsPanel } from '@/components/polls/poll-results-panel';
 import type { PollContent, PollQuestion, PollsCommonContent } from '@/content/poll-types';
-import { POLL_OTHER_ANSWER_ID } from '@/content/poll-types';
 import { getOrCreatePollSessionId } from '@/lib/poll-session';
 import { persistPollAnswer } from '@/lib/polls-api';
 
@@ -13,8 +18,11 @@ export interface PollWizardProps {
   common: PollsCommonContent;
 }
 
+type StepPhase = 'answer' | 'results';
+
 export function PollWizard({ poll, common }: PollWizardProps) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [stepPhase, setStepPhase] = useState<StepPhase>('answer');
   const [isComplete, setIsComplete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -50,33 +58,37 @@ export function PollWizard({ poll, common }: PollWizardProps) {
 
   const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === totalSteps - 1;
+  const showingResults = stepPhase === 'results' && currentQuestion.showResults;
+  const primaryLabel = resolvePrimaryLabel({
+    common,
+    isLastStep,
+    showingResults,
+  });
 
   return (
     <section className='mx-auto flex w-full max-w-xl flex-col gap-6'>
       <p className='text-sm text-neutral-600'>{progressLabel}</p>
-      <PollQuestionField
-        question={currentQuestion}
-        common={common}
-        selectedAnswerIds={currentAnswer.selectedAnswerIds}
-        otherText={currentAnswer.otherText}
-        freeText={currentAnswer.freeText}
-        onSelectedAnswerIdsChange={(value) => {
-          updateAnswerState(currentQuestion.id, { selectedAnswerIds: value });
-        }}
-        onOtherTextChange={(value) => {
-          updateAnswerState(currentQuestion.id, { otherText: value });
-        }}
-        onFreeTextChange={(value) => {
-          updateAnswerState(currentQuestion.id, { freeText: value });
-        }}
-      />
+      {showingResults ? (
+        <PollResultsPanel
+          question={currentQuestion}
+          common={common}
+          answer={currentAnswer}
+        />
+      ) : (
+        <PollQuestionField
+          question={currentQuestion}
+          common={common}
+          answer={currentAnswer}
+          onAnswerChange={(patch) => updateAnswerState(currentQuestion.id, patch)}
+        />
+      )}
       {errorMessage ? (
         <p className='text-sm text-red-700' role='alert'>
           {errorMessage}
         </p>
       ) : null}
       <div className='flex flex-wrap items-center justify-start gap-2'>
-        {!isFirstStep ? (
+        {!isFirstStep && !showingResults ? (
           <button
             type='button'
             className='rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900'
@@ -84,6 +96,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
             onClick={() => {
               setErrorMessage(null);
               setStepIndex((index) => Math.max(0, index - 1));
+              setStepPhase('answer');
             }}
           >
             {common.navigation.back}
@@ -95,7 +108,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
           disabled={isSaving}
           onClick={() => void handlePrimaryAction()}
         >
-          {isLastStep ? common.navigation.finish : common.navigation.next}
+          {primaryLabel}
         </button>
       </div>
     </section>
@@ -117,8 +130,15 @@ export function PollWizard({ poll, common }: PollWizardProps) {
 
   async function handlePrimaryAction(): Promise<void> {
     setErrorMessage(null);
-    if (!isAnswerValid(currentQuestion, currentAnswer)) {
-      setErrorMessage(common.errors.required);
+
+    if (showingResults) {
+      advanceToNextQuestion();
+      return;
+    }
+
+    const validationError = validateAnswer(currentQuestion, currentAnswer, common);
+    if (validationError) {
+      setErrorMessage(validationError);
       return;
     }
 
@@ -128,9 +148,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
         pollSlug: poll.slug,
         sessionId,
         question: currentQuestion,
-        selectedAnswerIds: currentAnswer.selectedAnswerIds,
-        otherText: currentAnswer.otherText,
-        freeText: currentAnswer.freeText,
+        answer: currentAnswer,
       });
     } catch {
       setErrorMessage(common.errors.persistFailed);
@@ -139,48 +157,58 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     }
     setIsSaving(false);
 
+    if (currentQuestion.showResults) {
+      setStepPhase('results');
+      return;
+    }
+
+    if (isLastStep) {
+      setIsComplete(true);
+      return;
+    }
+    advanceToNextQuestion();
+  }
+
+  function advanceToNextQuestion(): void {
     if (isLastStep) {
       setIsComplete(true);
       return;
     }
     setStepIndex((index) => index + 1);
+    setStepPhase('answer');
   }
 }
 
-interface QuestionAnswerState {
-  selectedAnswerIds: string[];
-  otherText: string;
-  freeText: string;
-}
-
-function emptyAnswerState(): QuestionAnswerState {
-  return {
-    selectedAnswerIds: [],
-    otherText: '',
-    freeText: '',
-  };
-}
-
-function isAnswerValid(
+function validateAnswer(
   question: PollQuestion,
   answer: QuestionAnswerState,
-): boolean {
-  if (question.type === 'text') {
-    return answer.freeText.trim().length > 0;
+  common: PollsCommonContent,
+): string | null {
+  if (!isAnswerValid(question, answer)) {
+    if (question.type === 'email') {
+      return common.errors.invalidEmail;
+    }
+    return common.errors.required;
   }
+  return null;
+}
 
-  const selected = answer.selectedAnswerIds;
-  if (selected.length === 0) {
-    return false;
+function resolvePrimaryLabel({
+  common,
+  isLastStep,
+  showingResults,
+}: {
+  common: PollsCommonContent;
+  isLastStep: boolean;
+  showingResults: boolean;
+}): string {
+  if (showingResults) {
+    return common.navigation.continue;
   }
-  if (question.selectionMode === 'single' && selected.length > 1) {
-    return false;
+  if (isLastStep) {
+    return common.navigation.finish;
   }
-  if (selected.includes(POLL_OTHER_ANSWER_ID) && !answer.otherText.trim()) {
-    return false;
-  }
-  const predefined = selected.filter((id) => id !== POLL_OTHER_ANSWER_ID);
-  return predefined.length > 0 || selected.includes(POLL_OTHER_ANSWER_ID);
+  return common.navigation.next;
 }
 
 function formatProgressLabel({

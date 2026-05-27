@@ -3,33 +3,77 @@
   "slug": "workshop-food-jun-26",
   "questions": [
     {
-      "id": "meal-preference",
-      "type": "choice",
-      "selectionMode": "single",
-      "allowOther": false,
-      "text": "Which meal option do you prefer for the workshop lunch?",
-      "answers": [
-        { "id": "standard", "text": "Standard" },
-        { "id": "vegetarian", "text": "Vegetarian" },
-        { "id": "vegan", "text": "Vegan" }
-      ]
+      "id": "role",
+      "type": "select",
+      "screen": "Who are you?",
+      "question": "I am a...",
+      "options": ["Parent", "Helper / Caregiver", "Grandparent", "Other"],
+      "showResults": false
     },
     {
-      "id": "dietary-notes",
+      "id": "challenge",
+      "type": "select",
+      "screen": "Your biggest challenge",
+      "question": "What is the biggest mealtime challenge in your home?",
+      "options": [
+        "My child refuses new foods",
+        "My child won't eat independently",
+        "My helper and I aren't aligned",
+        "Mealtimes are stressful for everyone",
+        "My child only eats a few things"
+      ],
+      "showResults": true,
+      "presenterNote": "We asked you this as you arrived. Here's what you said."
+    },
+    {
+      "id": "myth1",
+      "type": "truefalse",
+      "screen": "Myth or fact?",
+      "question": "Children must finish everything on their plate.",
+      "answer": false,
+      "answerNote": "Forcing children to finish teaches them to ignore their own fullness signals. A child who learns to stop when full builds a healthier relationship with food for life.",
+      "showResults": true
+    },
+    {
+      "id": "myth2",
+      "type": "truefalse",
+      "screen": "Myth or fact?",
+      "question": "Fruit makes the body 'cold' and should be avoided.",
+      "answer": false,
+      "answerNote": "This is a common belief in Chinese culture but has no clinical basis. Fruit is essential for vitamins, fibre, and hydration. Serve at room temperature if the family prefers — but don't avoid it.",
+      "showResults": true
+    },
+    {
+      "id": "myth3",
+      "type": "truefalse",
+      "screen": "Myth or fact?",
+      "question": "If a child refuses a food once, they don't like it.",
+      "answer": false,
+      "answerNote": "It takes 10–15 exposures before a child accepts a new food. Refusing is not rejecting. Keep offering without pressure — let them see it, touch it, smell it first.",
+      "showResults": true
+    },
+    {
+      "id": "myth4",
+      "type": "truefalse",
+      "screen": "Myth or fact?",
+      "question": "Juice is just as good as whole fruit.",
+      "answer": false,
+      "answerNote": "Whole fruit has fibre which slows sugar absorption. A glass of orange juice has almost the same sugar as a can of soda. Offer whole fruit and water instead.",
+      "showResults": true
+    },
+    {
+      "id": "onething",
       "type": "text",
-      "text": "List any allergies or dietary requirements we should know about."
+      "screen": "Your one thing",
+      "question": "What is ONE thing you'll do differently — starting tomorrow?",
+      "showResults": false
     },
     {
-      "id": "snack-preferences",
-      "type": "choice",
-      "selectionMode": "multiple",
-      "allowOther": true,
-      "text": "Which afternoon snacks would you enjoy? (Select all that apply.)",
-      "answers": [
-        { "id": "fruit", "text": "Fresh fruit" },
-        { "id": "nuts", "text": "Mixed nuts" },
-        { "id": "crackers", "text": "Rice crackers" }
-      ]
+      "id": "email",
+      "type": "email",
+      "screen": "Stay connected",
+      "question": "Get tonight's resources and tips by email",
+      "showResults": false
     }
   ]
 }

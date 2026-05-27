@@ -1,5 +1,5 @@
 import type { PollQuestion } from '@/content/poll-types';
-import { POLL_OTHER_ANSWER_ID } from '@/content/poll-types';
+import type { QuestionAnswerState } from '@/components/polls/poll-answer-state';
 
 const API_BASE_URL_ENV = 'NEXT_PUBLIC_API_BASE_URL';
 const API_KEY_ENV = 'NEXT_PUBLIC_TRAINING_API_KEY';
@@ -10,9 +10,7 @@ export interface PersistPollAnswerInput {
   pollSlug: string;
   sessionId: string;
   question: PollQuestion;
-  selectedAnswerIds: string[];
-  otherText: string;
-  freeText: string;
+  answer: QuestionAnswerState;
 }
 
 export class PollApiError extends Error {
@@ -72,22 +70,23 @@ function buildPersistBody(input: PersistPollAnswerInput): Record<string, unknown
     questionType: input.question.type,
   };
 
-  if (input.question.type === 'text') {
+  if (input.question.type === 'select') {
     return {
       ...base,
-      freeText: input.freeText.trim(),
+      selectedOption: input.answer.selectedOption.trim(),
     };
   }
 
-  const answerIds = input.selectedAnswerIds.filter((id) => id !== POLL_OTHER_ANSWER_ID);
-  const otherText =
-    input.selectedAnswerIds.includes(POLL_OTHER_ANSWER_ID) ? input.otherText.trim() : '';
+  if (input.question.type === 'truefalse') {
+    return {
+      ...base,
+      booleanAnswer: input.answer.trueFalseValue,
+    };
+  }
 
   return {
     ...base,
-    selectionMode: input.question.selectionMode,
-    answerIds,
-    ...(otherText ? { otherText } : {}),
+    freeText: input.answer.freeText.trim(),
   };
 }
 

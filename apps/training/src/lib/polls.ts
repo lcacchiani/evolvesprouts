@@ -4,9 +4,12 @@ export {
   getPollContent,
   isValidPollSlug,
   POLLS_COMMON,
-  POLL_OTHER_ANSWER_ID,
   type PollContent,
+  type PollEmailQuestion,
   type PollQuestion,
+  type PollSelectQuestion,
   type PollSlug,
   type PollsCommonContent,
+  type PollTextQuestion,
+  type PollTrueFalseQuestion,
 } from '@/content/poll-types';

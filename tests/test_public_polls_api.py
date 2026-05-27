@@ -28,7 +28,7 @@ def _event(api_gateway_event: Any, *, body: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def test_put_poll_answer_persists_choice(api_gateway_event: Any, mock_env: Any) -> None:
+def test_put_poll_answer_persists_select(api_gateway_event: Any, mock_env: Any) -> None:
     table = MagicMock()
     table.get_item.return_value = {"Item": None}
     store.configure_table_for_tests(table)
@@ -36,17 +36,40 @@ def test_put_poll_answer_persists_choice(api_gateway_event: Any, mock_env: Any) 
 
     body = {
         "sessionId": "550e8400-e29b-41d4-a716-446655440000",
-        "questionId": "meal-preference",
-        "questionType": "choice",
-        "selectionMode": "single",
-        "answerIds": ["vegetarian"],
+        "questionId": "role",
+        "questionType": "select",
+        "selectedOption": "Parent",
     }
-    resp = pp.handle_public_polls_request(_event(api_gateway_event, body=body), "PUT", "/www/v1/polls/workshop-food-jun-26/answers")
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
     assert resp["statusCode"] == 200
-    payload = json.loads(resp["body"])
-    assert payload["pollSlug"] == "workshop-food-jun-26"
-    assert payload["questionId"] == "meal-preference"
-    table.put_item.assert_called_once()
+    item = table.put_item.call_args.kwargs["Item"]
+    assert item["selectedOption"] == "Parent"
+
+
+def test_put_poll_answer_persists_truefalse(api_gateway_event: Any, mock_env: Any) -> None:
+    table = MagicMock()
+    table.get_item.return_value = {"Item": None}
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "myth1",
+        "questionType": "truefalse",
+        "booleanAnswer": False,
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 200
+    item = table.put_item.call_args.kwargs["Item"]
+    assert item["booleanAnswer"] is False
 
 
 def test_put_poll_answer_persists_text(api_gateway_event: Any, mock_env: Any) -> None:
@@ -57,25 +80,52 @@ def test_put_poll_answer_persists_text(api_gateway_event: Any, mock_env: Any) ->
 
     body = {
         "sessionId": "550e8400-e29b-41d4-a716-446655440000",
-        "questionId": "dietary-notes",
+        "questionId": "onething",
         "questionType": "text",
-        "freeText": "No peanuts",
+        "freeText": "Offer fruit at every meal",
     }
-    resp = pp.handle_public_polls_request(_event(api_gateway_event, body=body), "PUT", "/www/v1/polls/workshop-food-jun-26/answers")
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
     assert resp["statusCode"] == 200
     item = table.put_item.call_args.kwargs["Item"]
-    assert item["freeText"] == "No peanuts"
+    assert item["freeText"] == "Offer fruit at every meal"
+
+
+def test_put_poll_answer_persists_email(api_gateway_event: Any, mock_env: Any) -> None:
+    table = MagicMock()
+    table.get_item.return_value = {"Item": None}
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "email",
+        "questionType": "email",
+        "freeText": "parent@example.com",
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 200
 
 
 def test_put_poll_answer_rejects_invalid_session(api_gateway_event: Any) -> None:
     body = {
         "sessionId": "not-a-uuid",
-        "questionId": "meal-preference",
-        "questionType": "choice",
-        "selectionMode": "single",
-        "answerIds": ["vegetarian"],
+        "questionId": "role",
+        "questionType": "select",
+        "selectedOption": "Parent",
     }
-    resp = pp.handle_public_polls_request(_event(api_gateway_event, body=body), "PUT", "/www/v1/polls/workshop-food-jun-26/answers")
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
     assert resp["statusCode"] == 400
 
 
@@ -86,5 +136,7 @@ def test_put_poll_answer_rejects_unknown_path(api_gateway_event: Any) -> None:
         body="{}",
         headers={"content-type": "application/json"},
     )
-    resp = pp.handle_public_polls_request(event, "PUT", "/www/v1/polls/workshop-food-jun-26/submit")
+    resp = pp.handle_public_polls_request(
+        event, "PUT", "/www/v1/polls/workshop-food-jun-26/submit"
+    )
     assert resp["statusCode"] == 404

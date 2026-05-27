@@ -7,6 +7,7 @@ from typing import Any
 from collections.abc import Mapping
 
 from app.api.admin_request import parse_body
+from app.api.validators import validate_email
 from app.exceptions import ValidationError
 from app.services.poll_responses_store import upsert_poll_answer
 from app.utils import json_response
@@ -19,10 +20,8 @@ _ANSWERS_SUFFIX = "/answers"
 _POLL_API_PREFIX = "/v1/polls/"
 _WWW_POLL_API_PREFIX = "/www/v1/polls/"
 
-_MAX_OTHER_TEXT = 2000
+_MAX_SELECTED_OPTION = 500
 _MAX_FREE_TEXT = 4000
-_MAX_ANSWER_IDS = 32
-_MAX_ANSWER_ID_LEN = 64
 
 _QUESTION_ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _SESSION_ID_PATTERN = re.compile(
@@ -30,9 +29,10 @@ _SESSION_ID_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-_CHOICE_TYPES = frozenset({"choice"})
+_SELECT_TYPES = frozenset({"select"})
+_TRUEFALSE_TYPES = frozenset({"truefalse"})
 _TEXT_TYPES = frozenset({"text"})
-_SELECTION_MODES = frozenset({"single", "multiple"})
+_EMAIL_TYPES = frozenset({"email"})
 
 
 def handle_public_polls_request(
@@ -124,43 +124,53 @@ def _validate_put_body(
         if normalized_body_slug != poll_slug:
             raise ValidationError("pollSlug does not match URL")
 
-    if question_type in _TEXT_TYPES:
-        free_text = _require_non_empty_string(body.get("freeText"), field="freeText")
-        if len(free_text) > _MAX_FREE_TEXT:
-            raise ValidationError(
-                f"freeText must be at most {_MAX_FREE_TEXT} characters"
-            )
-        return {
-            "poll_slug": poll_slug,
-            "session_id": session_id,
-            "question_id": question_id,
-            "question_type": question_type,
-            "selection_mode": None,
-            "answer_ids": [],
-            "other_text": None,
-            "free_text": free_text,
-        }
-
-    selection_mode = _require_selection_mode(body.get("selectionMode"))
-    answer_ids = _parse_answer_ids(body.get("answerIds"))
-    other_text = _parse_optional_text(body.get("otherText"), max_length=_MAX_OTHER_TEXT)
-
-    if not answer_ids and not other_text:
-        raise ValidationError("answerIds or otherText is required for choice questions")
-    if selection_mode == "single" and len(answer_ids) > 1:
-        raise ValidationError("single selection allows at most one answerId")
-    if selection_mode == "single" and answer_ids and other_text:
-        raise ValidationError("single selection cannot combine answerIds and otherText")
-
-    return {
+    base = {
         "poll_slug": poll_slug,
         "session_id": session_id,
         "question_id": question_id,
         "question_type": question_type,
-        "selection_mode": selection_mode,
-        "answer_ids": answer_ids,
-        "other_text": other_text,
-        "free_text": None,
+    }
+
+    if question_type in _SELECT_TYPES:
+        selected_option = _require_non_empty_string(
+            body.get("selectedOption"),
+            field="selectedOption",
+        )
+        if len(selected_option) > _MAX_SELECTED_OPTION:
+            raise ValidationError(
+                f"selectedOption must be at most {_MAX_SELECTED_OPTION} characters"
+            )
+        return {
+            **base,
+            "selected_option": selected_option,
+            "boolean_answer": None,
+            "free_text": None,
+        }
+
+    if question_type in _TRUEFALSE_TYPES:
+        boolean_answer = _require_boolean(body.get("booleanAnswer"))
+        return {
+            **base,
+            "selected_option": None,
+            "boolean_answer": boolean_answer,
+            "free_text": None,
+        }
+
+    free_text = _require_non_empty_string(body.get("freeText"), field="freeText")
+    if len(free_text) > _MAX_FREE_TEXT:
+        raise ValidationError(f"freeText must be at most {_MAX_FREE_TEXT} characters")
+
+    if question_type in _EMAIL_TYPES:
+        validated_email = validate_email(free_text)
+        if not validated_email:
+            raise ValidationError("freeText must be a valid email address")
+        free_text = validated_email
+
+    return {
+        **base,
+        "selected_option": None,
+        "boolean_answer": None,
+        "free_text": free_text,
     }
 
 
@@ -186,52 +196,16 @@ def _require_question_type(value: Any) -> str:
     if not isinstance(value, str):
         raise ValidationError("questionType is required")
     normalized = value.strip().lower()
-    if normalized not in _CHOICE_TYPES and normalized not in _TEXT_TYPES:
-        raise ValidationError("questionType must be choice or text")
+    allowed = _SELECT_TYPES | _TRUEFALSE_TYPES | _TEXT_TYPES | _EMAIL_TYPES
+    if normalized not in allowed:
+        raise ValidationError("questionType must be select, truefalse, text, or email")
     return normalized
 
 
-def _require_selection_mode(value: Any) -> str:
-    if not isinstance(value, str):
-        raise ValidationError("selectionMode is required for choice questions")
-    normalized = value.strip().lower()
-    if normalized not in _SELECTION_MODES:
-        raise ValidationError("selectionMode must be single or multiple")
-    return normalized
-
-
-def _parse_answer_ids(value: Any) -> list[str]:
-    if value is None:
-        return []
-    if not isinstance(value, list):
-        raise ValidationError("answerIds must be an array")
-    if len(value) > _MAX_ANSWER_IDS:
-        raise ValidationError(f"answerIds must have at most {_MAX_ANSWER_IDS} items")
-    result: list[str] = []
-    for item in value:
-        if not isinstance(item, str):
-            raise ValidationError("answerIds items must be strings")
-        normalized = item.strip()
-        if not normalized or len(normalized) > _MAX_ANSWER_ID_LEN:
-            raise ValidationError("answerIds items must be non-empty identifiers")
-        if not _QUESTION_ID_PATTERN.match(normalized):
-            raise ValidationError("answerIds items must be kebab-case identifiers")
-        if normalized not in result:
-            result.append(normalized)
-    return result
-
-
-def _parse_optional_text(value: Any, *, max_length: int) -> str | None:
-    if value is None:
-        return None
-    if not isinstance(value, str):
-        raise ValidationError("otherText must be a string")
-    normalized = value.strip()
-    if not normalized:
-        return None
-    if len(normalized) > max_length:
-        raise ValidationError(f"otherText must be at most {max_length} characters")
-    return normalized
+def _require_boolean(value: Any) -> bool:
+    if not isinstance(value, bool):
+        raise ValidationError("booleanAnswer must be a boolean")
+    return value
 
 
 def _require_non_empty_string(value: Any, *, field: str) -> str:

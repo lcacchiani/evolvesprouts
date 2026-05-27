@@ -2,11 +2,17 @@
   "navigation": {
     "back": "Back",
     "next": "Next",
-    "finish": "Finish"
+    "finish": "Finish",
+    "continue": "Continue"
   },
-  "choice": {
-    "otherLabel": "Other",
-    "otherPlaceholder": "Please specify"
+  "truefalse": {
+    "trueLabel": "True",
+    "falseLabel": "False",
+    "correctHeading": "Correct",
+    "incorrectHeading": "Not quite"
+  },
+  "results": {
+    "yourAnswerTemplate": "You answered: {answer}"
   },
   "completion": {
     "title": "Thank you",
@@ -14,6 +20,7 @@
   },
   "errors": {
     "required": "Please answer this question before continuing.",
+    "invalidEmail": "Enter a valid email address.",
     "persistFailed": "We could not save your answer. Please try again.",
     "missingApiConfig": "This poll cannot be saved right now. Please try again later."
   },

@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime
 from typing import Any
-from collections.abc import Mapping
 
 import boto3
 from botocore.exceptions import ClientError
@@ -60,10 +59,9 @@ def upsert_poll_answer(
     session_id: str,
     question_id: str,
     question_type: str,
-    selection_mode: str | None,
-    answer_ids: list[str],
-    other_text: str | None,
-    free_text: str | None,
+    selected_option: str | None = None,
+    boolean_answer: bool | None = None,
+    free_text: str | None = None,
 ) -> dict[str, Any]:
     """Persist one question answer; overwrites prior value for the same session/question."""
     table = _get_table()
@@ -80,13 +78,11 @@ def upsert_poll_answer(
         "questionType": question_type,
         "updatedAt": now,
     }
-    if selection_mode is not None:
-        item["selectionMode"] = selection_mode
-    if answer_ids:
-        item["answerIds"] = answer_ids
-    if other_text:
-        item["otherText"] = other_text
-    if free_text:
+    if selected_option is not None:
+        item["selectedOption"] = selected_option
+    if boolean_answer is not None:
+        item["booleanAnswer"] = boolean_answer
+    if free_text is not None:
         item["freeText"] = free_text
 
     try:

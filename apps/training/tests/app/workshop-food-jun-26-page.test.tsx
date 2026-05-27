@@ -14,13 +14,15 @@ vi.mock('@/lib/polls-api', () => ({
 }));
 
 describe('WorkshopFoodJun26PollPage', () => {
-  it('renders poll title and first question', async () => {
+  it('renders poll title and first question screen', () => {
     if (!poll) {
       throw new Error('Expected workshop-food-jun-26 poll content');
     }
     render(<PollPage poll={poll} common={POLLS_COMMON} />);
     expect(screen.getByRole('heading', { level: 1, name: poll.title })).toBeInTheDocument();
-    expect(screen.getByText(poll.questions[0]?.text ?? '')).toBeInTheDocument();
+    const first = poll.questions[0];
+    expect(screen.getByText(first?.screen ?? '')).toBeInTheDocument();
+    expect(screen.getByText(first?.question ?? '')).toBeInTheDocument();
   });
 
   it('static route resolves workshop slug', async () => {
@@ -31,7 +33,7 @@ describe('WorkshopFoodJun26PollPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: poll?.title })).toBeInTheDocument();
   });
 
-  it('advances after selecting an answer and persists', async () => {
+  it('advances after selecting an option and persists', async () => {
     if (!poll) {
       throw new Error('Expected workshop-food-jun-26 poll content');
     }
@@ -40,13 +42,41 @@ describe('WorkshopFoodJun26PollPage', () => {
 
     render(<PollPage poll={poll} common={POLLS_COMMON} />);
     const first = poll.questions[0];
-    if (!first || first.type !== 'choice') {
-      throw new Error('Expected first question to be choice');
+    if (!first || first.type !== 'select') {
+      throw new Error('Expected first question to be select');
     }
-    await user.click(screen.getByLabelText(first.answers[0]?.text ?? ''));
+    await user.click(screen.getByLabelText(first.options[0] ?? ''));
     await user.click(screen.getByRole('button', { name: POLLS_COMMON.navigation.next }));
 
     expect(persistPollAnswer).toHaveBeenCalled();
-    expect(screen.getByText(poll.questions[1]?.text ?? '')).toBeInTheDocument();
+    const second = poll.questions[1];
+    expect(screen.getByText(second?.screen ?? '')).toBeInTheDocument();
+  });
+
+  it('shows results step for challenge question before continuing', async () => {
+    if (!poll) {
+      throw new Error('Expected workshop-food-jun-26 poll content');
+    }
+    const user = userEvent.setup();
+    render(<PollPage poll={poll} common={POLLS_COMMON} />);
+
+    const role = poll.questions[0];
+    if (!role || role.type !== 'select') {
+      throw new Error('Expected role select question');
+    }
+    await user.click(screen.getByLabelText(role.options[0] ?? ''));
+    await user.click(screen.getByRole('button', { name: POLLS_COMMON.navigation.next }));
+
+    const challenge = poll.questions[1];
+    if (!challenge || challenge.type !== 'select') {
+      throw new Error('Expected challenge select question');
+    }
+    await user.click(screen.getByLabelText(challenge.options[0] ?? ''));
+    await user.click(screen.getByRole('button', { name: POLLS_COMMON.navigation.next }));
+
+    expect(screen.getByText(challenge.presenterNote ?? '')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: POLLS_COMMON.navigation.continue }),
+    ).toBeInTheDocument();
   });
 });
