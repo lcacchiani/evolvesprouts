@@ -129,6 +129,106 @@ def test_put_poll_answer_rejects_invalid_session(api_gateway_event: Any) -> None
     assert resp["statusCode"] == 400
 
 
+def test_get_poll_question_results_aggregates_select(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.query.return_value = {
+        "Items": [
+            {
+                "questionId": "role",
+                "questionType": "select",
+                "selectedOption": "Parent",
+            },
+            {
+                "questionId": "role",
+                "questionType": "select",
+                "selectedOption": "Parent",
+            },
+            {
+                "questionId": "role",
+                "questionType": "select",
+                "selectedOption": "Grandparent",
+            },
+            {
+                "questionId": "challenge",
+                "questionType": "select",
+                "selectedOption": "Other",
+            },
+        ],
+    }
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    event = api_gateway_event(
+        method="GET",
+        path="/www/v1/polls/workshop-food-jun-26/questions/role/results",
+        query_params={"questionType": "select"},
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "GET",
+        "/www/v1/polls/workshop-food-jun-26/questions/role/results",
+    )
+    assert resp["statusCode"] == 200
+    body = json.loads(resp["body"])
+    assert body["totalResponses"] == 3
+    assert body["buckets"] == [
+        {"label": "Parent", "count": 2},
+        {"label": "Grandparent", "count": 1},
+    ]
+
+
+def test_get_poll_question_results_aggregates_truefalse(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.query.return_value = {
+        "Items": [
+            {"questionId": "myth1", "booleanAnswer": False},
+            {"questionId": "myth1", "booleanAnswer": True},
+            {"questionId": "myth1", "booleanAnswer": False},
+        ],
+    }
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    event = api_gateway_event(
+        method="GET",
+        path="/www/v1/polls/workshop-food-jun-26/questions/myth1/results",
+        query_params={"questionType": "truefalse"},
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "GET",
+        "/www/v1/polls/workshop-food-jun-26/questions/myth1/results",
+    )
+    assert resp["statusCode"] == 200
+    body = json.loads(resp["body"])
+    assert body["totalResponses"] == 3
+    assert body["buckets"] == [
+        {"label": "true", "count": 1},
+        {"label": "false", "count": 2},
+    ]
+
+
+def test_get_poll_question_results_requires_question_type(
+    api_gateway_event: Any,
+) -> None:
+    event = api_gateway_event(
+        method="GET",
+        path="/www/v1/polls/workshop-food-jun-26/questions/role/results",
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "GET",
+        "/www/v1/polls/workshop-food-jun-26/questions/role/results",
+    )
+    assert resp["statusCode"] == 400
+
+
 def test_put_poll_answer_rejects_unknown_path(api_gateway_event: Any) -> None:
     event = api_gateway_event(
         method="PUT",

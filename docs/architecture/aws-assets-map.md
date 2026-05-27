@@ -487,6 +487,7 @@ and [`docs/api/admin.yaml`](../api/admin.yaml).
 | `/v1/calendar/availability` | GET | None + API key | `EvolvesproutsAdminFunction` | Requires `purpose` (`consultation_booking` or `intro_call_booking`); returns slots + meta; consultation uses `Cache-Control: no-store` on 200 |
 | `/v1/assets/free` | GET | None + API key | `EvolvesproutsAdminFunction` | Lists public `client_document`-tagged assets; optional `language` query |
 | `/v1/polls/{poll_slug}/answers` | PUT | None + API key | `EvolvesproutsAdminFunction` | Upserts one training poll answer to DynamoDB `evolvesprouts-poll-responses` |
+| `/v1/polls/{poll_slug}/questions/{question_id}/results` | GET | None + API key | `EvolvesproutsAdminFunction` | Live aggregate counts for one poll question (`select` / `truefalse`) |
 | `/v1/admin/geographic-areas` | GET | Admin Group | `EvolvesproutsAdminFunction` | Geographic area lookup for address selection |
 | `/v1/admin/locations` | GET, POST | Admin Group | `EvolvesproutsAdminFunction` | |
 | `/v1/admin/locations/{id}` | GET, PUT, PATCH, DELETE | Admin Group | `EvolvesproutsAdminFunction` | |

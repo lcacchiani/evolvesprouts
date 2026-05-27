@@ -8,6 +8,7 @@
       "screen": "Who are you?",
       "question": "I am a...",
       "options": ["Parent", "Helper / Caregiver", "Grandparent", "Other"],
+      "showAnswer": false,
       "showResults": false
     },
     {
@@ -22,6 +23,7 @@
         "Mealtimes are stressful for everyone",
         "My child only eats a few things"
       ],
+      "showAnswer": true,
       "showResults": true,
       "presenterNote": "We asked you this as you arrived. Here's what you said."
     },
@@ -32,6 +34,7 @@
       "question": "Children must finish everything on their plate.",
       "answer": false,
       "answerNote": "Forcing children to finish teaches them to ignore their own fullness signals. A child who learns to stop when full builds a healthier relationship with food for life.",
+      "showAnswer": true,
       "showResults": true
     },
     {
@@ -41,6 +44,7 @@
       "question": "Fruit makes the body 'cold' and should be avoided.",
       "answer": false,
       "answerNote": "This is a common belief in Chinese culture but has no clinical basis. Fruit is essential for vitamins, fibre, and hydration. Serve at room temperature if the family prefers — but don't avoid it.",
+      "showAnswer": true,
       "showResults": true
     },
     {
@@ -50,6 +54,7 @@
       "question": "If a child refuses a food once, they don't like it.",
       "answer": false,
       "answerNote": "It takes 10–15 exposures before a child accepts a new food. Refusing is not rejecting. Keep offering without pressure — let them see it, touch it, smell it first.",
+      "showAnswer": true,
       "showResults": true
     },
     {
@@ -59,6 +64,7 @@
       "question": "Juice is just as good as whole fruit.",
       "answer": false,
       "answerNote": "Whole fruit has fibre which slows sugar absorption. A glass of orange juice has almost the same sugar as a can of soda. Offer whole fruit and water instead.",
+      "showAnswer": true,
       "showResults": true
     },
     {
@@ -66,6 +72,7 @@
       "type": "text",
       "screen": "Your one thing",
       "question": "What is ONE thing you'll do differently — starting tomorrow?",
+      "showAnswer": false,
       "showResults": false
     },
     {
@@ -73,6 +80,7 @@
       "type": "email",
       "screen": "Stay connected",
       "question": "Get tonight's resources and tips by email",
+      "showAnswer": false,
       "showResults": false
     }
   ]

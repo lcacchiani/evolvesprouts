@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import os
+from collections import Counter
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, TypedDict
 
 import boto3
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 from app.exceptions import AppError
@@ -21,6 +23,11 @@ _SK_QUESTION_SEP = "#Q#"
 
 _dynamodb = None
 _table = None
+
+
+class _PollResultBucket(TypedDict):
+    label: str
+    count: int
 
 
 def _table_name() -> str:
@@ -111,6 +118,75 @@ def upsert_poll_answer(
         "questionId": question_id,
         "updatedAt": now,
     }
+
+
+def aggregate_poll_question_results(
+    *,
+    poll_slug: str,
+    question_id: str,
+    question_type: str,
+) -> dict[str, Any]:
+    """Return live aggregate counts for one poll question across all sessions."""
+    table = _get_table()
+    items = _query_poll_items(table=table, poll_slug=poll_slug)
+    matching = [item for item in items if item.get("questionId") == question_id]
+    buckets: list[_PollResultBucket]
+
+    if question_type == "select":
+        counts = Counter(
+            str(item["selectedOption"]).strip()
+            for item in matching
+            if isinstance(item.get("selectedOption"), str)
+            and str(item["selectedOption"]).strip()
+        )
+        buckets = [
+            _PollResultBucket(label=label, count=count)
+            for label, count in sorted(
+                counts.items(), key=lambda pair: (-pair[1], pair[0])
+            )
+        ]
+    elif question_type == "truefalse":
+        true_count = _count_boolean_answers(matching, expected=True)
+        false_count = _count_boolean_answers(matching, expected=False)
+        buckets = [
+            _PollResultBucket(label="true", count=true_count),
+            _PollResultBucket(label="false", count=false_count),
+        ]
+    else:
+        buckets = []
+
+    total = sum(bucket["count"] for bucket in buckets)
+    return {
+        "pollSlug": poll_slug,
+        "questionId": question_id,
+        "questionType": question_type,
+        "totalResponses": total,
+        "buckets": buckets,
+    }
+
+
+def _count_boolean_answers(items: list[dict[str, Any]], *, expected: bool) -> int:
+    total = 0
+    for item in items:
+        value = item.get("booleanAnswer")
+        if isinstance(value, bool) and value is expected:
+            total += 1
+    return total
+
+
+def _query_poll_items(*, table: Any, poll_slug: str) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    query_kwargs: dict[str, Any] = {
+        "KeyConditionExpression": Key("pk").eq(_partition_key(poll_slug=poll_slug)),
+    }
+    while True:
+        response = table.query(**query_kwargs)
+        items.extend(response.get("Items", []))
+        last_key = response.get("LastEvaluatedKey")
+        if not last_key:
+            break
+        query_kwargs["ExclusiveStartKey"] = last_key
+    return items
 
 
 def reset_table_for_tests() -> None:

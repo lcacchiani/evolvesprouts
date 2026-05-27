@@ -14,6 +14,11 @@
   "results": {
     "yourAnswerTemplate": "You answered: {answer}"
   },
+  "liveResults": {
+    "heading": "Room results",
+    "totalResponsesTemplate": "{total} responses so far",
+    "countTemplate": "{count}"
+  },
   "completion": {
     "title": "Thank you",
     "description": "Your responses have been saved."
@@ -22,6 +27,7 @@
     "required": "Please answer this question before continuing.",
     "invalidEmail": "Enter a valid email address.",
     "persistFailed": "We could not save your answer. Please try again.",
+    "resultsLoadFailed": "We could not load live results. Please try again.",
     "missingApiConfig": "This poll cannot be saved right now. Please try again later."
   },
   "a11y": {

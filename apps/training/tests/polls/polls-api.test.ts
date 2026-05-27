@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { PollApiError, resolvePollApiConfig } from '@/lib/polls-api';
+import {
+  fetchPollQuestionResults,
+  PollApiError,
+  resolvePollApiConfig,
+} from '@/lib/polls-api';
 
 describe('resolvePollApiConfig', () => {
   afterEach(() => {
@@ -41,6 +45,43 @@ describe('resolvePollApiConfig', () => {
     vi.stubEnv('NEXT_PUBLIC_WWW_CRM_API_KEY', '');
 
     expect(resolvePollApiConfig()).toBeNull();
+  });
+});
+
+describe('fetchPollQuestionResults', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it('requests results with questionType query param', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', '/www');
+    vi.stubEnv('NEXT_PUBLIC_TRAINING_API_KEY', 'poll-key');
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        pollSlug: 'workshop-food-jun-26',
+        questionId: 'role',
+        questionType: 'select',
+        totalResponses: 0,
+        buckets: [],
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchPollQuestionResults({
+      pollSlug: 'workshop-food-jun-26',
+      questionId: 'role',
+      questionType: 'select',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/www/v1/polls/workshop-food-jun-26/questions/role/results?questionType=select',
+      expect.objectContaining({
+        method: 'GET',
+        headers: { 'x-api-key': 'poll-key' },
+      }),
+    );
   });
 });
 

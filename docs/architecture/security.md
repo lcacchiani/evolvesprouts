@@ -302,6 +302,8 @@ Current allowlisted public website POST paths include:
 
 Training poll persistence uses `PUT /www/v1/polls/{poll_slug}/answers` (prefix +
 `/answers` suffix rule in `WWW_PROXY_ALLOWLIST_FUNCTION`; not a fixed path per poll).
+Live poll aggregates use `GET /www/v1/polls/{poll_slug}/questions/{question_id}/results`
+(prefix + `/questions/` + `/results` suffix rule; not a fixed path per poll).
 
 ### Third-party invoice parser egress controls
 

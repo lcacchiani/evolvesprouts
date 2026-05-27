@@ -7,8 +7,9 @@ import {
   isAnswerValid,
   type QuestionAnswerState,
 } from '@/components/polls/poll-answer-state';
+import { PollAnswerPanel } from '@/components/polls/poll-answer-panel';
+import { PollLiveResultsPanel } from '@/components/polls/poll-live-results-panel';
 import { PollQuestionField } from '@/components/polls/poll-question-field';
-import { PollResultsPanel } from '@/components/polls/poll-results-panel';
 import type { PollContent, PollQuestion, PollsCommonContent } from '@/content/poll-types';
 import { getOrCreatePollSessionId } from '@/lib/poll-session';
 import { PollApiError, persistPollAnswer } from '@/lib/polls-api';
@@ -18,7 +19,7 @@ export interface PollWizardProps {
   common: PollsCommonContent;
 }
 
-type StepPhase = 'answer' | 'results';
+type StepPhase = 'answer' | 'feedback' | 'liveResults';
 
 export function PollWizard({ poll, common }: PollWizardProps) {
   const [stepIndex, setStepIndex] = useState(0);
@@ -58,37 +59,48 @@ export function PollWizard({ poll, common }: PollWizardProps) {
 
   const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === totalSteps - 1;
-  const showingResults = stepPhase === 'results' && currentQuestion.showResults;
+  const showingFeedback = stepPhase === 'feedback' && currentQuestion.showAnswer;
+  const showingLiveResults =
+    stepPhase === 'liveResults' && currentQuestion.showResults;
+  const onInterstitial = showingFeedback || showingLiveResults;
   const primaryLabel = resolvePrimaryLabel({
     common,
     isLastStep,
-    showingResults,
+    onInterstitial,
   });
 
   return (
     <section className='mx-auto flex w-full max-w-xl flex-col gap-6'>
       <p className='text-sm text-neutral-600'>{progressLabel}</p>
-      {showingResults ? (
-        <PollResultsPanel
+      {showingFeedback ? (
+        <PollAnswerPanel
           question={currentQuestion}
           common={common}
           answer={currentAnswer}
         />
-      ) : (
+      ) : null}
+      {showingLiveResults ? (
+        <PollLiveResultsPanel
+          pollSlug={poll.slug}
+          question={currentQuestion}
+          common={common}
+        />
+      ) : null}
+      {!onInterstitial ? (
         <PollQuestionField
           question={currentQuestion}
           common={common}
           answer={currentAnswer}
           onAnswerChange={(patch) => updateAnswerState(currentQuestion.id, patch)}
         />
-      )}
+      ) : null}
       {errorMessage ? (
         <p className='text-sm text-red-700' role='alert'>
           {errorMessage}
         </p>
       ) : null}
       <div className='flex flex-wrap items-center justify-start gap-2'>
-        {!isFirstStep && !showingResults ? (
+        {!isFirstStep && !onInterstitial ? (
           <button
             type='button'
             className='rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900'
@@ -131,7 +143,11 @@ export function PollWizard({ poll, common }: PollWizardProps) {
   async function handlePrimaryAction(): Promise<void> {
     setErrorMessage(null);
 
-    if (showingResults) {
+    if (onInterstitial) {
+      if (showingFeedback && currentQuestion.showResults) {
+        setStepPhase('liveResults');
+        return;
+      }
       advanceToNextQuestion();
       return;
     }
@@ -157,8 +173,13 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     }
     setIsSaving(false);
 
+    if (currentQuestion.showAnswer) {
+      setStepPhase('feedback');
+      return;
+    }
+
     if (currentQuestion.showResults) {
-      setStepPhase('results');
+      setStepPhase('liveResults');
       return;
     }
 
@@ -206,13 +227,13 @@ function validateAnswer(
 function resolvePrimaryLabel({
   common,
   isLastStep,
-  showingResults,
+  onInterstitial,
 }: {
   common: PollsCommonContent;
   isLastStep: boolean;
-  showingResults: boolean;
+  onInterstitial: boolean;
 }): string {
-  if (showingResults) {
+  if (onInterstitial) {
     return common.navigation.continue;
   }
   if (isLastStep) {

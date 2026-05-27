@@ -37,6 +37,53 @@ export function resolvePollApiConfig():
   return { baseUrl, apiKey };
 }
 
+export interface PollQuestionResultsBucket {
+  label: string;
+  count: number;
+}
+
+export interface PollQuestionResults {
+  pollSlug: string;
+  questionId: string;
+  questionType: 'select' | 'truefalse';
+  totalResponses: number;
+  buckets: PollQuestionResultsBucket[];
+}
+
+export interface FetchPollQuestionResultsInput {
+  pollSlug: string;
+  questionId: string;
+  questionType: 'select' | 'truefalse';
+}
+
+export async function fetchPollQuestionResults(
+  input: FetchPollQuestionResultsInput,
+): Promise<PollQuestionResults> {
+  const config = resolvePollApiConfig();
+  if (!config) {
+    throw new PollApiError('Poll API is not configured', 0);
+  }
+
+  const params = new URLSearchParams({
+    questionType: input.questionType,
+  });
+  const endpointPath = `${config.baseUrl}/v1/polls/${encodeURIComponent(input.pollSlug)}/questions/${encodeURIComponent(input.questionId)}/results?${params.toString()}`;
+
+  const response = await fetch(endpointPath, {
+    method: 'GET',
+    headers: {
+      'x-api-key': config.apiKey,
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new PollApiError('Failed to load poll results', response.status);
+  }
+
+  return (await response.json()) as PollQuestionResults;
+}
+
 export async function persistPollAnswer(
   input: PersistPollAnswerInput,
 ): Promise<void> {

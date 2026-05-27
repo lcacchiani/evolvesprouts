@@ -2957,6 +2957,10 @@ export class ApiStack extends cdk.Stack {
     const polls = v1.addResource("polls");
     const pollBySlug = polls.addResource("{poll_slug}");
     addPublicApiKeyMethod(pollBySlug.addResource("answers"), "PUT");
+    const pollQuestionById = pollBySlug
+      .addResource("questions")
+      .addResource("{question_id}");
+    addPublicApiKeyMethod(pollQuestionById.addResource("results"), "GET");
     const publicDiscounts = v1.addResource("discounts");
     addPublicApiKeyMethod(publicDiscounts.addResource("validate"), "POST");
     const mailchimpWebhook = v1.addResource("mailchimp").addResource("webhook");
