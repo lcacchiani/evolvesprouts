@@ -179,6 +179,16 @@ export function PollWizard({ poll, common }: PollWizardProps) {
   }
 }
 
+function resolvePersistErrorMessage(
+  error: unknown,
+  common: PollsCommonContent,
+): string {
+  if (error instanceof PollApiError && error.statusCode === 0) {
+    return common.errors.missingApiConfig;
+  }
+  return common.errors.persistFailed;
+}
+
 function validateAnswer(
   question: PollQuestion,
   answer: QuestionAnswerState,

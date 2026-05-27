@@ -61,6 +61,13 @@ jobs:
           key: ${{ runner.os }}-nextjs-training-${{ hashFiles('apps/training/package-lock.json') }}
           restore-keys: ${{ runner.os }}-nextjs-training-
 
+      - name: Verify training website build env contract
+        run: npm run assert:build-env-contract
+        working-directory: apps/training
+        env:
+          NEXT_PUBLIC_API_BASE_URL: /www
+          NEXT_PUBLIC_TRAINING_API_KEY: ${{ secrets.NEXT_PUBLIC_WWW_CRM_API_KEY }}
+
       - name: Build training web
         run: npm run build
         working-directory: apps/training
@@ -68,7 +75,9 @@ jobs:
           NEXT_TELEMETRY_DISABLED: "1"
           NEXT_PUBLIC_SITE_ORIGIN: ${{ steps.resolve_training_site_env.outputs.site_origin }}
           NEXT_PUBLIC_PUBLIC_WWW_ORIGIN: ${{ steps.resolve_training_site_env.outputs.public_www_origin }}
-          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+          # Polls call same-origin /www/* via Training CloudFront (not execute-api /prod).
+          NEXT_PUBLIC_API_BASE_URL: /www
+          NEXT_PUBLIC_TRAINING_API_KEY: ${{ secrets.NEXT_PUBLIC_WWW_CRM_API_KEY }}
 
       - name: Configure AWS credentials
         if: ${{ vars.AWS_ACCOUNT_ID != '' && vars.AWS_REGION != '' }}
