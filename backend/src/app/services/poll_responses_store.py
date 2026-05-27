@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from collections import Counter
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, TypedDict
 
 import boto3
 from boto3.dynamodb.conditions import Key
@@ -23,6 +23,11 @@ _SK_QUESTION_SEP = "#Q#"
 
 _dynamodb = None
 _table = None
+
+
+class _PollResultBucket(TypedDict):
+    label: str
+    count: int
 
 
 def _table_name() -> str:
@@ -125,6 +130,7 @@ def aggregate_poll_question_results(
     table = _get_table()
     items = _query_poll_items(table=table, poll_slug=poll_slug)
     matching = [item for item in items if item.get("questionId") == question_id]
+    buckets: list[_PollResultBucket]
 
     if question_type == "select":
         counts = Counter(
@@ -134,19 +140,17 @@ def aggregate_poll_question_results(
             and str(item["selectedOption"]).strip()
         )
         buckets = [
-            {"label": label, "count": count}
-            for label, count in sorted(counts.items(), key=lambda pair: (-pair[1], pair[0]))
+            _PollResultBucket(label=label, count=count)
+            for label, count in sorted(
+                counts.items(), key=lambda pair: (-pair[1], pair[0])
+            )
         ]
     elif question_type == "truefalse":
-        true_count = sum(
-            1 for item in matching if item.get("booleanAnswer") is True
-        )
-        false_count = sum(
-            1 for item in matching if item.get("booleanAnswer") is False
-        )
+        true_count = _count_boolean_answers(matching, expected=True)
+        false_count = _count_boolean_answers(matching, expected=False)
         buckets = [
-            {"label": "true", "count": true_count},
-            {"label": "false", "count": false_count},
+            _PollResultBucket(label="true", count=true_count),
+            _PollResultBucket(label="false", count=false_count),
         ]
     else:
         buckets = []
@@ -159,6 +163,15 @@ def aggregate_poll_question_results(
         "totalResponses": total,
         "buckets": buckets,
     }
+
+
+def _count_boolean_answers(items: list[dict[str, Any]], *, expected: bool) -> int:
+    total = 0
+    for item in items:
+        value = item.get("booleanAnswer")
+        if isinstance(value, bool) and value is expected:
+            total += 1
+    return total
 
 
 def _query_poll_items(*, table: Any, poll_slug: str) -> list[dict[str, Any]]:
