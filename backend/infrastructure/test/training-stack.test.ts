@@ -28,7 +28,7 @@ function assertBucketNamesWithinLimit(template: Template): void {
   }
 }
 
-function assertNoIndexResponseHeaders(template: Template): void {
+function assertCustomResponseHeaders(template: Template): void {
   const policies = template.findResources("AWS::CloudFront::ResponseHeadersPolicy");
   const entries = Object.values(policies);
   if (entries.length !== 1) {
@@ -44,6 +44,12 @@ function assertNoIndexResponseHeaders(template: Template): void {
   );
   if (!robotsHeader || robotsHeader.Value !== "noindex, nofollow, noarchive") {
     throw new Error("Expected X-Robots-Tag noindex header on training distribution");
+  }
+  const permissionsHeader = customHeaders.find(
+    (item: { Header?: string }) => item.Header === "Permissions-Policy",
+  );
+  if (!permissionsHeader?.Value) {
+    throw new Error("Expected Permissions-Policy header on training distribution");
   }
 }
 
@@ -99,7 +105,7 @@ function assertWwwApiBehaviors(template: Template): void {
 function main(): void {
   const template = synthTrainingTemplate();
   assertBucketNamesWithinLimit(template);
-  assertNoIndexResponseHeaders(template);
+  assertCustomResponseHeaders(template);
   assertWwwApiBehaviors(template);
   console.log("training-stack.test.ts: ok");
 }

@@ -185,6 +185,7 @@ Backend CORS always includes domain-derived required origins from:
 - `PublicWwwDomainName`
 - `PublicWwwStagingDomainName`
 - `AdminWebDomainName`
+- `TrainingDomainName`
 
 Optional extra origins can be added via `CORS_ALLOWED_ORIGINS` or CDK context
 `corsAllowedOrigins`, but when no extras are configured the default is only the
@@ -270,6 +271,12 @@ Security model:
   before reaching the API origin.
 - The policy is applied to both production and staging public website
   distributions.
+
+The training website stack (`backend/infrastructure/lib/training-stack.ts`)
+uses the same default-deny `/www/*` allowlist and media-request rewrite as the
+public WWW stack. When adding or changing a public API path, update **both**
+CloudFront Functions (or extract shared allowlist source) so production public
+WWW and training origins stay aligned.
 
 Process to add a new public API path:
 

@@ -39,7 +39,7 @@ Stack outputs:
 - `TrainingDistributionDomain`
 - `TrainingLoggingBucketName`
 
-Training CloudFront mirrors public WWW `/www/*` API proxy behaviors (`TrainingApiBaseUrl`, `TrainingMediaRequestApiBaseUrl`) for upcoming poll integrations. S3 bucket prefixes: `evolvesprouts-training` and `evolvesprouts-training-logs` (each under 63 characters with account and region suffixes).
+Training CloudFront mirrors public WWW `/www/*` API proxy behaviors (`TrainingApiBaseUrl`, `TrainingMediaRequestApiBaseUrl`) for upcoming poll integrations. The viewer-request allowlist in `training-stack.ts` must stay aligned with `public-www-stack.ts` when public API paths change (see `docs/architecture/security.md`). S3 bucket prefixes: `evolvesprouts-training` and `evolvesprouts-training-logs` (each under 63 characters with account and region suffixes).
 
 Deploy app artifacts with `scripts/deploy/deploy-training.sh` after `cd apps/training && npm run build`.
 

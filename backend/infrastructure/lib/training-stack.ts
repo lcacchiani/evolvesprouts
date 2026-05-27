@@ -11,6 +11,10 @@ const TRAINING_HEADER_CONTENT_SECURITY_POLICY = [
   "frame-ancestors 'none'",
 ].join("; ");
 
+const TRAINING_PERMISSIONS_POLICY =
+  "accelerometer=(), camera=(), geolocation=(), gyroscope=(), " +
+  "magnetometer=(), microphone=(), payment=(), usb=()";
+
 const TRAINING_BUCKET_PREFIX = "evolvesprouts-training";
 const TRAINING_LOG_BUCKET_PREFIX = "evolvesprouts-training-logs";
 
@@ -335,6 +339,11 @@ function handler(event) {
         comment: "Security headers for training website distribution.",
         customHeadersBehavior: {
           customHeaders: [
+            {
+              header: "Permissions-Policy",
+              value: TRAINING_PERMISSIONS_POLICY,
+              override: true,
+            },
             {
               header: "X-Robots-Tag",
               value: "noindex, nofollow, noarchive",
