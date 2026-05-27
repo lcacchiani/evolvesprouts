@@ -138,7 +138,9 @@ export function WebsiteQrPage() {
         title='Website QR codes'
         description='Create printable QR codes for the public website (www) or the training site. Choose the site, then a page path. Public URLs include a locale prefix and trailing slash; training URLs use paths only (no locale).'
       >
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+        <div
+          className={`grid grid-cols-1 gap-4 ${isTrainingSite ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}
+        >
           <div>
             <Label htmlFor='website-qr-site-target'>Site</Label>
             <Select
@@ -158,6 +160,25 @@ export function WebsiteQrPage() {
               ))}
             </Select>
           </div>
+          <div>
+            <Label htmlFor='website-qr-preset-page'>Page</Label>
+            <Select
+              id='website-qr-preset-page'
+              value={isCustom ? CUSTOM_PRESET_VALUE : presetValue}
+              onChange={(event) => {
+                const next = event.target.value;
+                setPresetValue(next);
+              }}
+              disabled={Boolean(configError)}
+            >
+              {pagePresets.map((preset) => (
+                <option key={preset.pathInput} value={preset.pathInput}>
+                  {preset.label}
+                </option>
+              ))}
+              <option value={CUSTOM_PRESET_VALUE}>Custom path…</option>
+            </Select>
+          </div>
           {!isTrainingSite ? (
             <div>
               <Label htmlFor='website-qr-locale'>Locale</Label>
@@ -174,28 +195,7 @@ export function WebsiteQrPage() {
                 ))}
               </Select>
             </div>
-          ) : (
-            <div className='hidden sm:block' aria-hidden='true' />
-          )}
-        </div>
-        <div className={isTrainingSite ? '' : 'sm:col-span-2'}>
-          <Label htmlFor='website-qr-preset-page'>Page</Label>
-          <Select
-            id='website-qr-preset-page'
-            value={isCustom ? CUSTOM_PRESET_VALUE : presetValue}
-            onChange={(event) => {
-              const next = event.target.value;
-              setPresetValue(next);
-            }}
-            disabled={Boolean(configError)}
-          >
-            {pagePresets.map((preset) => (
-              <option key={preset.pathInput} value={preset.pathInput}>
-                {preset.label}
-              </option>
-            ))}
-            <option value={CUSTOM_PRESET_VALUE}>Custom path…</option>
-          </Select>
+          ) : null}
         </div>
         {isCustom ? (
           <div>
