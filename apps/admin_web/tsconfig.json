@@ -27,6 +27,9 @@
       ],
       "@shared-public-www/*": [
         "../public_www/src/lib/*"
+      ],
+      "@shared-training/*": [
+        "../training/src/lib/*"
       ]
     },
     "plugins": [

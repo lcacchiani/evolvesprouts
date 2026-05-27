@@ -23,6 +23,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
       '@shared-config': path.resolve(__dirname, '../../shared/config'),
       '@shared-public-www': path.resolve(__dirname, '../public_www/src/lib'),
+      '@shared-training': path.resolve(__dirname, '../training/src/lib'),
     },
   },
   test: {

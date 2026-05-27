@@ -74,6 +74,8 @@ mandatory `.cursorrules` integration anchors are removed or weakened.
 
 - **Admin web** requires Cognito env vars (`NEXT_PUBLIC_COGNITO_*`) for auth
   flows. Without them, the app renders but sign-in won't work.
+- **Admin web** Website QR also needs `NEXT_PUBLIC_PUBLIC_SITE_BASE_URL` (www)
+  and `NEXT_PUBLIC_TRAINING_SITE_BASE_URL` (training) for link previews.
 - **Public website** requires `NEXT_PUBLIC_SITE_ORIGIN` and
   `NEXT_PUBLIC_EMAIL` at minimum. Create `apps/public_www/.env.local` with:
   ```

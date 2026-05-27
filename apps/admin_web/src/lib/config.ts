@@ -4,6 +4,7 @@ export interface AppConfig {
   cognitoUserPoolId: string;
   apiBaseUrl: string;
   publicSiteBaseUrl: string;
+  trainingSiteBaseUrl: string;
 }
 
 export const appConfig: AppConfig = {
@@ -12,6 +13,7 @@ export const appConfig: AppConfig = {
   cognitoUserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID ?? '',
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? '',
   publicSiteBaseUrl: process.env.NEXT_PUBLIC_PUBLIC_SITE_BASE_URL ?? '',
+  trainingSiteBaseUrl: process.env.NEXT_PUBLIC_TRAINING_SITE_BASE_URL ?? '',
 };
 
 function trimTrailingSlashes(value: string) {
@@ -93,13 +95,13 @@ const FALLBACK_ADMIN_DEFAULT_CURRENCY = 'HKD';
  * ISO 4217 code for admin UI defaults (expense currency, vendor spend column, FX target).
  * Set `NEXT_PUBLIC_ADMIN_DEFAULT_CURRENCY` (e.g. HKD). Invalid or empty values fall back to HKD.
  */
-export function getPublicSiteBaseUrl(): string {
-  const raw = appConfig.publicSiteBaseUrl.trim();
-  if (!raw) {
+function normalizeSiteBaseUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) {
     return '';
   }
   try {
-    const parsed = new URL(raw.startsWith('http') ? raw : `https://${raw}`);
+    const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
     if (!['https:', 'http:'].includes(parsed.protocol.toLowerCase())) {
       return '';
     }
@@ -107,6 +109,14 @@ export function getPublicSiteBaseUrl(): string {
   } catch {
     return '';
   }
+}
+
+export function getPublicSiteBaseUrl(): string {
+  return normalizeSiteBaseUrl(appConfig.publicSiteBaseUrl);
+}
+
+export function getTrainingSiteBaseUrl(): string {
+  return normalizeSiteBaseUrl(appConfig.trainingSiteBaseUrl);
 }
 
 export function getAdminDefaultCurrencyCode(): string {

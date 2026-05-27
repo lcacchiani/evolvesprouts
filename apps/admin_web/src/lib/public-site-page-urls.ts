@@ -95,6 +95,31 @@ export interface BuildLocalizedPublicPageUrlInput {
  * Builds an absolute URL to a locale-prefixed public page. Paths use a trailing slash
  * to match the static-export site (`next.config` trailingSlash).
  */
+export interface BuildSitePageUrlInput {
+  baseUrl: string;
+  /** Normalized path from `normalizePublicSitePathInput` (`/` or `/about-us/`). */
+  path: string;
+}
+
+/**
+ * Builds an absolute URL to a site page without a locale prefix (training site).
+ * Paths use a trailing slash to match static export (`trailingSlash: true`).
+ */
+export function buildSitePageUrl(input: BuildSitePageUrlInput): string {
+  const base = trimTrailingSlashes(input.baseUrl.trim());
+  if (!base) {
+    return '';
+  }
+  const path = input.path.trim();
+  if (!path.startsWith('/')) {
+    return '';
+  }
+  const suffix = path === '/' ? '' : path.replace(/^\/+|\/+$/g, '');
+  const pathPart = suffix.length === 0 ? '/' : `/${suffix}/`;
+  const url = new URL(pathPart, `${base}/`);
+  return url.toString();
+}
+
 export function buildLocalizedPublicPageUrl(input: BuildLocalizedPublicPageUrlInput): string {
   const base = trimTrailingSlashes(input.baseUrl.trim());
   if (!base) {
