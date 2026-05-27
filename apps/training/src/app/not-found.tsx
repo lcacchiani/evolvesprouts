@@ -8,7 +8,7 @@ export default function NotFound() {
     <img
       src='/images/evolvesprouts-logo.svg'
       alt='Evolve Sprouts'
-      className='h-40 w-auto max-w-[min(100%,16rem)]'
+      className='h-80 w-auto max-w-[min(100%,32rem)]'
     />
   );
 

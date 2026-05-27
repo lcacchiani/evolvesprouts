@@ -5,6 +5,10 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Evolve Sprouts Training',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+  },
   robots: {
     index: false,
     follow: false,
