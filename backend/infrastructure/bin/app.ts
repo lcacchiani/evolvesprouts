@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { AdminWebStack } from "../lib/admin-web-stack";
 import { ApiStack } from "../lib/api-stack";
 import { PublicWwwStack } from "../lib/public-www-stack";
+import { TrainingStack } from "../lib/training-stack";
 
 const app = new cdk.App();
 
@@ -34,6 +35,17 @@ new AdminWebStack(app, "evolvesprouts-admin-web", {
 
 new PublicWwwStack(app, "evolvesprouts-public-www", {
   description: "Evolve Sprouts Public Website",
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+  },
+  synthesizer: bootstrapQualifier
+    ? new cdk.DefaultStackSynthesizer({ qualifier: bootstrapQualifier })
+    : undefined,
+});
+
+new TrainingStack(app, "evolvesprouts-training", {
+  description: "Evolve Sprouts Training Website",
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,

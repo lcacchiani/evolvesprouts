@@ -54,6 +54,7 @@ and edge proxy. It is managed manually through the Cloudflare dashboard
 | CNAME | `www-staging.evolvesprouts.com` | CloudFront distribution (staging) | Yes |
 | CNAME | `api.evolvesprouts.com` | API Gateway custom domain | No (grey cloud) |
 | CNAME | `admin.evolvesprouts.com` | CloudFront distribution (admin web) | Yes |
+| CNAME | `training.evolvesprouts.com` | CloudFront distribution (training web) | Yes |
 | CNAME | `media.evolvesprouts.com` | CloudFront distribution (asset downloads) | Yes |
 | CNAME | `auth.evolvesprouts.com` | Cognito custom domain CloudFront | No |
 | MX | `evolvesprouts.com` | iCloud Mail | N/A |

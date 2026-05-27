@@ -39,6 +39,7 @@ Flutter Mobile / Next.js Admin
 
 ### Public website (Next.js static export)
 - Public marketing site in `apps/public_www`.
+- Training and poll pages in `apps/training` (static export at `training.evolvesprouts.com`, not indexed).
 - First-party marketing paths are defined once in `apps/public_www/src/lib/public-www-routes.ts` and
   imported by `apps/public_www/src/lib/routes.ts` and the admin Website QR presets so public and admin
   stay aligned.

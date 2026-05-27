@@ -898,6 +898,11 @@ export class ApiStack extends cdk.Stack {
           "Staging public website domain used for backend CORS allowlisting.",
       }
     );
+    const trainingDomainName = new cdk.CfnParameter(this, "TrainingDomainName", {
+      type: "String",
+      description:
+        "Training website domain used for backend CORS allowlisting.",
+    });
     const publicWwwInstagramUrl = new cdk.CfnParameter(
       this,
       "PublicWwwInstagramUrl",
@@ -1392,6 +1397,7 @@ export class ApiStack extends cdk.Stack {
       `https://${publicWwwDomainName.valueAsString}`,
       `https://${publicWwwStagingDomainName.valueAsString}`,
       `https://${adminWebDomainName.valueAsString}`,
+      `https://${trainingDomainName.valueAsString}`,
     ];
     const corsAllowedOrigins = resolveCorsAllowedOrigins(
       this,

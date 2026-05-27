@@ -79,6 +79,42 @@ jobs:
           npm run audit:assets
           npm run build
 
+  test-training:
+    name: Verify Training Website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Resolve training site origin from infrastructure params
+        id: resolve_training_site_origin
+        run: |
+          SITE_DOMAIN="$(python3 -c "import json; from pathlib import Path; params=json.loads(Path('backend/infrastructure/params/production.json').read_text(encoding='utf-8')); print(str(params.get('TrainingDomainName', '')).strip())")"
+          if [ -z "$SITE_DOMAIN" ]; then
+            echo "TrainingDomainName is required in backend/infrastructure/params/production.json"
+            exit 1
+          fi
+          echo "site_origin=https://${SITE_DOMAIN}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+          cache: npm
+          cache-dependency-path: apps/training/package-lock.json
+
+      - name: Validate Training Website
+        working-directory: apps/training
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          NEXT_PUBLIC_SITE_ORIGIN: ${{ steps.resolve_training_site_origin.outputs.site_origin }}
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+        run: |
+          npm ci
+          npm run lint
+          npm run test
+          npm run build
+
   test-flutter:
     name: Test Flutter
     runs-on: ubuntu-latest
@@ -125,7 +161,7 @@ jobs:
       - name: Run Node tests
         run: |
           set -e
-          for dir in apps/admin_web packages/react_ui packages/api_client_ts; do
+          for dir in apps/admin_web apps/training packages/react_ui packages/api_client_ts; do
             if [ -f "$dir/package.json" ]; then
               echo "Testing Node in $dir"
               if [ -f "$dir/package-lock.json" ]; then

@@ -50,6 +50,7 @@ mandatory `.cursorrules` integration anchors are removed or weakened.
 |---------|------|-------------|------|
 | Admin Web (Next.js) | `apps/admin_web/` | `npm run dev -- --webpack --port 3000` | 3000 |
 | Public Website (Next.js) | `apps/public_www/` | `npm run dev -- --port 3001` | 3001 |
+| Training Web (Next.js) | `apps/training/` | `npm run dev` | 3002 |
 | Backend (Python/Lambda) | `backend/` | Tests only (`pytest tests/`) | N/A |
 | CDK Infrastructure (TS) | `backend/infrastructure/` | `npx tsc --noEmit` | N/A |
 
@@ -58,6 +59,7 @@ mandatory `.cursorrules` integration anchors are removed or weakened.
 - **Python backend**: `ruff check backend/ tests/ --config=backend/pyproject.toml`
 - **Admin web**: `cd apps/admin_web && npm run lint`
 - **Public website**: `cd apps/public_www && npm run lint`
+- **Training web**: `cd apps/training && npm run lint`
 - **Pre-commit (all)**: `pre-commit run --all-files` (requires `pre-commit install` first)
 
 ### Running tests
@@ -65,6 +67,7 @@ mandatory `.cursorrules` integration anchors are removed or weakened.
 - **Python backend**: `pytest tests/ -x` (926 tests, ~7s, no DB needed for unit tests)
 - **Admin web**: `cd apps/admin_web && npx vitest run` (443 tests)
 - **Public website**: `cd apps/public_www && npx vitest run` (739 tests)
+- **Training web**: `cd apps/training && npx vitest run`
 - **CDK infra**: `cd backend/infrastructure && npm run test:infra`
 
 ### Environment variables for dev servers
@@ -79,6 +82,12 @@ mandatory `.cursorrules` integration anchors are removed or weakened.
   NEXT_PUBLIC_BUSINESS_NAME=Evolve Sprouts
   NEXT_PUBLIC_BUSINESS_ADDRESS=Hong Kong
   NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+  NEXT_PUBLIC_API_BASE_URL=/www
+  ```
+- **Training web** requires `NEXT_PUBLIC_SITE_ORIGIN` at minimum. Create
+  `apps/training/.env.local` with:
+  ```
+  NEXT_PUBLIC_SITE_ORIGIN=http://localhost:3002
   NEXT_PUBLIC_API_BASE_URL=/www
   ```
 
