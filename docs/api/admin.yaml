@@ -51,6 +51,9 @@ info:
     - `POST /v1/admin/organizations/{id}/members`
     - `PATCH /v1/admin/organizations/{id}/members/{memberId}`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
+    - `GET /v1/admin/polls` (lists poll slugs with answer counts from DynamoDB)
+    - `GET|DELETE /v1/admin/polls/{poll_slug}/answers` (`DELETE` removes all stored answers for the poll)
+    - `GET /v1/admin/polls/{poll_slug}/answers/export` (CSV export of all answers for the poll)
     - `GET|POST /v1/admin/expenses`
     - `POST /v1/admin/expenses/import-from-bulk-pdf` (returns **202** with a job id; poll `GET /v1/admin/expenses/bulk-import-jobs/{job_id}` until `succeeded`, `succeeded_with_errors`, or `failed`)
     - `GET /v1/admin/expenses/bulk-import-jobs` (creator-scoped list of recent jobs)
@@ -3995,6 +3998,78 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/polls:
+    get:
+      summary: List training poll slugs with answer counts
+      description: |
+        Returns distinct poll slugs discovered in the DynamoDB poll responses table,
+        each with the number of stored answer rows.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Poll summary list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminPollListResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/polls/{poll_slug}/answers:
+    parameters:
+      - $ref: "#/components/parameters/PollSlug"
+    get:
+      summary: List all stored answers for a poll
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Poll answer rows for the selected poll.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminPollAnswerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      summary: Clear all stored answers for a poll
+      description: Permanently deletes every answer row for the poll slug in DynamoDB.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Poll answers cleared.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminPollClearAnswersResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/polls/{poll_slug}/answers/export:
+    parameters:
+      - $ref: "#/components/parameters/PollSlug"
+    get:
+      summary: Export poll answers as CSV
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: CSV export generated.
+          content:
+            text/csv:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /v1/user/assets:
     get:
       summary: List user assets
@@ -4086,6 +4161,14 @@ components:
         type: string
         format: uuid
       description: Sales lead identifier.
+    PollSlug:
+      name: poll_slug
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+      description: Training poll slug (kebab-case).
     ServiceId:
       name: id
       in: path
@@ -7629,6 +7712,84 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdminTagRef"
+    AdminPollSummary:
+      type: object
+      required:
+        - pollSlug
+        - answerCount
+      properties:
+        pollSlug:
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        answerCount:
+          type: integer
+          minimum: 0
+    AdminPollListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminPollSummary"
+    AdminPollAnswerRow:
+      type: object
+      required:
+        - pollSlug
+        - sessionId
+        - questionId
+        - questionType
+        - createdAt
+        - updatedAt
+      properties:
+        pollSlug:
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        sessionId:
+          type: string
+          format: uuid
+        questionId:
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        questionType:
+          type: string
+          enum: [select, truefalse, text, email]
+        selectedOption:
+          type: string
+          maxLength: 500
+        booleanAnswer:
+          type: boolean
+        freeText:
+          type: string
+          maxLength: 4000
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AdminPollAnswerListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminPollAnswerRow"
+    AdminPollClearAnswersResponse:
+      type: object
+      required:
+        - pollSlug
+        - deletedCount
+      properties:
+        pollSlug:
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        deletedCount:
+          type: integer
+          minimum: 0
     AdminTagResponse:
       type: object
       required:

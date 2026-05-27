@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from collections import Counter
 from datetime import UTC, datetime
+from collections.abc import Mapping
 from typing import Any, TypedDict
 
 import boto3
@@ -172,6 +173,139 @@ def _count_boolean_answers(items: list[dict[str, Any]], *, expected: bool) -> in
         if isinstance(value, bool) and value is expected:
             total += 1
     return total
+
+
+def list_poll_summaries() -> list[dict[str, Any]]:
+    """Return distinct poll slugs with answer row counts from DynamoDB."""
+    table = _get_table()
+    slug_counts: Counter[str] = Counter()
+    scan_kwargs: dict[str, Any] = {
+        "ProjectionExpression": "pk, pollSlug",
+    }
+    try:
+        while True:
+            response = table.scan(**scan_kwargs)
+            for item in response.get("Items", []):
+                slug = _extract_poll_slug_from_item(item)
+                if slug:
+                    slug_counts[slug] += 1
+            last_key = response.get("LastEvaluatedKey")
+            if not last_key:
+                break
+            scan_kwargs["ExclusiveStartKey"] = last_key
+    except ClientError:
+        logger.exception("Failed to scan poll responses table")
+        raise AppError(
+            "Failed to list poll responses",
+            status_code=500,
+        ) from None
+
+    return [
+        {"pollSlug": slug, "answerCount": count}
+        for slug, count in sorted(slug_counts.items())
+    ]
+
+
+def list_poll_answers(*, poll_slug: str) -> list[dict[str, Any]]:
+    """Return all answer rows for one poll, sorted by updated time descending."""
+    table = _get_table()
+    try:
+        items = _query_poll_items(table=table, poll_slug=poll_slug)
+    except ClientError:
+        logger.exception(
+            "Failed to query poll answers",
+            extra={"poll_slug": poll_slug},
+        )
+        raise AppError(
+            "Failed to list poll answers",
+            status_code=500,
+        ) from None
+
+    serialized = [serialize_poll_answer_item(item) for item in items]
+    serialized.sort(
+        key=lambda row: (
+            str(row.get("updatedAt") or ""),
+            str(row.get("sessionId") or ""),
+            str(row.get("questionId") or ""),
+        ),
+        reverse=True,
+    )
+    return serialized
+
+
+def serialize_poll_answer_item(item: Mapping[str, Any]) -> dict[str, Any]:
+    """Map a DynamoDB poll answer item to an admin API payload."""
+    row: dict[str, Any] = {
+        "pollSlug": item.get("pollSlug"),
+        "sessionId": item.get("sessionId"),
+        "questionId": item.get("questionId"),
+        "questionType": item.get("questionType"),
+        "createdAt": item.get("createdAt"),
+        "updatedAt": item.get("updatedAt"),
+    }
+    selected_option = item.get("selectedOption")
+    if isinstance(selected_option, str):
+        row["selectedOption"] = selected_option
+    boolean_answer = item.get("booleanAnswer")
+    if isinstance(boolean_answer, bool):
+        row["booleanAnswer"] = boolean_answer
+    free_text = item.get("freeText")
+    if isinstance(free_text, str):
+        row["freeText"] = free_text
+    return row
+
+
+def clear_poll_answers(*, poll_slug: str) -> int:
+    """Delete all answer rows for one poll. Returns the number of rows removed."""
+    table = _get_table()
+    try:
+        items = _query_poll_items(table=table, poll_slug=poll_slug)
+    except ClientError:
+        logger.exception(
+            "Failed to query poll answers for clear",
+            extra={"poll_slug": poll_slug},
+        )
+        raise AppError(
+            "Failed to clear poll answers",
+            status_code=500,
+        ) from None
+
+    if not items:
+        return 0
+
+    try:
+        with table.batch_writer() as batch:
+            for item in items:
+                batch.delete_item(
+                    Key={
+                        "pk": item["pk"],
+                        "sk": item["sk"],
+                    }
+                )
+    except ClientError:
+        logger.exception(
+            "Failed to delete poll answers",
+            extra={"poll_slug": poll_slug},
+        )
+        raise AppError(
+            "Failed to clear poll answers",
+            status_code=500,
+        ) from None
+
+    return len(items)
+
+
+def _extract_poll_slug_from_item(item: Mapping[str, Any]) -> str | None:
+    poll_slug = item.get("pollSlug")
+    if isinstance(poll_slug, str):
+        normalized = poll_slug.strip()
+        if normalized:
+            return normalized
+    pk = item.get("pk")
+    if isinstance(pk, str) and pk.startswith(_PK_PREFIX):
+        normalized = pk[len(_PK_PREFIX) :].strip()
+        return normalized or None
+    return None
 
 
 def _query_poll_items(*, table: Any, poll_slug: str) -> list[dict[str, Any]]:

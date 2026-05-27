@@ -5429,6 +5429,163 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/polls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List training poll slugs with answer counts
+         * @description Returns distinct poll slugs discovered in the DynamoDB poll responses table,
+         *     each with the number of stored answer rows.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Poll summary list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminPollListResponse"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/polls/{poll_slug}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Training poll slug (kebab-case). */
+                poll_slug: components["parameters"]["PollSlug"];
+            };
+            cookie?: never;
+        };
+        /** List all stored answers for a poll */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Training poll slug (kebab-case). */
+                    poll_slug: components["parameters"]["PollSlug"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Poll answer rows for the selected poll. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminPollAnswerListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Clear all stored answers for a poll
+         * @description Permanently deletes every answer row for the poll slug in DynamoDB.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Training poll slug (kebab-case). */
+                    poll_slug: components["parameters"]["PollSlug"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Poll answers cleared. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminPollClearAnswersResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/polls/{poll_slug}/answers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Training poll slug (kebab-case). */
+                poll_slug: components["parameters"]["PollSlug"];
+            };
+            cookie?: never;
+        };
+        /** Export poll answers as CSV */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Training poll slug (kebab-case). */
+                    poll_slug: components["parameters"]["PollSlug"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description CSV export generated. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/csv": string;
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/user/assets": {
         parameters: {
             query?: never;
@@ -7034,6 +7191,35 @@ export interface components {
         AdminTagListResponse: {
             items: components["schemas"]["AdminTagRef"][];
         };
+        AdminPollSummary: {
+            pollSlug: string;
+            answerCount: number;
+        };
+        AdminPollListResponse: {
+            items: components["schemas"]["AdminPollSummary"][];
+        };
+        AdminPollAnswerRow: {
+            pollSlug: string;
+            /** Format: uuid */
+            sessionId: string;
+            questionId: string;
+            /** @enum {string} */
+            questionType: "select" | "truefalse" | "text" | "email";
+            selectedOption?: string;
+            booleanAnswer?: boolean;
+            freeText?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminPollAnswerListResponse: {
+            items: components["schemas"]["AdminPollAnswerRow"][];
+        };
+        AdminPollClearAnswersResponse: {
+            pollSlug: string;
+            deletedCount: number;
+        };
         AdminTagResponse: {
             tag: components["schemas"]["AdminTagRef"];
         };
@@ -7509,6 +7695,8 @@ export interface components {
         LocationId: string;
         /** @description Sales lead identifier. */
         LeadId: string;
+        /** @description Training poll slug (kebab-case). */
+        PollSlug: string;
         /** @description Service identifier. */
         ServiceId: string;
         /** @description Service instance identifier. */

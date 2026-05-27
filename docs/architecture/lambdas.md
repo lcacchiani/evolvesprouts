@@ -93,6 +93,10 @@ their primary responsibilities.
   for non-vendor orgs; `POST /v1/admin/organizations/{id}/members` derives each member's role from the
   linked contact's `contact_type`; `PATCH /v1/admin/organizations/{id}/members/{memberId}` updates
   membership fields such as primary contact),
+  `/v1/admin/polls` (lists poll slugs with answer counts from DynamoDB
+  `evolvesprouts-poll-responses`), `/v1/admin/polls/{poll_slug}/answers`
+  (`GET` lists all stored answer rows; `DELETE` clears all rows for the poll),
+  `/v1/admin/polls/{poll_slug}/answers/export` (`GET`; CSV export),
   `/v1/admin/leads/*`, `/v1/admin/users`, `/v1/admin/instructors`,
   `GET /v1/admin/audit-logs` and `GET /v1/admin/audit-logs/{id}` (read-only `audit_log` history; list supports filters `table`, `record_id`, `user_id`, `email`, `action`, `since`, `cursor`, `limit`; `email` resolves via Cognito `list_users`; optional `user_email` per row),
   `/v1/admin/services/*` (including `GET /v1/admin/services/instances` for

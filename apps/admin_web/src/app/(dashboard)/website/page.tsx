@@ -1,5 +1,5 @@
-import { WebsiteQrPage } from '@/components/admin/website/website-qr-page';
+import { WebsitePage } from '@/components/admin/website/website-page';
 
 export default function WebsiteRoutePage() {
-  return <WebsiteQrPage />;
+  return <WebsitePage />;
 }
