@@ -1,4 +1,5 @@
 export {
+  buildPollControlsPath,
   buildPollPath,
   getAllPollSlugs,
   getPollContent,

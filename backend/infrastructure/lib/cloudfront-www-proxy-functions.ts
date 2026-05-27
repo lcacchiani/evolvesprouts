@@ -76,6 +76,17 @@ function handler(event) {
     return request;
   }
 
+  var isPollControlPath =
+    uri.indexOf('/www/v1/polls/') === 0 &&
+    uri.lastIndexOf('/control') === uri.length - 8;
+  if (
+    (method === 'GET' || method === 'PUT' || method === 'OPTIONS') &&
+    isPollControlPath
+  ) {
+    request.uri = uri.substring(4);
+    return request;
+  }
+
   return {
     statusCode: 403,
     statusDescription: 'Forbidden',

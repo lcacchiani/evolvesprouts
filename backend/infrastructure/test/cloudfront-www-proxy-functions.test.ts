@@ -19,6 +19,7 @@ const REQUIRED_POLL_PUT_PREFIX = "/www/v1/polls/";
 const REQUIRED_POLL_PUT_SUFFIX = "/answers";
 const REQUIRED_POLL_RESULTS_SEGMENT = "/questions/";
 const REQUIRED_POLL_RESULTS_SUFFIX = "/results";
+const REQUIRED_POLL_CONTROL_SUFFIX = "/control";
 
 function assertContainsAll(haystack: string, needles: string[], label: string): void {
   for (const needle of needles) {
@@ -69,6 +70,11 @@ function main(): void {
   if (!WWW_PROXY_ALLOWLIST_FUNCTION.includes(REQUIRED_POLL_RESULTS_SUFFIX)) {
     throw new Error(
       "WWW_PROXY_ALLOWLIST_FUNCTION missing poll GET /results suffix rule",
+    );
+  }
+  if (!WWW_PROXY_ALLOWLIST_FUNCTION.includes(REQUIRED_POLL_CONTROL_SUFFIX)) {
+    throw new Error(
+      "WWW_PROXY_ALLOWLIST_FUNCTION missing poll /control suffix rule",
     );
   }
 

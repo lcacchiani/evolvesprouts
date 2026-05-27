@@ -2957,6 +2957,8 @@ export class ApiStack extends cdk.Stack {
     const polls = v1.addResource("polls");
     const pollBySlug = polls.addResource("{poll_slug}");
     addPublicApiKeyMethod(pollBySlug.addResource("answers"), "PUT");
+    addPublicApiKeyMethod(pollBySlug.addResource("control"), "GET");
+    addPublicApiKeyMethod(pollBySlug.addResource("control"), "PUT");
     const pollQuestionById = pollBySlug
       .addResource("questions")
       .addResource("{question_id}");

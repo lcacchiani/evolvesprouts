@@ -229,6 +229,98 @@ def test_get_poll_question_results_requires_question_type(
     assert resp["statusCode"] == 400
 
 
+def test_get_poll_control_defaults_to_all_off(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = {"Item": None}
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    event = api_gateway_event(
+        method="GET",
+        path="/www/v1/polls/workshop-food-jun-26/control",
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "GET",
+        "/www/v1/polls/workshop-food-jun-26/control",
+    )
+    assert resp["statusCode"] == 200
+    body = json.loads(resp["body"])
+    assert body["enabledQuestionIds"] == []
+
+
+def test_put_poll_control_persists_enabled_questions(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = {"Item": None}
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    event = api_gateway_event(
+        method="PUT",
+        path="/www/v1/polls/workshop-food-jun-26/control",
+        body=json.dumps({"enabledQuestionIds": ["role", "myth1"]}),
+        headers={"content-type": "application/json"},
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/control",
+    )
+    assert resp["statusCode"] == 200
+    item = table.put_item.call_args.kwargs["Item"]
+    assert item["enabledQuestionIds"] == ["role", "myth1"]
+    assert item["sk"] == "CONTROL"
+
+
+def test_get_poll_question_results_lists_text_responses(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.query.return_value = {
+        "Items": [
+            {
+                "questionId": "onething",
+                "questionType": "text",
+                "freeText": "Offer fruit daily",
+            },
+            {
+                "questionId": "onething",
+                "questionType": "text",
+                "freeText": "  ",
+            },
+            {
+                "questionId": "onething",
+                "questionType": "text",
+                "freeText": "Smaller portions",
+            },
+        ],
+    }
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    event = api_gateway_event(
+        method="GET",
+        path="/www/v1/polls/workshop-food-jun-26/questions/onething/results",
+        query_params={"questionType": "text"},
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "GET",
+        "/www/v1/polls/workshop-food-jun-26/questions/onething/results",
+    )
+    assert resp["statusCode"] == 200
+    body = json.loads(resp["body"])
+    assert body["totalResponses"] == 2
+    assert body["responses"] == ["Offer fruit daily", "Smaller portions"]
+
+
 def test_put_poll_answer_rejects_unknown_path(api_gateway_event: Any) -> None:
     event = api_gateway_event(
         method="PUT",

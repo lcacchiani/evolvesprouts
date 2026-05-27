@@ -45,15 +45,24 @@ export interface PollQuestionResultsBucket {
 export interface PollQuestionResults {
   pollSlug: string;
   questionId: string;
-  questionType: 'select' | 'truefalse';
+  questionType: PollAggregatableQuestionType;
   totalResponses: number;
   buckets: PollQuestionResultsBucket[];
+  responses?: string[];
 }
+
+export interface PollControlState {
+  pollSlug: string;
+  enabledQuestionIds: string[];
+  updatedAt?: string;
+}
+
+export type PollAggregatableQuestionType = 'select' | 'truefalse' | 'text' | 'email';
 
 export interface FetchPollQuestionResultsInput {
   pollSlug: string;
   questionId: string;
-  questionType: 'select' | 'truefalse';
+  questionType: PollAggregatableQuestionType;
 }
 
 export async function fetchPollQuestionResults(
@@ -82,6 +91,55 @@ export async function fetchPollQuestionResults(
   }
 
   return (await response.json()) as PollQuestionResults;
+}
+
+export async function fetchPollControlState(pollSlug: string): Promise<PollControlState> {
+  const config = resolvePollApiConfig();
+  if (!config) {
+    throw new PollApiError('Poll API is not configured', 0);
+  }
+
+  const endpointPath = `${config.baseUrl}/v1/polls/${encodeURIComponent(pollSlug)}/control`;
+  const response = await fetch(endpointPath, {
+    method: 'GET',
+    headers: {
+      'x-api-key': config.apiKey,
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new PollApiError('Failed to load poll control state', response.status);
+  }
+
+  return (await response.json()) as PollControlState;
+}
+
+export async function persistPollControlState(
+  pollSlug: string,
+  enabledQuestionIds: string[],
+): Promise<PollControlState> {
+  const config = resolvePollApiConfig();
+  if (!config) {
+    throw new PollApiError('Poll API is not configured', 0);
+  }
+
+  const endpointPath = `${config.baseUrl}/v1/polls/${encodeURIComponent(pollSlug)}/control`;
+  const response = await fetch(endpointPath, {
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': config.apiKey,
+    },
+    body: JSON.stringify({ enabledQuestionIds }),
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new PollApiError('Failed to update poll control state', response.status);
+  }
+
+  return (await response.json()) as PollControlState;
 }
 
 export async function persistPollAnswer(

@@ -13,6 +13,7 @@ import { PollQuestionField } from '@/components/polls/poll-question-field';
 import type { PollContent, PollQuestion, PollsCommonContent } from '@/content/poll-types';
 import { getOrCreatePollSessionId } from '@/lib/poll-session';
 import { PollApiError, persistPollAnswer } from '@/lib/polls-api';
+import { usePollControlState } from '@/lib/use-poll-control-state';
 
 export interface PollWizardProps {
   poll: PollContent;
@@ -32,17 +33,47 @@ export function PollWizard({ poll, common }: PollWizardProps) {
   >({});
 
   const sessionId = useMemo(() => getOrCreatePollSessionId(), []);
-  const totalSteps = poll.questions.length;
-  const currentQuestion = poll.questions[stepIndex];
+  const { enabledQuestionIds, isLoading: isControlLoading } = usePollControlState({
+    pollSlug: poll.slug,
+    allowWrites: false,
+  });
+
+  const activeQuestions = useMemo(
+    () => poll.questions.filter((question) => enabledQuestionIds.has(question.id)),
+    [enabledQuestionIds, poll.questions],
+  );
+
+  const resolvedStepIndex =
+    activeQuestions.length === 0 ? 0 : Math.min(stepIndex, activeQuestions.length - 1);
+
+  const totalSteps = activeQuestions.length;
+  const currentQuestion = activeQuestions[resolvedStepIndex];
   const currentAnswer = currentQuestion
     ? (answersByQuestionId[currentQuestion.id] ?? emptyAnswerState())
     : emptyAnswerState();
 
   const progressLabel = formatProgressLabel({
     template: common.a11y.progressTemplate,
-    current: Math.min(stepIndex + 1, totalSteps),
+    current: totalSteps === 0 ? 0 : resolvedStepIndex + 1,
     total: totalSteps,
   });
+
+  if (!isControlLoading && activeQuestions.length === 0) {
+    return (
+      <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
+        <h2 className='text-2xl font-semibold text-neutral-900'>{common.waiting.title}</h2>
+        <p className='text-base text-neutral-700'>{common.waiting.description}</p>
+      </section>
+    );
+  }
+
+  if (isControlLoading || !currentQuestion) {
+    return (
+      <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
+        <p className='text-base text-neutral-700'>{common.waiting.description}</p>
+      </section>
+    );
+  }
 
   if (isComplete) {
     return (
@@ -53,12 +84,8 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     );
   }
 
-  if (!currentQuestion) {
-    return null;
-  }
-
-  const isFirstStep = stepIndex === 0;
-  const isLastStep = stepIndex === totalSteps - 1;
+  const isFirstStep = resolvedStepIndex === 0;
+  const isLastStep = resolvedStepIndex === totalSteps - 1;
   const showingFeedback = stepPhase === 'feedback' && currentQuestion.showAnswer;
   const showingLiveResults =
     stepPhase === 'liveResults' && currentQuestion.showResults;
@@ -107,7 +134,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
             disabled={isSaving}
             onClick={() => {
               setErrorMessage(null);
-              setStepIndex((index) => Math.max(0, index - 1));
+              setStepIndex((index) => Math.max(0, Math.min(index, activeQuestions.length - 1) - 1));
               setStepPhase('answer');
             }}
           >
@@ -195,7 +222,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
       setIsComplete(true);
       return;
     }
-    setStepIndex((index) => index + 1);
+    setStepIndex((index) => Math.min(index + 1, activeQuestions.length - 1));
     setStepPhase('answer');
   }
 }
