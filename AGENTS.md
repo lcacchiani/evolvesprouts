@@ -84,10 +84,12 @@ mandatory `.cursorrules` integration anchors are removed or weakened.
   NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
   NEXT_PUBLIC_API_BASE_URL=/www
   ```
-- **Training web** requires `NEXT_PUBLIC_SITE_ORIGIN` at minimum. Create
-  `apps/training/.env.local` with:
+- **Training web** requires `NEXT_PUBLIC_SITE_ORIGIN` and
+  `NEXT_PUBLIC_PUBLIC_WWW_ORIGIN` at minimum. Create `apps/training/.env.local`
+  with:
   ```
   NEXT_PUBLIC_SITE_ORIGIN=http://localhost:3002
+  NEXT_PUBLIC_PUBLIC_WWW_ORIGIN=http://localhost:3001
   NEXT_PUBLIC_API_BASE_URL=/www
   ```
 
