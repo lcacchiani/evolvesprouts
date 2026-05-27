@@ -39,6 +39,10 @@ function presetsForSite(site: QrSiteTarget) {
   return site === 'training' ? TRAINING_SITE_PAGE_PRESETS : PUBLIC_SITE_PAGE_PRESETS;
 }
 
+function defaultPresetForSite(site: QrSiteTarget): string {
+  return presetsForSite(site)[0]?.pathInput ?? '/';
+}
+
 export function WebsiteQrPage() {
   const publicSiteBaseUrl = useMemo(() => getPublicSiteBaseUrl(), []);
   const trainingSiteBaseUrl = useMemo(() => getTrainingSiteBaseUrl(), []);
@@ -54,12 +58,6 @@ export function WebsiteQrPage() {
   const isTrainingSite = siteTarget === 'training';
   const baseUrl = isTrainingSite ? trainingSiteBaseUrl : publicSiteBaseUrl;
   const pagePresets = presetsForSite(siteTarget);
-
-  useEffect(() => {
-    const firstPreset = presetsForSite(siteTarget)[0]?.pathInput ?? '/';
-    setPresetValue(firstPreset);
-    setCustomPathInput('');
-  }, [siteTarget]);
 
   const normalizedSrcForQuery = useMemo(
     () => (appendSrcQuery ? normalizePublicSiteSrcValue(srcQueryValue) : ''),
@@ -146,7 +144,12 @@ export function WebsiteQrPage() {
             <Select
               id='website-qr-site-target'
               value={siteTarget}
-              onChange={(event) => setSiteTarget(event.target.value as QrSiteTarget)}
+              onChange={(event) => {
+                const nextSite = event.target.value as QrSiteTarget;
+                setSiteTarget(nextSite);
+                setPresetValue(defaultPresetForSite(nextSite));
+                setCustomPathInput('');
+              }}
             >
               {QR_SITE_TARGET_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
