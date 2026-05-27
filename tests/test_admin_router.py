@@ -65,9 +65,11 @@ def test_match_handler_routes_asset_prefix_paths() -> None:
         "/www/v1/assets/free/request",
         "/www/v1/reservations",
         "/www/v1/reservations/payment-intent",
+        "/www/v1/polls/workshop-food-jun-26/answers",
     )
     for path in routes:
-        handler = _match_handler(event=event, method="GET", path=path)
+        method = "PUT" if path.endswith("/answers") else "GET"
+        handler = _match_handler(event=event, method=method, path=path)
         assert handler is not None
 
 

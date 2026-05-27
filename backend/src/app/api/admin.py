@@ -40,6 +40,7 @@ from app.api.admin_calendar_manual_blocks import (
 from app.api.public_calendar_availability import handle_public_calendar_availability
 from app.api.public_events import handle_public_events
 from app.api.public_contact import handle_public_contact_us
+from app.api.public_polls import handle_public_polls_request
 from app.api.public_reservation_payments import handle_public_reservation_payment_intent
 from app.api.public_reservations import _handle_public_reservation
 from app.exceptions import AppError, ValidationError
@@ -133,6 +134,16 @@ _ROUTES: tuple[
         "/v1/contact-us",
         True,
         lambda event, method, _path: handle_public_contact_us(event, method),
+    ),
+    (
+        "/v1/polls",
+        False,
+        handle_public_polls_request,
+    ),
+    (
+        "/www/v1/polls",
+        False,
+        handle_public_polls_request,
     ),
     (
         "/www/v1/contact-us",

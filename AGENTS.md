@@ -87,13 +87,16 @@ mandatory `.cursorrules` integration anchors are removed or weakened.
   NEXT_PUBLIC_API_BASE_URL=/www
   ```
 - **Training web** requires `NEXT_PUBLIC_SITE_ORIGIN` and
-  `NEXT_PUBLIC_PUBLIC_WWW_ORIGIN` at minimum. Create `apps/training/.env.local`
-  with:
-  ```
-  NEXT_PUBLIC_SITE_ORIGIN=http://localhost:3002
-  NEXT_PUBLIC_PUBLIC_WWW_ORIGIN=http://localhost:3001
-  NEXT_PUBLIC_API_BASE_URL=/www
-  ```
+ `NEXT_PUBLIC_PUBLIC_WWW_ORIGIN` at minimum. Poll pages also need
+ `NEXT_PUBLIC_TRAINING_API_KEY` (or `NEXT_PUBLIC_WWW_CRM_API_KEY`) for
+ `PUT /www/v1/polls/{slug}/answers`. Create `apps/training/.env.local`
+ with:
+ ```
+ NEXT_PUBLIC_SITE_ORIGIN=http://localhost:3002
+ NEXT_PUBLIC_PUBLIC_WWW_ORIGIN=http://localhost:3001
+ NEXT_PUBLIC_API_BASE_URL=/www
+ NEXT_PUBLIC_TRAINING_API_KEY=<same public CRM API key as public_www>
+ ```
 
 ### Non-obvious caveats
 

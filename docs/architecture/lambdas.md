@@ -40,6 +40,8 @@ their primary responsibilities.
   `purpose=consultation_booking` uses `Cache-Control: no-store` on success; intro-call uses the standard public cacheable GET headers),
   `/v1/discounts/validate`,
   `/v1/contact-us`,
+  `/v1/polls/{poll_slug}/answers` (PUT; API key; persists training poll answers to DynamoDB
+  `evolvesprouts-poll-responses`; same contract as `/www/v1/polls/{poll_slug}/answers`),
   `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*` (including `GET /v1/admin/locations?exclude_addresses=true`

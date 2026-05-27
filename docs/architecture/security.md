@@ -300,6 +300,9 @@ Current allowlisted public website POST paths include:
 - `/www/v1/reservations`
 - `/www/v1/reservations/payment-intent`
 
+Training poll persistence uses `PUT /www/v1/polls/{poll_slug}/answers` (prefix +
+`/answers` suffix rule in `WWW_PROXY_ALLOWLIST_FUNCTION`; not a fixed path per poll).
+
 ### Third-party invoice parser egress controls
 
 Expense invoice parsing sends attachment bytes (or email-body text saved as a
