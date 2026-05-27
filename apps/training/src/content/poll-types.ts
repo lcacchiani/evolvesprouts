@@ -73,8 +73,11 @@ export interface PollsCommonContent {
 
 export const POLLS_COMMON = pollsCommonJson as PollsCommonContent;
 
+/** JSON import infers `type` as `string`; assert to the poll content contract. */
+const workshopFoodJun26 = workshopFoodJun26Json as PollContent;
+
 const POLLS = {
-  'workshop-food-jun-26': workshopFoodJun26Json,
+  'workshop-food-jun-26': workshopFoodJun26,
 } satisfies Record<string, PollContent>;
 
 export type PollSlug = keyof typeof POLLS;
