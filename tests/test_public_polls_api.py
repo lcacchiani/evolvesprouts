@@ -114,6 +114,78 @@ def test_put_poll_answer_persists_email(api_gateway_event: Any, mock_env: Any) -
     assert resp["statusCode"] == 200
 
 
+def test_get_poll_session_answers_returns_session_rows(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    session_id = "550e8400-e29b-41d4-a716-446655440000"
+    table = MagicMock()
+    table.query.return_value = {
+        "Items": [
+            {
+                "pollSlug": "workshop-food-jun-26",
+                "sessionId": session_id,
+                "questionId": "role",
+                "questionType": "select",
+                "selectedOption": "Parent",
+                "sk": f"SESSION#{session_id}#Q#role",
+            },
+            {
+                "pollSlug": "workshop-food-jun-26",
+                "sessionId": "550e8400-e29b-41d4-a716-446655440001",
+                "questionId": "challenge",
+                "questionType": "select",
+                "selectedOption": "Other",
+                "sk": "SESSION#550e8400-e29b-41d4-a716-446655440001#Q#challenge",
+            },
+            {
+                "pollSlug": "workshop-food-jun-26",
+                "sessionId": session_id,
+                "questionId": "myth1",
+                "questionType": "truefalse",
+                "booleanAnswer": False,
+                "sk": f"SESSION#{session_id}#Q#myth1",
+            },
+        ],
+    }
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    event = api_gateway_event(
+        method="GET",
+        path="/www/v1/polls/workshop-food-jun-26/answers",
+        query_params={"sessionId": session_id},
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "GET",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 200
+    body = json.loads(resp["body"])
+    assert body["pollSlug"] == "workshop-food-jun-26"
+    assert body["sessionId"] == session_id
+    assert len(body["answers"]) == 2
+    question_ids = {row["questionId"] for row in body["answers"]}
+    assert question_ids == {"role", "myth1"}
+
+
+def test_get_poll_session_answers_rejects_invalid_session(
+    api_gateway_event: Any,
+) -> None:
+    event = api_gateway_event(
+        method="GET",
+        path="/www/v1/polls/workshop-food-jun-26/answers",
+        query_params={"sessionId": "not-a-uuid"},
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "GET",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 400
+
+
 def test_put_poll_answer_rejects_invalid_session(api_gateway_event: Any) -> None:
     body = {
         "sessionId": "not-a-uuid",

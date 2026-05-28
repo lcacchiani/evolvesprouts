@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   emptyAnswerState,
+  hasUnlockablePollQuestions,
   isAnswerValid,
+  mergeSessionAnswers,
   type QuestionAnswerState,
 } from '@/components/polls/poll-answer-state';
 import { PollAnswerPanel } from '@/components/polls/poll-answer-panel';
@@ -12,7 +14,11 @@ import { PollLiveResultsPanel } from '@/components/polls/poll-live-results-panel
 import { PollQuestionField } from '@/components/polls/poll-question-field';
 import type { PollContent, PollQuestion, PollsCommonContent } from '@/content/poll-types';
 import { getOrCreatePollSessionId } from '@/lib/poll-session';
-import { PollApiError, persistPollAnswer } from '@/lib/polls-api';
+import {
+  fetchPollSessionAnswers,
+  PollApiError,
+  persistPollAnswer,
+} from '@/lib/polls-api';
 import { usePollControlState } from '@/lib/use-poll-control-state';
 
 export interface PollWizardProps {
@@ -22,17 +28,27 @@ export interface PollWizardProps {
 
 type StepPhase = 'answer' | 'feedback' | 'liveResults';
 
+interface ManualNavigation {
+  stepIndex: number;
+  activeQuestionIdsKey: string;
+}
+
 export function PollWizard({ poll, common }: PollWizardProps) {
-  const [stepIndex, setStepIndex] = useState(0);
-  const [stepPhase, setStepPhase] = useState<StepPhase>('answer');
-  const [isComplete, setIsComplete] = useState(false);
+  const sessionId = useMemo(() => getOrCreatePollSessionId(poll.slug), [poll.slug]);
+  const {
+    isSessionLoading,
+    answersByQuestionId,
+    setAnswersByQuestionId,
+    completedQuestionIds,
+    setCompletedQuestionIds,
+  } = usePollSessionHydration(poll.slug, sessionId);
+
+  const [manualNavigation, setManualNavigation] = useState<ManualNavigation | null>(
+    null,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [answersByQuestionId, setAnswersByQuestionId] = useState<
-    Record<string, QuestionAnswerState>
-  >({});
 
-  const sessionId = useMemo(() => getOrCreatePollSessionId(), []);
   const { enabledQuestionIds, isLoading: isControlLoading } = usePollControlState({
     pollSlug: poll.slug,
     allowWrites: false,
@@ -43,22 +59,57 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     [enabledQuestionIds, poll.questions],
   );
 
-  const resolvedStepIndex =
-    activeQuestions.length === 0 ? 0 : Math.min(stepIndex, activeQuestions.length - 1);
+  const activeQuestionIdsKey = useMemo(
+    () => activeQuestions.map((question) => question.id).join(','),
+    [activeQuestions],
+  );
 
-  const totalSteps = activeQuestions.length;
-  const currentQuestion = activeQuestions[resolvedStepIndex];
+  const hasUnlockableQuestions = useMemo(
+    () => hasUnlockablePollQuestions(poll.questions, enabledQuestionIds),
+    [enabledQuestionIds, poll.questions],
+  );
+
+  const isCaughtUp = useMemo(() => {
+    if (activeQuestions.length === 0) {
+      return false;
+    }
+    return activeQuestions.every((question) => completedQuestionIds.has(question.id));
+  }, [activeQuestions, completedQuestionIds]);
+
+  const resumeStepIndex = useMemo(
+    () => resolveResumeStepIndex(activeQuestions, completedQuestionIds),
+    [activeQuestions, completedQuestionIds],
+  );
+
+  const effectiveStepIndex = useMemo(() => {
+    if (
+      manualNavigation !== null &&
+      manualNavigation.activeQuestionIdsKey === activeQuestionIdsKey
+    ) {
+      return clampStepIndex(manualNavigation.stepIndex, activeQuestions.length);
+    }
+    return resumeStepIndex;
+  }, [
+    activeQuestionIdsKey,
+    activeQuestions.length,
+    manualNavigation,
+    resumeStepIndex,
+  ]);
+
+  const currentQuestion = activeQuestions[effectiveStepIndex];
   const currentAnswer = currentQuestion
     ? (answersByQuestionId[currentQuestion.id] ?? emptyAnswerState())
     : emptyAnswerState();
 
   const progressLabel = formatProgressLabel({
     template: common.a11y.progressTemplate,
-    current: totalSteps === 0 ? 0 : resolvedStepIndex + 1,
-    total: totalSteps,
+    current: activeQuestions.length === 0 ? 0 : effectiveStepIndex + 1,
+    total: activeQuestions.length,
   });
 
-  if (!isControlLoading && activeQuestions.length === 0) {
+  const isBootstrapping = isControlLoading || isSessionLoading;
+
+  if (!isBootstrapping && activeQuestions.length === 0) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
         <h2 className='es-type-title text-2xl'>{common.waiting.title}</h2>
@@ -67,7 +118,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     );
   }
 
-  if (isControlLoading || !currentQuestion) {
+  if (isBootstrapping || !currentQuestion) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
         <p className='es-text-body text-base'>{common.waiting.description}</p>
@@ -75,20 +126,119 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     );
   }
 
-  if (isComplete) {
+  if (isCaughtUp) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
         <h2 className='es-type-title text-2xl'>{common.completion.title}</h2>
         <p className='es-text-body text-base'>{common.completion.description}</p>
+        {hasUnlockableQuestions ? (
+          <p className='es-text-body text-base'>
+            {common.completion.moreComingDescription}
+          </p>
+        ) : null}
       </section>
     );
   }
 
-  const isFirstStep = resolvedStepIndex === 0;
-  const isLastStep = resolvedStepIndex === totalSteps - 1;
-  const showingFeedback = stepPhase === 'feedback' && currentQuestion.showAnswer;
-  const showingLiveResults =
-    stepPhase === 'liveResults' && currentQuestion.showResults;
+  return (
+    <PollWizardActiveStep
+      key={currentQuestion.id}
+      poll={poll}
+      common={common}
+      sessionId={sessionId}
+      activeQuestions={activeQuestions}
+      activeQuestionIdsKey={activeQuestionIdsKey}
+      question={currentQuestion}
+      answer={currentAnswer}
+      stepIndex={effectiveStepIndex}
+      progressLabel={progressLabel}
+      isSaving={isSaving}
+      errorMessage={errorMessage}
+      onAnswerChange={(patch) => updateAnswerState(currentQuestion.id, patch)}
+      onBack={() => {
+        setErrorMessage(null);
+        setManualNavigation({
+          stepIndex: Math.max(0, effectiveStepIndex - 1),
+          activeQuestionIdsKey,
+        });
+      }}
+      onErrorMessage={setErrorMessage}
+      onSavingChange={setIsSaving}
+      onPersistSuccess={() => {
+        setCompletedQuestionIds((previous) => {
+          const next = new Set(previous);
+          next.add(currentQuestion.id);
+          return next;
+        });
+      }}
+      onAdvance={() => {
+        setManualNavigation({
+          stepIndex: Math.min(effectiveStepIndex + 1, activeQuestions.length - 1),
+          activeQuestionIdsKey,
+        });
+      }}
+    />
+  );
+
+  function updateAnswerState(
+    questionId: string,
+    patch: Partial<QuestionAnswerState>,
+  ): void {
+    setAnswersByQuestionId((previous) => ({
+      ...previous,
+      [questionId]: {
+        ...emptyAnswerState(),
+        ...previous[questionId],
+        ...patch,
+      },
+    }));
+  }
+}
+
+interface PollWizardActiveStepProps {
+  poll: PollContent;
+  common: PollsCommonContent;
+  sessionId: string;
+  activeQuestions: PollQuestion[];
+  activeQuestionIdsKey: string;
+  question: PollQuestion;
+  answer: QuestionAnswerState;
+  stepIndex: number;
+  progressLabel: string;
+  isSaving: boolean;
+  errorMessage: string | null;
+  onAnswerChange: (patch: Partial<QuestionAnswerState>) => void;
+  onBack: () => void;
+  onErrorMessage: (message: string | null) => void;
+  onSavingChange: (isSaving: boolean) => void;
+  onPersistSuccess: () => void;
+  onAdvance: () => void;
+}
+
+function PollWizardActiveStep({
+  poll,
+  common,
+  sessionId,
+  activeQuestions,
+  question,
+  answer,
+  stepIndex,
+  progressLabel,
+  isSaving,
+  errorMessage,
+  onAnswerChange,
+  onBack,
+  onErrorMessage,
+  onSavingChange,
+  onPersistSuccess,
+  onAdvance,
+}: PollWizardActiveStepProps) {
+  const [stepPhase, setStepPhase] = useState<StepPhase>('answer');
+
+  const isFirstStep = stepIndex === 0;
+  const isLastStep = stepIndex === activeQuestions.length - 1;
+  const showingFeedback = stepPhase === 'feedback' && question.showAnswer;
+  const showingLiveResults = stepPhase === 'liveResults' && question.showResults;
   const onInterstitial = showingFeedback || showingLiveResults;
   const primaryLabel = resolvePrimaryLabel({
     common,
@@ -100,25 +250,17 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     <section className='mx-auto flex w-full max-w-xl flex-col gap-6'>
       <p className='es-text-muted text-sm'>{progressLabel}</p>
       {showingFeedback ? (
-        <PollAnswerPanel
-          question={currentQuestion}
-          common={common}
-          answer={currentAnswer}
-        />
+        <PollAnswerPanel question={question} common={common} answer={answer} />
       ) : null}
       {showingLiveResults ? (
-        <PollLiveResultsPanel
-          pollSlug={poll.slug}
-          question={currentQuestion}
-          common={common}
-        />
+        <PollLiveResultsPanel pollSlug={poll.slug} question={question} common={common} />
       ) : null}
       {!onInterstitial ? (
         <PollQuestionField
-          question={currentQuestion}
+          question={question}
           common={common}
-          answer={currentAnswer}
-          onAnswerChange={(patch) => updateAnswerState(currentQuestion.id, patch)}
+          answer={answer}
+          onAnswerChange={onAnswerChange}
         />
       ) : null}
       {errorMessage ? (
@@ -132,11 +274,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
             type='button'
             className='es-btn es-btn--primary es-btn--outline es-focus-ring'
             disabled={isSaving}
-            onClick={() => {
-              setErrorMessage(null);
-              setStepIndex((index) => Math.max(0, Math.min(index, activeQuestions.length - 1) - 1));
-              setStepPhase('answer');
-            }}
+            onClick={onBack}
           >
             {common.navigation.back}
           </button>
@@ -153,78 +291,132 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     </section>
   );
 
-  function updateAnswerState(
-    questionId: string,
-    patch: Partial<QuestionAnswerState>,
-  ): void {
-    setAnswersByQuestionId((previous) => ({
-      ...previous,
-      [questionId]: {
-        ...emptyAnswerState(),
-        ...previous[questionId],
-        ...patch,
-      },
-    }));
-  }
-
   async function handlePrimaryAction(): Promise<void> {
-    setErrorMessage(null);
+    onErrorMessage(null);
 
     if (onInterstitial) {
-      if (showingFeedback && currentQuestion.showResults) {
+      if (showingFeedback && question.showResults) {
         setStepPhase('liveResults');
         return;
       }
-      advanceToNextQuestion();
+      if (!isLastStep) {
+        onAdvance();
+      }
       return;
     }
 
-    const validationError = validateAnswer(currentQuestion, currentAnswer, common);
+    const validationError = validateAnswer(question, answer, common);
     if (validationError) {
-      setErrorMessage(validationError);
+      onErrorMessage(validationError);
       return;
     }
 
-    setIsSaving(true);
+    onSavingChange(true);
     try {
       await persistPollAnswer({
         pollSlug: poll.slug,
         sessionId,
-        question: currentQuestion,
-        answer: currentAnswer,
+        question,
+        answer,
       });
     } catch (error) {
-      setErrorMessage(resolvePersistErrorMessage(error, common));
-      setIsSaving(false);
+      onErrorMessage(resolvePersistErrorMessage(error, common));
+      onSavingChange(false);
       return;
     }
-    setIsSaving(false);
+    onSavingChange(false);
+    onPersistSuccess();
 
-    if (currentQuestion.showAnswer) {
+    if (question.showAnswer) {
       setStepPhase('feedback');
       return;
     }
 
-    if (currentQuestion.showResults) {
+    if (question.showResults) {
       setStepPhase('liveResults');
       return;
     }
 
-    if (isLastStep) {
-      setIsComplete(true);
-      return;
+    if (!isLastStep) {
+      onAdvance();
     }
-    advanceToNextQuestion();
   }
+}
 
-  function advanceToNextQuestion(): void {
-    if (isLastStep) {
-      setIsComplete(true);
+type SessionHydrationStatus = 'pending' | 'ready' | 'skipped';
+
+function usePollSessionHydration(pollSlug: string, sessionId: string) {
+  const [status, setStatus] = useState<SessionHydrationStatus>(() =>
+    sessionId ? 'pending' : 'skipped',
+  );
+  const [answersByQuestionId, setAnswersByQuestionId] = useState<
+    Record<string, QuestionAnswerState>
+  >({});
+  const [completedQuestionIds, setCompletedQuestionIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+
+  useEffect(() => {
+    if (!sessionId) {
       return;
     }
-    setStepIndex((index) => Math.min(index + 1, activeQuestions.length - 1));
-    setStepPhase('answer');
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const session = await fetchPollSessionAnswers(pollSlug, sessionId);
+        if (cancelled) {
+          return;
+        }
+        setAnswersByQuestionId(mergeSessionAnswers(session.answers));
+        setCompletedQuestionIds(
+          new Set(session.answers.map((item) => item.questionId).filter(Boolean)),
+        );
+      } catch {
+        // Resume is best-effort; the respondent can still answer from scratch.
+      } finally {
+        if (!cancelled) {
+          setStatus('ready');
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pollSlug, sessionId]);
+
+  return {
+    isSessionLoading: status === 'pending',
+    answersByQuestionId,
+    setAnswersByQuestionId,
+    completedQuestionIds,
+    setCompletedQuestionIds,
+  };
+}
+
+function resolveResumeStepIndex(
+  activeQuestions: PollQuestion[],
+  completedQuestionIds: ReadonlySet<string>,
+): number {
+  if (activeQuestions.length === 0) {
+    return 0;
   }
+  const nextIndex = activeQuestions.findIndex(
+    (question) => !completedQuestionIds.has(question.id),
+  );
+  if (nextIndex >= 0) {
+    return nextIndex;
+  }
+  return activeQuestions.length - 1;
+}
+
+function clampStepIndex(stepIndex: number, activeQuestionCount: number): number {
+  if (activeQuestionCount === 0) {
+    return 0;
+  }
+  return Math.min(Math.max(0, stepIndex), activeQuestionCount - 1);
 }
 
 function resolvePersistErrorMessage(

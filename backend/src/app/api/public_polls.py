@@ -13,6 +13,7 @@ from app.exceptions import ValidationError
 from app.services.poll_responses_store import (
     aggregate_poll_question_results,
     get_poll_control_state,
+    list_poll_answers_for_session,
     put_poll_control_state,
     upsert_poll_answer,
 )
@@ -56,6 +57,8 @@ def handle_public_polls_request(
         poll_slug, _suffix = answers
         if method == "PUT":
             return _handle_put_poll_answer(event, poll_slug=poll_slug)
+        if method == "GET":
+            return _handle_get_poll_session_answers(event, poll_slug=poll_slug)
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     results = _parse_poll_question_results_path(path)
@@ -238,6 +241,31 @@ def _validate_control_body(body: Mapping[str, Any]) -> list[str]:
         seen.add(normalized)
         enabled.append(normalized)
     return enabled
+
+
+def _handle_get_poll_session_answers(
+    event: Mapping[str, Any],
+    *,
+    poll_slug: str,
+) -> dict[str, Any]:
+    try:
+        session_id = _require_session_id(_read_query_param(event, "sessionId"))
+    except ValidationError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
+
+    items = list_poll_answers_for_session(
+        poll_slug=poll_slug,
+        session_id=session_id,
+    )
+    return json_response(
+        200,
+        {
+            "pollSlug": poll_slug,
+            "sessionId": session_id,
+            "answers": items,
+        },
+        event=event,
+    )
 
 
 def _handle_put_poll_answer(

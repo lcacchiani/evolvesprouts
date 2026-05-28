@@ -21,7 +21,9 @@ info:
     - Training form answer persistence (`PUT /v1/forms/{form_slug}/answers`,
       `/www/v1/forms/{form_slug}/answers`) for `apps/training` (DynamoDB; API key only).
     - Training poll answer persistence (`PUT /v1/polls/{poll_slug}/answers`,
-      `/www/v1/polls/{poll_slug}/answers`), facilitator control
+      `/www/v1/polls/{poll_slug}/answers`) and session resume
+      (`GET /v1/polls/{poll_slug}/answers?sessionId=…`, same `/www` prefix),
+      facilitator control
       (`GET`/`PUT /v1/polls/{poll_slug}/control`, `/www/.../control`), and live
       per-question aggregates (`GET /v1/polls/{poll_slug}/questions/{question_id}/results`,
       `/www/...`) for `apps/training` (DynamoDB; API key only).
@@ -949,6 +951,55 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
   /v1/polls/{poll_slug}/answers:
+    get:
+      summary: List persisted answers for one poll session (direct API path)
+      description: >
+        Returns all question answers stored for the given `sessionId` on this
+        poll. Used by `apps/training` on page load to resume the respondent
+        wizard after refresh. Requires API key.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Client session id from browser session storage.
+      responses:
+        "200":
+          description: Session answers for the poll.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollSessionAnswersResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Load failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     put:
       summary: Persist one poll question answer (direct API path)
       description: >
@@ -1339,6 +1390,51 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
   /www/v1/polls/{poll_slug}/answers:
+    get:
+      summary: List persisted answers for one poll session (training website proxy path)
+      description: Same as `GET /v1/polls/{poll_slug}/answers` for same-origin calls from `apps/training`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Session answers for the poll.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollSessionAnswersResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Load failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     put:
       summary: Persist one poll question answer (training website proxy path)
       description: Same as `PUT /v1/polls/{poll_slug}/answers` for same-origin calls from `apps/training`.
@@ -2534,6 +2630,50 @@ components:
           type: string
           format: date-time
           description: UTC timestamp when the answer row was last written.
+    PollSessionAnswerItem:
+      type: object
+      required:
+        - questionId
+        - questionType
+      properties:
+        pollSlug:
+          type: string
+        sessionId:
+          type: string
+          format: uuid
+        questionId:
+          type: string
+        questionType:
+          type: string
+          enum: [select, truefalse, text, email]
+        selectedOption:
+          type: string
+        booleanAnswer:
+          type: boolean
+        freeText:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PollSessionAnswersResponse:
+      type: object
+      required:
+        - pollSlug
+        - sessionId
+        - answers
+      properties:
+        pollSlug:
+          type: string
+        sessionId:
+          type: string
+          format: uuid
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PollSessionAnswerItem"
     PollControlStatePutRequest:
       type: object
       properties:

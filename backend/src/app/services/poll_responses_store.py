@@ -303,6 +303,38 @@ def list_poll_summaries() -> list[dict[str, Any]]:
     ]
 
 
+def list_poll_answers_for_session(
+    *,
+    poll_slug: str,
+    session_id: str,
+) -> list[dict[str, Any]]:
+    """Return answer rows for one poll session (respondent resume)."""
+    table = _get_table()
+    try:
+        items = _query_poll_items(table=table, poll_slug=poll_slug)
+    except ClientError:
+        logger.exception(
+            "Failed to query poll session answers",
+            extra={"poll_slug": poll_slug},
+        )
+        raise AppError(
+            "Failed to list poll session answers",
+            status_code=500,
+        ) from None
+
+    sk_prefix = f"{_SK_PREFIX}{session_id}{_SK_QUESTION_SEP}"
+    matching = [
+        item
+        for item in items
+        if isinstance(item.get("sk"), str) and item["sk"].startswith(sk_prefix)
+    ]
+    serialized = [serialize_poll_answer_item(item) for item in matching]
+    serialized.sort(
+        key=lambda row: str(row.get("questionId") or ""),
+    )
+    return serialized
+
+
 def list_poll_answers(*, poll_slug: str) -> list[dict[str, Any]]:
     """Return all answer rows for one poll, sorted by updated time descending."""
     table = _get_table()

@@ -42,8 +42,9 @@ their primary responsibilities.
   `/v1/contact-us`,
   `/v1/forms/{form_slug}/answers` (PUT; API key; persists training form answers to DynamoDB
   `evolvesprouts-poll-responses`; same contract as `/www/v1/forms/{form_slug}/answers`),
-  `/v1/polls/{poll_slug}/answers` (PUT; API key; persists training poll answers to DynamoDB
-  `evolvesprouts-poll-responses`; same contract as `/www/v1/polls/{poll_slug}/answers`),
+  `/v1/polls/{poll_slug}/answers` (GET lists answers for `sessionId`; PUT upserts one answer;
+  API key; DynamoDB `evolvesprouts-poll-responses`; same contract as
+  `/www/v1/polls/{poll_slug}/answers`),
   `/v1/polls/{poll_slug}/questions/{question_id}/results` (GET; API key; live aggregates for
   `select` / `truefalse` questions and free-text lists for `text` / `email`; same contract as
   `/www/v1/polls/.../results`),

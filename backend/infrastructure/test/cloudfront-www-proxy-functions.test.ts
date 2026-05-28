@@ -63,6 +63,14 @@ function main(): void {
       "WWW_PROXY_ALLOWLIST_FUNCTION missing poll PUT /answers suffix rule",
     );
   }
+  if (
+    !WWW_PROXY_ALLOWLIST_FUNCTION.includes("method === 'GET'") ||
+    !WWW_PROXY_ALLOWLIST_FUNCTION.includes("isPollAnswersPath")
+  ) {
+    throw new Error(
+      "WWW_PROXY_ALLOWLIST_FUNCTION missing poll GET /answers allowlist rule",
+    );
+  }
   if (!WWW_PROXY_ALLOWLIST_FUNCTION.includes("method === 'OPTIONS'")) {
     throw new Error(
       "WWW_PROXY_ALLOWLIST_FUNCTION must allow OPTIONS for poll answer preflight",

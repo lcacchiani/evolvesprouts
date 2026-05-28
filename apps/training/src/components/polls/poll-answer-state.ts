@@ -1,3 +1,6 @@
+import type { PollQuestion } from '@/content/poll-types';
+import type { PollSessionAnswerItem } from '@/lib/polls-api';
+
 export interface QuestionAnswerState {
   selectedOption: string;
   trueFalseValue: boolean | null;
@@ -12,7 +15,64 @@ export function emptyAnswerState(): QuestionAnswerState {
   };
 }
 
-import type { PollQuestion } from '@/content/poll-types';
+export function answerStateFromSessionItem(
+  item: PollSessionAnswerItem,
+): QuestionAnswerState {
+  if (item.questionType === 'select') {
+    return {
+      selectedOption: item.selectedOption?.trim() ?? '',
+      trueFalseValue: null,
+      freeText: '',
+    };
+  }
+  if (item.questionType === 'truefalse') {
+    return {
+      selectedOption: '',
+      trueFalseValue:
+        typeof item.booleanAnswer === 'boolean' ? item.booleanAnswer : null,
+      freeText: '',
+    };
+  }
+  return {
+    selectedOption: '',
+    trueFalseValue: null,
+    freeText: item.freeText?.trim() ?? '',
+  };
+}
+
+export function mergeSessionAnswers(
+  items: PollSessionAnswerItem[],
+): Record<string, QuestionAnswerState> {
+  const merged: Record<string, QuestionAnswerState> = {};
+  for (const item of items) {
+    if (!item.questionId?.trim()) {
+      continue;
+    }
+    merged[item.questionId] = answerStateFromSessionItem(item);
+  }
+  return merged;
+}
+
+export function findFirstUnansweredQuestionIndex(
+  questions: PollQuestion[],
+  answersByQuestionId: Record<string, QuestionAnswerState>,
+): number {
+  const index = questions.findIndex((question) => {
+    const answer = answersByQuestionId[question.id] ?? emptyAnswerState();
+    return !isAnswerValid(question, answer);
+  });
+  if (index < 0) {
+    return Math.max(0, questions.length - 1);
+  }
+  return index;
+}
+
+export function hasUnlockablePollQuestions(
+  allQuestions: PollQuestion[],
+  enabledQuestionIds: ReadonlySet<string>,
+): boolean {
+  return allQuestions.some((question) => !enabledQuestionIds.has(question.id));
+}
 
 export function isAnswerValid(question: PollQuestion, answer: QuestionAnswerState): boolean {
   if (question.type === 'select') {
