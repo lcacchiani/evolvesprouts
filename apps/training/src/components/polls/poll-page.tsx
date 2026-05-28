@@ -15,7 +15,7 @@ export function PollPage({ poll, common }: PollPageProps) {
     <img
       src='/images/evolvesprouts-logo.svg'
       alt='Evolve Sprouts'
-      className='mx-auto h-14 w-auto'
+      className='mx-auto h-28 w-auto'
     />
   );
 
