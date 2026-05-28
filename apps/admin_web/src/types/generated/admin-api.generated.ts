@@ -5429,6 +5429,163 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/forms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List training form slugs with answer counts
+         * @description Returns distinct form slugs discovered in the DynamoDB responses table,
+         *     each with the number of stored answer rows.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Form summary list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFormListResponse"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/forms/{form_slug}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Training form slug (kebab-case). */
+                form_slug: components["parameters"]["FormSlug"];
+            };
+            cookie?: never;
+        };
+        /** List all stored answers for a form */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Training form slug (kebab-case). */
+                    form_slug: components["parameters"]["FormSlug"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Form answer rows for the selected form. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFormAnswerListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Clear all stored answers for a form
+         * @description Permanently deletes every answer row for the form slug in DynamoDB.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Training form slug (kebab-case). */
+                    form_slug: components["parameters"]["FormSlug"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Form answers cleared. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminFormClearAnswersResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/forms/{form_slug}/answers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Training form slug (kebab-case). */
+                form_slug: components["parameters"]["FormSlug"];
+            };
+            cookie?: never;
+        };
+        /** Export form answers as CSV */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Training form slug (kebab-case). */
+                    form_slug: components["parameters"]["FormSlug"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description CSV export generated. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/csv": string;
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/polls": {
         parameters: {
             query?: never;
@@ -7191,6 +7348,34 @@ export interface components {
         AdminTagListResponse: {
             items: components["schemas"]["AdminTagRef"][];
         };
+        AdminFormSummary: {
+            formSlug: string;
+            answerCount: number;
+        };
+        AdminFormListResponse: {
+            items: components["schemas"]["AdminFormSummary"][];
+        };
+        AdminFormAnswerRow: {
+            formSlug: string;
+            /** Format: uuid */
+            sessionId: string;
+            questionId: string;
+            /** @enum {string} */
+            questionType: "select" | "text" | "email";
+            selectedOption?: string;
+            freeText?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminFormAnswerListResponse: {
+            items: components["schemas"]["AdminFormAnswerRow"][];
+        };
+        AdminFormClearAnswersResponse: {
+            formSlug: string;
+            deletedCount: number;
+        };
         AdminPollSummary: {
             pollSlug: string;
             answerCount: number;
@@ -7695,6 +7880,8 @@ export interface components {
         LocationId: string;
         /** @description Sales lead identifier. */
         LeadId: string;
+        /** @description Training form slug (kebab-case). */
+        FormSlug: string;
         /** @description Training poll slug (kebab-case). */
         PollSlug: string;
         /** @description Service identifier. */

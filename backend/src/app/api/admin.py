@@ -37,10 +37,12 @@ from app.api.admin_audit_logs import handle_admin_audit_logs_request
 from app.api.admin_calendar_manual_blocks import (
     handle_admin_calendar_manual_blocks_request,
 )
+from app.api.admin_forms import handle_admin_forms_request
 from app.api.admin_polls import handle_admin_polls_request
 from app.api.public_calendar_availability import handle_public_calendar_availability
 from app.api.public_events import handle_public_events
 from app.api.public_contact import handle_public_contact_us
+from app.api.public_forms import handle_public_forms_request
 from app.api.public_polls import handle_public_polls_request
 from app.api.public_reservation_payments import handle_public_reservation_payment_intent
 from app.api.public_reservations import _handle_public_reservation
@@ -135,6 +137,16 @@ _ROUTES: tuple[
         "/v1/contact-us",
         True,
         lambda event, method, _path: handle_public_contact_us(event, method),
+    ),
+    (
+        "/v1/forms",
+        False,
+        handle_public_forms_request,
+    ),
+    (
+        "/www/v1/forms",
+        False,
+        handle_public_forms_request,
     ),
     (
         "/v1/polls",
@@ -240,6 +252,11 @@ _ROUTES: tuple[
         "/v1/admin/organizations",
         False,
         handle_admin_organizations_request,
+    ),
+    (
+        "/v1/admin/forms",
+        False,
+        handle_admin_forms_request,
     ),
     (
         "/v1/admin/polls",

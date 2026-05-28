@@ -15,6 +15,7 @@ const REQUIRED_ALLOWLIST_PATHS = [
   "/www/v1/contact-us",
 ];
 
+const REQUIRED_FORM_PUT_PREFIX = "/www/v1/forms/";
 const REQUIRED_POLL_PUT_PREFIX = "/www/v1/polls/";
 const REQUIRED_POLL_PUT_SUFFIX = "/answers";
 const REQUIRED_POLL_RESULTS_SEGMENT = "/questions/";
@@ -47,6 +48,11 @@ function main(): void {
     "WWW_PROXY_ALLOWLIST_FUNCTION",
   );
 
+  if (!WWW_PROXY_ALLOWLIST_FUNCTION.includes(REQUIRED_FORM_PUT_PREFIX)) {
+    throw new Error(
+      "WWW_PROXY_ALLOWLIST_FUNCTION missing form PUT prefix allowlist rule",
+    );
+  }
   if (!WWW_PROXY_ALLOWLIST_FUNCTION.includes(REQUIRED_POLL_PUT_PREFIX)) {
     throw new Error(
       "WWW_PROXY_ALLOWLIST_FUNCTION missing poll PUT prefix allowlist rule",

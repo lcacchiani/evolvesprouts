@@ -12,6 +12,10 @@ vi.mock('@/lib/qr-code-image', () => ({
   generatePublicSiteQrPngDataUrl: vi.fn(async () => 'data:image/png;base64,AA'),
 }));
 
+vi.mock('@/components/admin/website/website-forms-panel', () => ({
+  WebsiteFormsPanel: () => <div>Forms panel</div>,
+}));
+
 vi.mock('@/components/admin/website/website-polls-panel', () => ({
   WebsitePollsPanel: () => <div>Polls panel</div>,
 }));
@@ -26,6 +30,13 @@ describe('WebsitePage', () => {
     expect(screen.getByRole('group', { name: 'Website section views' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'QR Codes', pressed: true })).toBeInTheDocument();
     expect(screen.getByText('Website QR codes')).toBeInTheDocument();
+  });
+
+  it('switches to Forms tab', () => {
+    render(<WebsitePage />);
+    fireEvent.click(screen.getByRole('button', { name: 'Forms' }));
+    expect(screen.getByText('Forms panel')).toBeInTheDocument();
+    expect(screen.queryByText('Website QR codes')).not.toBeInTheDocument();
   });
 
   it('switches to Polls tab', () => {

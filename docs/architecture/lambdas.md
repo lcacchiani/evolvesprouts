@@ -40,6 +40,8 @@ their primary responsibilities.
   `purpose=consultation_booking` uses `Cache-Control: no-store` on success; intro-call uses the standard public cacheable GET headers),
   `/v1/discounts/validate`,
   `/v1/contact-us`,
+  `/v1/forms/{form_slug}/answers` (PUT; API key; persists training form answers to DynamoDB
+  `evolvesprouts-poll-responses`; same contract as `/www/v1/forms/{form_slug}/answers`),
   `/v1/polls/{poll_slug}/answers` (PUT; API key; persists training poll answers to DynamoDB
   `evolvesprouts-poll-responses`; same contract as `/www/v1/polls/{poll_slug}/answers`),
   `/v1/polls/{poll_slug}/questions/{question_id}/results` (GET; API key; live aggregates for
@@ -97,6 +99,10 @@ their primary responsibilities.
   for non-vendor orgs; `POST /v1/admin/organizations/{id}/members` derives each member's role from the
   linked contact's `contact_type`; `PATCH /v1/admin/organizations/{id}/members/{memberId}` updates
   membership fields such as primary contact),
+  `/v1/admin/forms` (lists form slugs with answer counts from DynamoDB
+  `evolvesprouts-poll-responses`), `/v1/admin/forms/{form_slug}/answers`
+  (`GET` lists all stored answer rows; `DELETE` clears all rows for the form),
+  `/v1/admin/forms/{form_slug}/answers/export` (`GET`; CSV export),
   `/v1/admin/polls` (lists poll slugs with answer counts from DynamoDB
   `evolvesprouts-poll-responses`), `/v1/admin/polls/{poll_slug}/answers`
   (`GET` lists all stored answer rows; `DELETE` clears all rows for the poll),

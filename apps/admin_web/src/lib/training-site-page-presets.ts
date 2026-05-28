@@ -12,6 +12,7 @@ export interface TrainingSitePagePreset {
 
 const PRESET_ROWS: readonly { label: string; routeKey: keyof typeof TRAINING_ROUTES }[] = [
   { label: 'Home', routeKey: 'home' },
+  { label: 'Workshop feedback form', routeKey: 'formsWorkshopFeedback' },
   { label: 'Workshop food poll (Jun 26)', routeKey: 'pollsWorkshopFoodJun26' },
 ] as const;
 

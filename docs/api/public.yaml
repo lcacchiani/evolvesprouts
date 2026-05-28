@@ -18,6 +18,8 @@ info:
     - Public calendar feed (`/v1/calendar/public`, `/www/v1/calendar/public`).
     - Public calendar availability (`/v1/calendar/availability`, `/www/v1/calendar/availability`).
     - Media lead capture (`/v1/assets/free/request`, `/www/v1/assets/free/request`).
+    - Training form answer persistence (`PUT /v1/forms/{form_slug}/answers`,
+      `/www/v1/forms/{form_slug}/answers`) for `apps/training` (DynamoDB; API key only).
     - Training poll answer persistence (`PUT /v1/polls/{poll_slug}/answers`,
       `/www/v1/polls/{poll_slug}/answers`), facilitator control
       (`GET`/`PUT /v1/polls/{poll_slug}/control`, `/www/.../control`), and live
@@ -892,6 +894,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /v1/forms/{form_slug}/answers:
+    put:
+      summary: Persist one form question answer (direct API path)
+      description: >
+        Upserts a single question answer for a training-site form session.
+        Used by `apps/training` when the respondent advances to the next question.
+        Answers are stored in the shared DynamoDB table `evolvesprouts-poll-responses`
+        (partition key `FORM#<form_slug>`, sort key `SESSION#<session_id>#Q#<question_id>`).
+        Re-submitting the same session and question overwrites the prior row.
+        Requires API key; Turnstile is not used on this route.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: form_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+          description: Form identifier (for example `workshop-feedback`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FormAnswerPutRequest"
+      responses:
+        "200":
+          description: Answer persisted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormAnswerPutResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Form path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Persistence failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /v1/polls/{poll_slug}/answers:
     put:
       summary: Persist one poll question answer (direct API path)
@@ -1230,6 +1286,53 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Aggregation failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/forms/{form_slug}/answers:
+    put:
+      summary: Persist one form question answer (training website proxy path)
+      description: Same as `PUT /v1/forms/{form_slug}/answers` for same-origin calls from `apps/training`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: form_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FormAnswerPutRequest"
+      responses:
+        "200":
+          description: Answer persisted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormAnswerPutResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Form path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Persistence failed.
           content:
             application/json:
               schema:
@@ -2332,6 +2435,54 @@ components:
         "data[id]":
           type: string
           maxLength: 64
+    FormAnswerPutRequest:
+      type: object
+      required:
+        - sessionId
+        - questionId
+        - questionType
+      properties:
+        formSlug:
+          type: string
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+          description: Optional; when present must match the `{form_slug}` path segment.
+        sessionId:
+          type: string
+          format: uuid
+          description: Client-generated session id (stored in browser session storage).
+        questionId:
+          type: string
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        questionType:
+          type: string
+          enum: [select, text, email]
+        selectedOption:
+          type: string
+          maxLength: 500
+          description: Selected option label for `select` questions.
+        freeText:
+          type: string
+          maxLength: 4000
+          description: Response body for `text` and `email` questions.
+    FormAnswerPutResponse:
+      type: object
+      required:
+        - formSlug
+        - sessionId
+        - questionId
+        - updatedAt
+      properties:
+        formSlug:
+          type: string
+        sessionId:
+          type: string
+          format: uuid
+        questionId:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+          description: UTC timestamp when the answer row was last written.
     PollAnswerPutRequest:
       type: object
       required:

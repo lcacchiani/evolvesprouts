@@ -2954,6 +2954,9 @@ export class ApiStack extends cdk.Stack {
     addPublicApiKeyMethod(reservations, "POST");
     addPublicApiKeyMethod(reservations.addResource("payment-intent"), "POST");
     addPublicApiKeyMethod(v1.addResource("contact-us"), "POST");
+    const forms = v1.addResource("forms");
+    const formBySlug = forms.addResource("{form_slug}");
+    addPublicApiKeyMethod(formBySlug.addResource("answers"), "PUT");
     const polls = v1.addResource("polls");
     const pollBySlug = polls.addResource("{poll_slug}");
     addPublicApiKeyMethod(pollBySlug.addResource("answers"), "PUT");
