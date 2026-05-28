@@ -106,7 +106,7 @@ describe('WorkshopFoodJun26PollPage', () => {
 
     const backButton = await screen.findByRole('button', { name: POLLS_COMMON.navigation.back });
     expect(backButton).toHaveClass('es-btn--primary');
-    expect(backButton).not.toHaveClass('es-btn--outline');
+    expect(backButton).toHaveClass('es-btn--outline');
   });
 
   it('shows results step for challenge question before continuing', async () => {
