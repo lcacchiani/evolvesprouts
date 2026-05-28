@@ -130,7 +130,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
         {!isFirstStep && !onInterstitial ? (
           <button
             type='button'
-            className='es-btn es-btn--outline es-focus-ring'
+            className='es-btn es-btn--primary es-focus-ring'
             disabled={isSaving}
             onClick={() => {
               setErrorMessage(null);

@@ -30,7 +30,7 @@ export function PollQuestionField({
               <label
                 key={option}
                 htmlFor={inputId}
-                className={`flex cursor-pointer items-start gap-3 rounded-inner border px-3 py-2 es-border-panel-soft es-bg-surface-white ${answer.selectedOption === option ? 'es-border-panel' : ''}`}
+                className={`poll-option-label flex cursor-pointer items-start gap-3 rounded-inner border px-3 py-2 es-bg-surface-white ${answer.selectedOption === option ? 'poll-option-label--selected' : ''}`}
               >
                 <input
                   id={inputId}

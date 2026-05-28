@@ -76,6 +76,39 @@ describe('WorkshopFoodJun26PollPage', () => {
     expect(screen.getByText(second?.screen ?? '')).toBeInTheDocument();
   });
 
+  it('styles back like next and marks selected options with an orange border class', async () => {
+    if (!poll) {
+      throw new Error('Expected workshop-food-jun-26 poll content');
+    }
+    const user = userEvent.setup();
+    render(<PollPage poll={poll} common={POLLS_COMMON} />);
+
+    const first = poll.questions[0];
+    if (!first || first.type !== 'select') {
+      throw new Error('Expected first question to be select');
+    }
+    const firstOption = first.options[0] ?? '';
+    await waitFor(() => {
+      expect(screen.getByLabelText(firstOption)).toBeInTheDocument();
+    });
+
+    const optionLabel = screen.getByLabelText(firstOption).closest('label');
+    expect(optionLabel).toHaveClass('poll-option-label');
+    expect(optionLabel).not.toHaveClass('poll-option-label--selected');
+
+    await user.click(screen.getByLabelText(firstOption));
+    expect(optionLabel).toHaveClass('poll-option-label--selected');
+
+    const nextButton = screen.getByRole('button', { name: POLLS_COMMON.navigation.next });
+    expect(nextButton).toHaveClass('es-btn--primary');
+
+    await user.click(nextButton);
+
+    const backButton = await screen.findByRole('button', { name: POLLS_COMMON.navigation.back });
+    expect(backButton).toHaveClass('es-btn--primary');
+    expect(backButton).not.toHaveClass('es-btn--outline');
+  });
+
   it('shows results step for challenge question before continuing', async () => {
     if (!poll) {
       throw new Error('Expected workshop-food-jun-26 poll content');
