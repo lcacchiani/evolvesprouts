@@ -1777,5 +1777,30 @@
         "aboutUsIdaCoachSectionLabel": "你的教练"
       }
     }
+  },
+  "realStories": {
+    "title": "Real Stories",
+    "description": "",
+    "items": []
+  },
+  "freeResources": {
+    "title": "Free Resources ",
+    "description": "",
+    "items": []
+  },
+  "whyJoiningOurCourses": {
+    "title": "Why Joining Our Courses",
+    "description": "",
+    "items": []
+  },
+  "courseModule": {
+    "title": "Course module",
+    "description": "",
+    "items": []
+  },
+  "banner": {
+    "title": "banner",
+    "description": "",
+    "items": []
   }
 }
