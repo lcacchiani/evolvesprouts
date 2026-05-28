@@ -1,5 +1,6 @@
 'use client';
 
+import { WebsiteFormsPanel } from '@/components/admin/website/website-forms-panel';
 import { WebsitePollsPanel } from '@/components/admin/website/website-polls-panel';
 import { WebsiteQrPage } from '@/components/admin/website/website-qr-page';
 import { AdminTabStrip } from '@/components/ui/admin-tab-strip';
@@ -7,6 +8,7 @@ import { useQueryTabState } from '@/hooks/use-query-tab-state';
 
 const TAB_ITEMS = [
   { key: 'qr-codes', label: 'QR Codes' },
+  { key: 'forms', label: 'Forms' },
   { key: 'polls', label: 'Polls' },
 ] as const;
 
@@ -30,6 +32,7 @@ export function WebsitePage() {
         aria-label='Website section views'
       />
       {activeView === 'qr-codes' ? <WebsiteQrPage /> : null}
+      {activeView === 'forms' ? <WebsiteFormsPanel /> : null}
       {activeView === 'polls' ? <WebsitePollsPanel /> : null}
     </div>
   );

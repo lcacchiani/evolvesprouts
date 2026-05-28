@@ -1,0 +1,31 @@
+{
+  "title": "Workshop feedback",
+  "slug": "workshop-feedback",
+  "questions": [
+    {
+      "id": "name",
+      "type": "text",
+      "screen": "About you",
+      "question": "Your name"
+    },
+    {
+      "id": "email",
+      "type": "email",
+      "screen": "Contact",
+      "question": "Email address"
+    },
+    {
+      "id": "rating",
+      "type": "select",
+      "screen": "Overall",
+      "question": "How would you rate this workshop?",
+      "options": ["Excellent", "Good", "Fair", "Needs improvement"]
+    },
+    {
+      "id": "comments",
+      "type": "text",
+      "screen": "Feedback",
+      "question": "What was most helpful, or what could we improve?"
+    }
+  ]
+}

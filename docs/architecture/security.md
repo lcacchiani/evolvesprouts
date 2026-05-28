@@ -300,6 +300,8 @@ Current allowlisted public website POST paths include:
 - `/www/v1/reservations`
 - `/www/v1/reservations/payment-intent`
 
+Training form persistence uses `PUT /www/v1/forms/{form_slug}/answers` (prefix +
+`/answers` suffix rule in `WWW_PROXY_ALLOWLIST_FUNCTION`; not a fixed path per form).
 Training poll persistence uses `PUT /www/v1/polls/{poll_slug}/answers` (prefix +
 `/answers` suffix rule in `WWW_PROXY_ALLOWLIST_FUNCTION`; not a fixed path per poll).
 Live poll aggregates use `GET /www/v1/polls/{poll_slug}/questions/{question_id}/results`

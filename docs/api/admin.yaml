@@ -51,6 +51,9 @@ info:
     - `POST /v1/admin/organizations/{id}/members`
     - `PATCH /v1/admin/organizations/{id}/members/{memberId}`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
+    - `GET /v1/admin/forms` (lists form slugs with answer counts from DynamoDB)
+    - `GET|DELETE /v1/admin/forms/{form_slug}/answers` (`DELETE` removes all stored answers for the form)
+    - `GET /v1/admin/forms/{form_slug}/answers/export` (CSV export of all answers for the form)
     - `GET /v1/admin/polls` (lists poll slugs with answer counts from DynamoDB)
     - `GET|DELETE /v1/admin/polls/{poll_slug}/answers` (`DELETE` removes all stored answers for the poll)
     - `GET /v1/admin/polls/{poll_slug}/answers/export` (CSV export of all answers for the poll)
@@ -3998,6 +4001,78 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/forms:
+    get:
+      summary: List training form slugs with answer counts
+      description: |
+        Returns distinct form slugs discovered in the DynamoDB responses table,
+        each with the number of stored answer rows.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Form summary list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFormListResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/forms/{form_slug}/answers:
+    parameters:
+      - $ref: "#/components/parameters/FormSlug"
+    get:
+      summary: List all stored answers for a form
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Form answer rows for the selected form.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFormAnswerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      summary: Clear all stored answers for a form
+      description: Permanently deletes every answer row for the form slug in DynamoDB.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Form answers cleared.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFormClearAnswersResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/forms/{form_slug}/answers/export:
+    parameters:
+      - $ref: "#/components/parameters/FormSlug"
+    get:
+      summary: Export form answers as CSV
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: CSV export generated.
+          content:
+            text/csv:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /v1/admin/polls:
     get:
       summary: List training poll slugs with answer counts
@@ -4161,6 +4236,14 @@ components:
         type: string
         format: uuid
       description: Sales lead identifier.
+    FormSlug:
+      name: form_slug
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+      description: Training form slug (kebab-case).
     PollSlug:
       name: poll_slug
       in: path
@@ -7712,6 +7795,82 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdminTagRef"
+    AdminFormSummary:
+      type: object
+      required:
+        - formSlug
+        - answerCount
+      properties:
+        formSlug:
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        answerCount:
+          type: integer
+          minimum: 0
+    AdminFormListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminFormSummary"
+    AdminFormAnswerRow:
+      type: object
+      required:
+        - formSlug
+        - sessionId
+        - questionId
+        - questionType
+        - createdAt
+        - updatedAt
+      properties:
+        formSlug:
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        sessionId:
+          type: string
+          format: uuid
+        questionId:
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        questionType:
+          type: string
+          enum: [select, text, email]
+        selectedOption:
+          type: string
+          maxLength: 500
+        freeText:
+          type: string
+          maxLength: 4000
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AdminFormAnswerListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminFormAnswerRow"
+    AdminFormClearAnswersResponse:
+      type: object
+      required:
+        - formSlug
+        - deletedCount
+      properties:
+        formSlug:
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        deletedCount:
+          type: integer
+          minimum: 0
     AdminPollSummary:
       type: object
       required:
