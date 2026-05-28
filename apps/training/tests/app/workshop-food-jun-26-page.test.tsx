@@ -109,7 +109,7 @@ describe('WorkshopFoodJun26PollPage', () => {
     expect(backButton).toHaveClass('es-btn--outline');
   });
 
-  it('shows results step for challenge question before continuing', async () => {
+  it('advances from challenge to the next question without a results interstitial', async () => {
     if (!poll) {
       throw new Error('Expected workshop-food-jun-26 poll content');
     }
@@ -133,9 +133,19 @@ describe('WorkshopFoodJun26PollPage', () => {
     await user.click(screen.getByLabelText(challenge.options[0] ?? ''));
     await user.click(screen.getByRole('button', { name: POLLS_COMMON.navigation.next }));
 
-    expect(screen.getByText(challenge.presenterNote ?? '')).toBeInTheDocument();
+    const myth1 = poll.questions[2];
+    if (!myth1 || myth1.type !== 'truefalse') {
+      throw new Error('Expected myth1 truefalse question');
+    }
+    await waitFor(() => {
+      expect(screen.getByText(myth1.question)).toBeInTheDocument();
+    });
+    if (challenge.presenterNote) {
+      expect(screen.queryByText(challenge.presenterNote)).not.toBeInTheDocument();
+    }
     expect(
-      screen.getByRole('button', { name: POLLS_COMMON.navigation.continue }),
-    ).toBeInTheDocument();
+      screen.queryByRole('button', { name: POLLS_COMMON.navigation.continue }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: POLLS_COMMON.navigation.next })).toBeInTheDocument();
   });
 });
