@@ -36,6 +36,7 @@ describe('WorkshopFoodJun26PollPage', () => {
       throw new Error('Expected workshop-food-jun-26 poll content');
     }
     render(<PollPage poll={poll} common={POLLS_COMMON} />);
+    expect(screen.getByRole('img', { name: 'Evolve Sprouts' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: poll.title })).toBeInTheDocument();
     const first = poll.questions[0];
     await waitFor(() => {
