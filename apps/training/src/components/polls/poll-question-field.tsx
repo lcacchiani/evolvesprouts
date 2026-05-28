@@ -19,10 +19,8 @@ export function PollQuestionField({
   return (
     <div className='flex w-full flex-col gap-4'>
       <div className='flex flex-col gap-1'>
-        <p className='text-sm font-medium uppercase tracking-wide text-neutral-600'>
-          {question.screen}
-        </p>
-        <h2 className='text-xl font-semibold text-neutral-900'>{question.question}</h2>
+        <p className='es-type-eyebrow'>{question.screen}</p>
+        <h2 className='es-text-heading text-xl font-semibold'>{question.question}</h2>
       </div>
       {question.type === 'select' ? (
         <fieldset className='flex flex-col gap-2'>
@@ -32,17 +30,17 @@ export function PollQuestionField({
               <label
                 key={option}
                 htmlFor={inputId}
-                className='flex cursor-pointer items-start gap-3 rounded-lg border border-neutral-200 px-3 py-2'
+                className={`flex cursor-pointer items-start gap-3 rounded-inner border px-3 py-2 es-border-panel-soft es-bg-surface-white ${answer.selectedOption === option ? 'es-border-panel' : ''}`}
               >
                 <input
                   id={inputId}
                   type='radio'
                   name={question.id}
-                  className='mt-1 h-4 w-4 shrink-0'
+                  className='es-accent-brand es-focus-ring mt-1 h-4 w-4 shrink-0'
                   checked={answer.selectedOption === option}
                   onChange={() => onAnswerChange({ selectedOption: option })}
                 />
-                <span className='text-base text-neutral-900'>{option}</span>
+                <span className='es-text-body text-base'>{option}</span>
               </label>
             );
           })}
@@ -68,7 +66,7 @@ export function PollQuestionField({
       ) : null}
       {question.type === 'text' ? (
         <textarea
-          className='min-h-28 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900'
+          className='es-focus-ring es-form-input min-h-28 w-full'
           value={answer.freeText}
           onChange={(event) => onAnswerChange({ freeText: event.target.value })}
         />
@@ -77,7 +75,7 @@ export function PollQuestionField({
         <input
           type='email'
           autoComplete='email'
-          className='w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900'
+          className='es-focus-ring es-form-input w-full'
           value={answer.freeText}
           onChange={(event) => onAnswerChange({ freeText: event.target.value })}
         />
@@ -87,12 +85,10 @@ export function PollQuestionField({
 }
 
 function trueFalseButtonClass(isSelected: boolean): string {
-  const base =
-    'rounded-lg border px-4 py-2 text-sm font-medium transition-colors';
-  if (isSelected) {
-    return `${base} border-neutral-900 bg-neutral-900 text-white`;
-  }
-  return `${base} border-neutral-300 bg-white text-neutral-900`;
+  const base = 'es-btn es-btn--selection es-focus-ring px-4 py-2 text-sm';
+  return isSelected
+    ? `${base} es-btn--state-active`
+    : `${base} es-btn--state-inactive`;
 }
 
 function slugifyOption(option: string): string {

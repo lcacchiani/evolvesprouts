@@ -13,8 +13,3 @@
   --shadow-panel: 0 28px 60px -45px rgba(17, 17, 17, 0.58);
   --shadow-overlay: 0 22px 70px rgba(0, 0, 0, 0.42);
 }
-
-@import './base.css';
-@import './components-core.css';
-@import './components-sections.css';
-@import './utilities.css';

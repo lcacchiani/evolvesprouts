@@ -61,8 +61,8 @@ export function PollWizard({ poll, common }: PollWizardProps) {
   if (!isControlLoading && activeQuestions.length === 0) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
-        <h2 className='text-2xl font-semibold text-neutral-900'>{common.waiting.title}</h2>
-        <p className='text-base text-neutral-700'>{common.waiting.description}</p>
+        <h2 className='es-type-title text-2xl'>{common.waiting.title}</h2>
+        <p className='es-text-body text-base'>{common.waiting.description}</p>
       </section>
     );
   }
@@ -70,7 +70,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
   if (isControlLoading || !currentQuestion) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
-        <p className='text-base text-neutral-700'>{common.waiting.description}</p>
+        <p className='es-text-body text-base'>{common.waiting.description}</p>
       </section>
     );
   }
@@ -78,8 +78,8 @@ export function PollWizard({ poll, common }: PollWizardProps) {
   if (isComplete) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
-        <h2 className='text-2xl font-semibold text-neutral-900'>{common.completion.title}</h2>
-        <p className='text-base text-neutral-700'>{common.completion.description}</p>
+        <h2 className='es-type-title text-2xl'>{common.completion.title}</h2>
+        <p className='es-text-body text-base'>{common.completion.description}</p>
       </section>
     );
   }
@@ -98,7 +98,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
 
   return (
     <section className='mx-auto flex w-full max-w-xl flex-col gap-6'>
-      <p className='text-sm text-neutral-600'>{progressLabel}</p>
+      <p className='es-text-muted text-sm'>{progressLabel}</p>
       {showingFeedback ? (
         <PollAnswerPanel
           question={currentQuestion}
@@ -122,7 +122,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
         />
       ) : null}
       {errorMessage ? (
-        <p className='text-sm text-red-700' role='alert'>
+        <p className='es-text-danger text-sm' role='alert'>
           {errorMessage}
         </p>
       ) : null}
@@ -130,7 +130,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
         {!isFirstStep && !onInterstitial ? (
           <button
             type='button'
-            className='rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900'
+            className='es-btn es-btn--outline es-focus-ring'
             disabled={isSaving}
             onClick={() => {
               setErrorMessage(null);
@@ -143,7 +143,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
         ) : null}
         <button
           type='button'
-          className='rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60'
+          className='es-btn es-btn--primary es-focus-ring'
           disabled={isSaving}
           onClick={() => void handlePrimaryAction()}
         >

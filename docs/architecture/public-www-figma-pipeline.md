@@ -19,7 +19,7 @@ Figma Design File
     │                      (colors, typography, effects from published
     │                       styles + direct node values)
     │
-    ├── figma:build:studio → src/app/generated/figma-tokens.css
+    ├── figma:build:studio → shared/styles/generated/figma-tokens.css
     │                         (CSS custom properties)
     │
     ├── figma:scaffold ──→ src/components/sections/<name>.tsx (new only)
@@ -73,8 +73,6 @@ apps/public_www/
 │   └── launch-figma-mcp.mjs     # MCP server launcher (OAuth2)
 ├── src/
 │   ├── app/
-│   │   ├── generated/
-│   │   │   └── figma-tokens.css  # ← overwritten on each sync
 │   │   ├── [locale]/
 │   │   │   ├── layout.tsx        # Locale layout (lang/dir)
 │   │   │   └── page.tsx          # Page composition
@@ -104,7 +102,7 @@ apps/public_www/
 | `figma/token-studio/global.json` | **Overwritten** — always from Figma |
 | `figma/token-studio/semantic.json` | **Preserved** — hand-curated aliases |
 | `figma/token-studio/component.json` | **Preserved** — hand-curated |
-| `src/app/generated/figma-tokens.css` | **Overwritten** — always from tokens |
+| `shared/styles/generated/figma-tokens.css` | **Overwritten** — always from tokens (shared with training) |
 | `figma/design-specs/*.json` | **Overwritten** — always from Figma |
 | `src/components/sections/*.tsx` | **Preserved** — scaffolded once, then owned by developer |
 | `src/content/*.json` | **Preserved** — new keys appended, existing keys untouched |
@@ -249,7 +247,7 @@ with a prompt like:
 > design (colors, fonts, layout, dimensions). Read
 > `apps/public_www/src/content/en.json` (hero section) for text
 > content. Use CSS custom properties from
-> `apps/public_www/src/app/generated/figma-tokens.css` where
+> `shared/styles/generated/figma-tokens.css` where
 > available, and Tailwind for layout. Make it responsive
 > (mobile-first).
 
