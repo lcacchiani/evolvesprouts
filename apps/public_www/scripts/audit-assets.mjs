@@ -27,8 +27,12 @@ const UNUSED_IMAGE_ALLOWLIST = new Set([
 ]);
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
+const repoRoot = join(projectRoot, '..', '..');
 const srcRoot = join(projectRoot, 'src');
 const publicRoot = join(projectRoot, 'public');
+
+/** CSS under shared/styles references /public/images assets served by public_www. */
+const additionalReferenceRoots = [join(repoRoot, 'shared', 'styles')];
 
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -67,7 +71,12 @@ function printList(title, values) {
 }
 
 async function collectReferencedAssets() {
-  const sourceFiles = await collectFiles(srcRoot);
+  const sourceFiles = (
+    await Promise.all([
+      collectFiles(srcRoot),
+      ...additionalReferenceRoots.map((root) => collectFiles(root)),
+    ])
+  ).flat();
   const references = new Set();
 
   for (const filePath of sourceFiles) {
