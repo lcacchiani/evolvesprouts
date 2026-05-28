@@ -68,6 +68,21 @@ export interface PollsCommonContent {
     title: string;
     description: string;
   };
+  waiting: {
+    title: string;
+    description: string;
+  };
+  control: {
+    title: string;
+    description: string;
+    questionOnLabel: string;
+    questionOffLabel: string;
+    skippedLabel: string;
+    textResponsesHeading: string;
+    noTextResponses: string;
+    updateFailed: string;
+    loadFailed: string;
+  };
   errors: {
     required: string;
     invalidEmail: string;
@@ -110,4 +125,8 @@ export function getPollContent(slug: string): PollContent | null {
 
 export function buildPollPath(slug: PollSlug | string): string {
   return `/polls/${slug}/`;
+}
+
+export function buildPollControlsPath(slug: PollSlug | string): string {
+  return `/polls/${slug}/controls/`;
 }

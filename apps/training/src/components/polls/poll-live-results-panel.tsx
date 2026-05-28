@@ -37,7 +37,7 @@ export function PollLiveResultsPanel({
         const next = await fetchPollQuestionResults({
           pollSlug,
           questionId: question.id,
-          questionType: question.type as 'select' | 'truefalse',
+          questionType: question.type,
         });
         if (!cancelled) {
           setResults(next);

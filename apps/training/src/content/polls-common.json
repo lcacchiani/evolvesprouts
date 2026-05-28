@@ -23,6 +23,21 @@
     "title": "Thank you",
     "description": "Your responses have been saved."
   },
+  "waiting": {
+    "title": "Please wait",
+    "description": "The presenter will open the next question shortly."
+  },
+  "control": {
+    "title": "Poll control",
+    "description": "Turn questions on for participants to answer. Off questions stay listed here but are skipped on the poll page.",
+    "questionOnLabel": "On",
+    "questionOffLabel": "Off",
+    "skippedLabel": "Skipped for participants",
+    "textResponsesHeading": "Responses",
+    "noTextResponses": "No responses yet.",
+    "updateFailed": "Could not update question visibility. Please try again.",
+    "loadFailed": "Could not load poll control. Please refresh."
+  },
   "errors": {
     "required": "Please answer this question before continuing.",
     "invalidEmail": "Enter a valid email address.",

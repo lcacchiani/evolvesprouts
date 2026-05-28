@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -8,20 +8,39 @@ import { getPollContent, POLLS_COMMON } from '@/lib/polls';
 
 const poll = getPollContent('workshop-food-jun-26');
 
-vi.mock('@/lib/polls-api', () => ({
-  persistPollAnswer: vi.fn().mockResolvedValue(undefined),
-  resolvePollApiConfig: vi.fn().mockReturnValue({ baseUrl: '/www', apiKey: 'test-key' }),
-}));
+vi.mock('@/lib/polls-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/polls-api')>();
+  return {
+    ...actual,
+    persistPollAnswer: vi.fn().mockResolvedValue(undefined),
+    fetchPollControlState: vi.fn().mockResolvedValue({
+      pollSlug: 'workshop-food-jun-26',
+      enabledQuestionIds: [
+        'role',
+        'challenge',
+        'myth1',
+        'myth2',
+        'myth3',
+        'myth4',
+        'onething',
+        'email',
+      ],
+    }),
+    resolvePollApiConfig: vi.fn().mockReturnValue({ baseUrl: '/www', apiKey: 'test-key' }),
+  };
+});
 
 describe('WorkshopFoodJun26PollPage', () => {
-  it('renders poll title and first question screen', () => {
+  it('renders poll title and first question screen', async () => {
     if (!poll) {
       throw new Error('Expected workshop-food-jun-26 poll content');
     }
     render(<PollPage poll={poll} common={POLLS_COMMON} />);
     expect(screen.getByRole('heading', { level: 1, name: poll.title })).toBeInTheDocument();
     const first = poll.questions[0];
-    expect(screen.getByText(first?.screen ?? '')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(first?.screen ?? '')).toBeInTheDocument();
+    });
     expect(screen.getByText(first?.question ?? '')).toBeInTheDocument();
   });
 
@@ -45,6 +64,9 @@ describe('WorkshopFoodJun26PollPage', () => {
     if (!first || first.type !== 'select') {
       throw new Error('Expected first question to be select');
     }
+    await waitFor(() => {
+      expect(screen.getByLabelText(first.options[0] ?? '')).toBeInTheDocument();
+    });
     await user.click(screen.getByLabelText(first.options[0] ?? ''));
     await user.click(screen.getByRole('button', { name: POLLS_COMMON.navigation.next }));
 
@@ -64,6 +86,9 @@ describe('WorkshopFoodJun26PollPage', () => {
     if (!role || role.type !== 'select') {
       throw new Error('Expected role select question');
     }
+    await waitFor(() => {
+      expect(screen.getByLabelText(role.options[0] ?? '')).toBeInTheDocument();
+    });
     await user.click(screen.getByLabelText(role.options[0] ?? ''));
     await user.click(screen.getByRole('button', { name: POLLS_COMMON.navigation.next }));
 

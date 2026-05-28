@@ -21,6 +21,7 @@ _TABLE_ENV = "POLL_RESPONSES_TABLE_NAME"
 _PK_PREFIX = "POLL#"
 _SK_PREFIX = "SESSION#"
 _SK_QUESTION_SEP = "#Q#"
+_SK_CONTROL = "CONTROL"
 
 _dynamodb = None
 _table = None
@@ -133,6 +134,8 @@ def aggregate_poll_question_results(
     matching = [item for item in items if item.get("questionId") == question_id]
     buckets: list[_PollResultBucket]
 
+    responses: list[str] = []
+
     if question_type == "select":
         counts = Counter(
             str(item["selectedOption"]).strip()
@@ -146,6 +149,7 @@ def aggregate_poll_question_results(
                 counts.items(), key=lambda pair: (-pair[1], pair[0])
             )
         ]
+        total = sum(bucket["count"] for bucket in buckets)
     elif question_type == "truefalse":
         true_count = _count_boolean_answers(matching, expected=True)
         false_count = _count_boolean_answers(matching, expected=False)
@@ -153,16 +157,109 @@ def aggregate_poll_question_results(
             _PollResultBucket(label="true", count=true_count),
             _PollResultBucket(label="false", count=false_count),
         ]
+        total = sum(bucket["count"] for bucket in buckets)
+    elif question_type in ("text", "email"):
+        buckets = []
+        for item in matching:
+            value = item.get("freeText")
+            if isinstance(value, str):
+                normalized = value.strip()
+                if normalized:
+                    responses.append(normalized)
+        total = len(responses)
     else:
         buckets = []
+        total = 0
 
-    total = sum(bucket["count"] for bucket in buckets)
-    return {
+    result: dict[str, Any] = {
         "pollSlug": poll_slug,
         "questionId": question_id,
         "questionType": question_type,
         "totalResponses": total,
         "buckets": buckets,
+    }
+    if responses:
+        result["responses"] = responses
+    return result
+
+
+def get_poll_control_state(*, poll_slug: str) -> dict[str, Any]:
+    """Return facilitator toggles for which questions are open to respondents."""
+    table = _get_table()
+    key = {
+        "pk": _partition_key(poll_slug=poll_slug),
+        "sk": _SK_CONTROL,
+    }
+    try:
+        item = table.get_item(Key=key).get("Item")
+    except ClientError:
+        logger.exception(
+            "Failed to load poll control state",
+            extra={"poll_slug": poll_slug},
+        )
+        raise AppError(
+            "Failed to load poll control state",
+            status_code=500,
+        ) from None
+
+    enabled: list[str] = []
+    if item and isinstance(item.get("enabledQuestionIds"), list):
+        for value in item["enabledQuestionIds"]:
+            if isinstance(value, str) and value.strip():
+                enabled.append(value.strip())
+
+    updated_at = item.get("updatedAt") if isinstance(item, dict) else None
+    if isinstance(updated_at, str):
+        return {
+            "pollSlug": poll_slug,
+            "enabledQuestionIds": enabled,
+            "updatedAt": updated_at,
+        }
+    return {
+        "pollSlug": poll_slug,
+        "enabledQuestionIds": enabled,
+    }
+
+
+def put_poll_control_state(
+    *,
+    poll_slug: str,
+    enabled_question_ids: list[str],
+) -> dict[str, Any]:
+    """Replace the set of questions respondents may answer (default is none)."""
+    table = _get_table()
+    key = {
+        "pk": _partition_key(poll_slug=poll_slug),
+        "sk": _SK_CONTROL,
+    }
+    now = _now_iso()
+    item: dict[str, Any] = {
+        **key,
+        "pollSlug": poll_slug,
+        "enabledQuestionIds": enabled_question_ids,
+        "updatedAt": now,
+    }
+    try:
+        existing = table.get_item(Key=key).get("Item")
+        if existing and existing.get("createdAt"):
+            item["createdAt"] = existing["createdAt"]
+        else:
+            item["createdAt"] = now
+        table.put_item(Item=item)
+    except ClientError:
+        logger.exception(
+            "Failed to persist poll control state",
+            extra={"poll_slug": poll_slug},
+        )
+        raise AppError(
+            "Failed to persist poll control state",
+            status_code=500,
+        ) from None
+
+    return {
+        "pollSlug": poll_slug,
+        "enabledQuestionIds": enabled_question_ids,
+        "updatedAt": now,
     }
 
 

@@ -19,9 +19,10 @@ info:
     - Public calendar availability (`/v1/calendar/availability`, `/www/v1/calendar/availability`).
     - Media lead capture (`/v1/assets/free/request`, `/www/v1/assets/free/request`).
     - Training poll answer persistence (`PUT /v1/polls/{poll_slug}/answers`,
-      `/www/v1/polls/{poll_slug}/answers`) and live per-question aggregates
-      (`GET /v1/polls/{poll_slug}/questions/{question_id}/results`, `/www/...`) for
-      `apps/training` (DynamoDB; API key only).
+      `/www/v1/polls/{poll_slug}/answers`), facilitator control
+      (`GET`/`PUT /v1/polls/{poll_slug}/control`, `/www/.../control`), and live
+      per-question aggregates (`GET /v1/polls/{poll_slug}/questions/{question_id}/results`,
+      `/www/...`) for `apps/training` (DynamoDB; API key only).
     - Public website endpoints consumed by `apps/public_www`, exposed via the
       CloudFront `/www/*` proxy allowlist in
       `backend/infrastructure/lib/public-www-stack.ts`.
@@ -945,15 +946,108 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /v1/polls/{poll_slug}/control:
+    get:
+      summary: Poll facilitator control state (direct API path)
+      description: >
+        Returns which poll questions are currently open for respondents.
+        Stored at DynamoDB sort key `CONTROL` under partition `POLL#<poll_slug>`.
+        When `enabledQuestionIds` is empty (default), respondents wait until the
+        facilitator enables at least one question. Requires API key.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+      responses:
+        "200":
+          description: Current control state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollControlStateResponse"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Load failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      summary: Update poll facilitator control state (direct API path)
+      description: >
+        Replaces the set of question ids that respondents may answer. Questions
+        not listed remain visible on the facilitator control page but are skipped
+        on the participant poll flow.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PollControlStatePutRequest"
+      responses:
+        "200":
+          description: Control state updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollControlStateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Persistence failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /v1/polls/{poll_slug}/questions/{question_id}/results:
     get:
       summary: Live aggregate results for one poll question (direct API path)
       description: >
         Returns room-wide response counts for a single poll question. Used by
-        `apps/training` when `showResults` is enabled on a question. Counts all
-        rows in DynamoDB `evolvesprouts-poll-responses` for the poll partition
-        with matching `questionId` (one row per session per question; re-answers
-        overwrite). Requires `questionType=select` or `questionType=truefalse`.
+        `apps/training` when `showResults` is enabled on a question, and on the
+        facilitator control page for every question. Counts all rows in DynamoDB
+        `evolvesprouts-poll-responses` for the poll partition with matching
+        `questionId` (one row per session per question; re-answers overwrite).
+        Requires `questionType` of `select`, `truefalse`, `text`, or `email`.
+        For `text` and `email`, returns a `responses` array of answer strings.
         Requires API key.
       security:
         - ApiKeyAuth: []
@@ -975,7 +1069,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [select, truefalse]
+            enum: [select, truefalse, text, email]
       responses:
         "200":
           description: Aggregated counts.
@@ -999,6 +1093,90 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Aggregation failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /www/v1/polls/{poll_slug}/control:
+    get:
+      summary: Poll facilitator control state (training website proxy path)
+      description: Same as `GET /v1/polls/{poll_slug}/control` for same-origin calls from `apps/training`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+      responses:
+        "200":
+          description: Current control state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollControlStateResponse"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Load failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      summary: Update poll facilitator control state (training website proxy path)
+      description: Same as `PUT /v1/polls/{poll_slug}/control` for same-origin calls from `apps/training`.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: poll_slug
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PollControlStatePutRequest"
+      responses:
+        "200":
+          description: Control state updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollControlStateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Poll path not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Method not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Persistence failed.
           content:
             application/json:
               schema:
@@ -1028,7 +1206,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [select, truefalse]
+            enum: [select, truefalse, text, email]
       responses:
         "200":
           description: Aggregated counts.
@@ -2205,6 +2383,33 @@ components:
           type: string
           format: date-time
           description: UTC timestamp when the answer row was last written.
+    PollControlStatePutRequest:
+      type: object
+      properties:
+        enabledQuestionIds:
+          type: array
+          items:
+            type: string
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+          description: >
+            Question ids currently open to respondents. Omitted or empty means
+            all questions are off (default).
+    PollControlStateResponse:
+      type: object
+      required:
+        - pollSlug
+        - enabledQuestionIds
+      properties:
+        pollSlug:
+          type: string
+        enabledQuestionIds:
+          type: array
+          items:
+            type: string
+        updatedAt:
+          type: string
+          format: date-time
+          description: UTC timestamp when control state was last written.
     PollQuestionResultsResponse:
       type: object
       required:
@@ -2220,7 +2425,7 @@ components:
           type: string
         questionType:
           type: string
-          enum: [select, truefalse]
+          enum: [select, truefalse, text, email]
         totalResponses:
           type: integer
           minimum: 0
@@ -2228,6 +2433,13 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PollQuestionResultsBucket"
+        responses:
+          type: array
+          items:
+            type: string
+          description: >
+            Free-text answers for `text` and `email` questions (presenter
+            control view). Omitted for `select` and `truefalse`.
     PollQuestionResultsBucket:
       type: object
       required:

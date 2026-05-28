@@ -12,6 +12,8 @@ from app.api.validators import validate_email
 from app.exceptions import ValidationError
 from app.services.poll_responses_store import (
     aggregate_poll_question_results,
+    get_poll_control_state,
+    put_poll_control_state,
     upsert_poll_answer,
 )
 from app.utils import json_response
@@ -21,6 +23,7 @@ from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
 logger = get_logger(__name__)
 
 _ANSWERS_SUFFIX = "/answers"
+_CONTROL_SUFFIX = "/control"
 _RESULTS_SUFFIX = "/results"
 _QUESTIONS_SEGMENT = "/questions/"
 _POLL_API_PREFIX = "/v1/polls/"
@@ -39,7 +42,7 @@ _SELECT_TYPES = frozenset({"select"})
 _TRUEFALSE_TYPES = frozenset({"truefalse"})
 _TEXT_TYPES = frozenset({"text"})
 _EMAIL_TYPES = frozenset({"email"})
-_AGGREGATABLE_TYPES = _SELECT_TYPES | _TRUEFALSE_TYPES
+_AGGREGATABLE_TYPES = _SELECT_TYPES | _TRUEFALSE_TYPES | _TEXT_TYPES | _EMAIL_TYPES
 
 
 def handle_public_polls_request(
@@ -66,6 +69,15 @@ def handle_public_polls_request(
             )
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
+    control = _parse_poll_control_path(path)
+    if control is not None:
+        poll_slug = control
+        if method == "GET":
+            return _handle_get_poll_control(event, poll_slug=poll_slug)
+        if method == "PUT":
+            return _handle_put_poll_control(event, poll_slug=poll_slug)
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
     return json_response(404, {"error": "Not found"}, event=event)
 
 
@@ -76,6 +88,18 @@ def _parse_poll_path_remainder(path: str) -> str | None:
     if normalized.startswith(_POLL_API_PREFIX):
         return normalized[len(_POLL_API_PREFIX) :]
     return None
+
+
+def _parse_poll_control_path(path: str) -> str | None:
+    remainder = _parse_poll_path_remainder(path)
+    if remainder is None or not remainder.endswith(_CONTROL_SUFFIX):
+        return None
+    poll_slug = remainder[: -len(_CONTROL_SUFFIX)].strip("/")
+    if "/" in poll_slug or not poll_slug:
+        return None
+    if not PUBLIC_INSTANCE_SLUG_PATTERN.match(poll_slug):
+        return None
+    return poll_slug
 
 
 def _parse_poll_answers_path(path: str) -> tuple[str, str] | None:
@@ -149,8 +173,71 @@ def _require_aggregatable_question_type(value: Any) -> str:
         raise ValidationError("questionType query parameter is required")
     normalized = value.strip().lower()
     if normalized not in _AGGREGATABLE_TYPES:
-        raise ValidationError("questionType must be select or truefalse")
+        raise ValidationError("questionType must be select, truefalse, text, or email")
     return normalized
+
+
+def _handle_get_poll_control(
+    event: Mapping[str, Any],
+    *,
+    poll_slug: str,
+) -> dict[str, Any]:
+    result = get_poll_control_state(poll_slug=poll_slug)
+    return json_response(200, result, event=event)
+
+
+def _handle_put_poll_control(
+    event: Mapping[str, Any],
+    *,
+    poll_slug: str,
+) -> dict[str, Any]:
+    try:
+        body = parse_body(event)
+    except ValidationError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
+
+    try:
+        enabled_question_ids = _validate_control_body(body)
+    except ValidationError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
+
+    result = put_poll_control_state(
+        poll_slug=poll_slug,
+        enabled_question_ids=enabled_question_ids,
+    )
+    logger.info(
+        "Updated poll control state",
+        extra={
+            "poll_slug": poll_slug,
+            "enabled_count": len(enabled_question_ids),
+        },
+    )
+    return json_response(200, result, event=event)
+
+
+def _validate_control_body(body: Mapping[str, Any]) -> list[str]:
+    raw = body.get("enabledQuestionIds")
+    if raw is None:
+        return []
+    if not isinstance(raw, list):
+        raise ValidationError("enabledQuestionIds must be an array")
+    enabled: list[str] = []
+    seen: set[str] = set()
+    for value in raw:
+        if not isinstance(value, str):
+            raise ValidationError("enabledQuestionIds entries must be strings")
+        normalized = value.strip()
+        if not normalized:
+            continue
+        if not _QUESTION_ID_PATTERN.match(normalized):
+            raise ValidationError(
+                "enabledQuestionIds entries must be kebab-case identifiers"
+            )
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        enabled.append(normalized)
+    return enabled
 
 
 def _handle_put_poll_answer(
