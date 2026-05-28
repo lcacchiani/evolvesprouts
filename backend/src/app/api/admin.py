@@ -37,6 +37,7 @@ from app.api.admin_audit_logs import handle_admin_audit_logs_request
 from app.api.admin_calendar_manual_blocks import (
     handle_admin_calendar_manual_blocks_request,
 )
+from app.api.admin_polls import handle_admin_polls_request
 from app.api.public_calendar_availability import handle_public_calendar_availability
 from app.api.public_events import handle_public_events
 from app.api.public_contact import handle_public_contact_us
@@ -239,6 +240,11 @@ _ROUTES: tuple[
         "/v1/admin/organizations",
         False,
         handle_admin_organizations_request,
+    ),
+    (
+        "/v1/admin/polls",
+        False,
+        handle_admin_polls_request,
     ),
     ("/v1/admin/assets", False, handle_admin_assets_request),
     ("/v1/user/assets", False, handle_user_assets_request),

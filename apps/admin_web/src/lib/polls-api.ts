@@ -1,0 +1,119 @@
+import { ensureFreshTokens } from './auth';
+import { adminApiRequest } from './api-admin-client';
+import { unwrapPayload } from './api-payload';
+import { getApiBaseUrl } from './config';
+import { isRecord } from './type-guards';
+
+import type { components } from '@/types/generated/admin-api.generated';
+
+type ApiSchemas = components['schemas'];
+
+export type AdminPollSummary = ApiSchemas['AdminPollSummary'];
+export type AdminPollAnswerRow = ApiSchemas['AdminPollAnswerRow'];
+export type AdminPollClearAnswersResponse = ApiSchemas['AdminPollClearAnswersResponse'];
+
+function parsePollSummary(value: unknown): AdminPollSummary {
+  const row = isRecord(value) ? value : {};
+  return {
+    pollSlug: typeof row.pollSlug === 'string' ? row.pollSlug : '',
+    answerCount: typeof row.answerCount === 'number' ? row.answerCount : 0,
+  };
+}
+
+function parsePollAnswerRow(value: unknown): AdminPollAnswerRow {
+  const row = isRecord(value) ? value : {};
+  const parsed: AdminPollAnswerRow = {
+    pollSlug: typeof row.pollSlug === 'string' ? row.pollSlug : '',
+    sessionId: typeof row.sessionId === 'string' ? row.sessionId : '',
+    questionId: typeof row.questionId === 'string' ? row.questionId : '',
+    questionType:
+      row.questionType === 'select' ||
+      row.questionType === 'truefalse' ||
+      row.questionType === 'text' ||
+      row.questionType === 'email'
+        ? row.questionType
+        : 'text',
+    createdAt: typeof row.createdAt === 'string' ? row.createdAt : '',
+    updatedAt: typeof row.updatedAt === 'string' ? row.updatedAt : '',
+  };
+  if (typeof row.selectedOption === 'string') {
+    parsed.selectedOption = row.selectedOption;
+  }
+  if (typeof row.booleanAnswer === 'boolean') {
+    parsed.booleanAnswer = row.booleanAnswer;
+  }
+  if (typeof row.freeText === 'string') {
+    parsed.freeText = row.freeText;
+  }
+  return parsed;
+}
+
+export async function listAdminPolls(signal?: AbortSignal): Promise<AdminPollSummary[]> {
+  const payload = await adminApiRequest<ApiSchemas['AdminPollListResponse']>({
+    endpointPath: '/v1/admin/polls',
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items.map((item) => parsePollSummary(item)) : [];
+}
+
+export async function listAdminPollAnswers(
+  pollSlug: string,
+  signal?: AbortSignal
+): Promise<AdminPollAnswerRow[]> {
+  const payload = await adminApiRequest<ApiSchemas['AdminPollAnswerListResponse']>({
+    endpointPath: `/v1/admin/polls/${encodeURIComponent(pollSlug)}/answers`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  return Array.isArray(root.items) ? root.items.map((item) => parsePollAnswerRow(item)) : [];
+}
+
+export async function clearAdminPollAnswers(pollSlug: string): Promise<AdminPollClearAnswersResponse> {
+  const payload = await adminApiRequest<ApiSchemas['AdminPollClearAnswersResponse']>({
+    endpointPath: `/v1/admin/polls/${encodeURIComponent(pollSlug)}/answers`,
+    method: 'DELETE',
+  });
+  const root = unwrapPayload(payload);
+  return {
+    pollSlug: typeof root.pollSlug === 'string' ? root.pollSlug : pollSlug,
+    deletedCount: typeof root.deletedCount === 'number' ? root.deletedCount : 0,
+  };
+}
+
+export async function exportAdminPollAnswersCsv(pollSlug: string): Promise<Blob> {
+  const tokens = await ensureFreshTokens();
+  if (!tokens) {
+    throw new Error('Your session has expired. Please sign in again.');
+  }
+
+  const response = await fetch(
+    `${getApiBaseUrl()}/v1/admin/polls/${encodeURIComponent(pollSlug)}/answers/export`,
+    {
+      method: 'GET',
+      headers: {
+        Accept: 'text/csv',
+        Authorization: `Bearer ${tokens.idToken}`,
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`CSV export failed with status ${response.status}.`);
+  }
+  return response.blob();
+}
+
+export function formatPollAnswerValue(row: AdminPollAnswerRow): string {
+  if (typeof row.selectedOption === 'string' && row.selectedOption.trim()) {
+    return row.selectedOption;
+  }
+  if (typeof row.booleanAnswer === 'boolean') {
+    return row.booleanAnswer ? 'True' : 'False';
+  }
+  if (typeof row.freeText === 'string' && row.freeText.trim()) {
+    return row.freeText;
+  }
+  return '—';
+}
