@@ -1,6 +1,15 @@
 @import 'tailwindcss';
 @import '../../../../shared/styles/evolve-sprouts.css';
 
+.poll-option-label {
+  border-width: 2px;
+  border-color: var(--es-color-border-panel-soft);
+}
+
+.poll-option-label--selected {
+  border-color: var(--es-color-brand-orange);
+}
+
 progress.poll-live-results-bar {
   appearance: none;
   border: none;
