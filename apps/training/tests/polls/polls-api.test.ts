@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   fetchPollControlState,
   fetchPollQuestionResults,
+  fetchPollSessionAnswers,
   persistPollControlState,
   PollApiError,
   resolvePollApiConfig,
@@ -79,6 +80,38 @@ describe('fetchPollQuestionResults', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/www/v1/polls/workshop-food-jun-26/questions/role/results?questionType=select',
+      expect.objectContaining({
+        method: 'GET',
+        headers: { 'x-api-key': 'poll-key' },
+      }),
+    );
+  });
+});
+
+describe('fetchPollSessionAnswers', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it('requests session answers with sessionId query param', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', '/www');
+    vi.stubEnv('NEXT_PUBLIC_TRAINING_API_KEY', 'poll-key');
+    const sessionId = '550e8400-e29b-41d4-a716-446655440000';
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        pollSlug: 'workshop-food-jun-26',
+        sessionId,
+        answers: [],
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchPollSessionAnswers('workshop-food-jun-26', sessionId);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/www/v1/polls/workshop-food-jun-26/answers?sessionId=${sessionId}`,
       expect.objectContaining({
         method: 'GET',
         headers: { 'x-api-key': 'poll-key' },

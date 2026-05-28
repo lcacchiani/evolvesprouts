@@ -1,14 +1,19 @@
-const STORAGE_KEY = 'evolvesprouts-poll-session-id';
+const STORAGE_KEY_PREFIX = 'evolvesprouts-poll-session-id';
 
-export function getOrCreatePollSessionId(): string {
+function storageKey(pollSlug: string): string {
+  return `${STORAGE_KEY_PREFIX}:${pollSlug}`;
+}
+
+export function getOrCreatePollSessionId(pollSlug: string): string {
   if (typeof window === 'undefined') {
     return '';
   }
-  const existing = window.sessionStorage.getItem(STORAGE_KEY)?.trim();
+  const key = storageKey(pollSlug);
+  const existing = window.sessionStorage.getItem(key)?.trim();
   if (existing) {
     return existing;
   }
   const created = crypto.randomUUID();
-  window.sessionStorage.setItem(STORAGE_KEY, created);
+  window.sessionStorage.setItem(key, created);
   return created;
 }

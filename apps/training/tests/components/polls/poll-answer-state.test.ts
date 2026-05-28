@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { isAnswerValid } from '@/components/polls/poll-answer-state';
+import {
+  answerStateFromSessionItem,
+  emptyAnswerState,
+  hasUnlockablePollQuestions,
+  isAnswerValid,
+  mergeSessionAnswers,
+} from '@/components/polls/poll-answer-state';
 import type { PollQuestion } from '@/content/poll-types';
-import { emptyAnswerState } from '@/components/polls/poll-answer-state';
 
 describe('isAnswerValid', () => {
   const selectQuestion: PollQuestion = {
@@ -51,5 +56,66 @@ describe('isAnswerValid', () => {
         { ...emptyAnswerState(), freeText: 'not-an-email' },
       ),
     ).toBe(false);
+  });
+});
+
+describe('session answer helpers', () => {
+  it('maps persisted rows into local answer state', () => {
+    expect(
+      answerStateFromSessionItem({
+        questionId: 'role',
+        questionType: 'select',
+        selectedOption: 'Parent',
+      }),
+    ).toEqual({
+      selectedOption: 'Parent',
+      trueFalseValue: null,
+      freeText: '',
+    });
+    expect(
+      answerStateFromSessionItem({
+        questionId: 'myth1',
+        questionType: 'truefalse',
+        booleanAnswer: false,
+      }).trueFalseValue,
+    ).toBe(false);
+  });
+
+  it('merges session answers by question id', () => {
+    const merged = mergeSessionAnswers([
+      {
+        questionId: 'role',
+        questionType: 'select',
+        selectedOption: 'Parent',
+      },
+    ]);
+    expect(merged.role?.selectedOption).toBe('Parent');
+  });
+
+  it('detects unlockable questions from poll content', () => {
+    const questions: PollQuestion[] = [
+      {
+        id: 'role',
+        type: 'select',
+        screen: 's',
+        question: 'q',
+        options: ['A'],
+        showAnswer: false,
+        showResults: false,
+      },
+      {
+        id: 'challenge',
+        type: 'select',
+        screen: 's',
+        question: 'q',
+        options: ['A'],
+        showAnswer: false,
+        showResults: false,
+      },
+    ];
+    expect(hasUnlockablePollQuestions(questions, new Set(['role']))).toBe(true);
+    expect(hasUnlockablePollQuestions(questions, new Set(['role', 'challenge']))).toBe(
+      false,
+    );
   });
 });

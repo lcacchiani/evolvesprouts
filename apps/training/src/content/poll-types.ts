@@ -67,6 +67,7 @@ export interface PollsCommonContent {
   completion: {
     title: string;
     description: string;
+    moreComingDescription: string;
   };
   waiting: {
     title: string;

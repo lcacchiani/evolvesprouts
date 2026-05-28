@@ -21,7 +21,8 @@
   },
   "completion": {
     "title": "Thank you",
-    "description": "Your responses have been saved."
+    "description": "Your responses have been saved.",
+    "moreComingDescription": "Stay tuned for more questions!"
   },
   "waiting": {
     "title": "Please wait",

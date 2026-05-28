@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   emptyAnswerState,
+  hasUnlockablePollQuestions,
   isAnswerValid,
+  mergeSessionAnswers,
   type QuestionAnswerState,
 } from '@/components/polls/poll-answer-state';
 import { PollAnswerPanel } from '@/components/polls/poll-answer-panel';
@@ -12,7 +14,11 @@ import { PollLiveResultsPanel } from '@/components/polls/poll-live-results-panel
 import { PollQuestionField } from '@/components/polls/poll-question-field';
 import type { PollContent, PollQuestion, PollsCommonContent } from '@/content/poll-types';
 import { getOrCreatePollSessionId } from '@/lib/poll-session';
-import { PollApiError, persistPollAnswer } from '@/lib/polls-api';
+import {
+  fetchPollSessionAnswers,
+  PollApiError,
+  persistPollAnswer,
+} from '@/lib/polls-api';
 import { usePollControlState } from '@/lib/use-poll-control-state';
 
 export interface PollWizardProps {
@@ -25,14 +31,17 @@ type StepPhase = 'answer' | 'feedback' | 'liveResults';
 export function PollWizard({ poll, common }: PollWizardProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [stepPhase, setStepPhase] = useState<StepPhase>('answer');
-  const [isComplete, setIsComplete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [answersByQuestionId, setAnswersByQuestionId] = useState<
     Record<string, QuestionAnswerState>
   >({});
+  const [completedQuestionIds, setCompletedQuestionIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
 
-  const sessionId = useMemo(() => getOrCreatePollSessionId(), []);
+  const sessionId = useMemo(() => getOrCreatePollSessionId(poll.slug), [poll.slug]);
   const { enabledQuestionIds, isLoading: isControlLoading } = usePollControlState({
     pollSlug: poll.slug,
     allowWrites: false,
@@ -42,6 +51,121 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     () => poll.questions.filter((question) => enabledQuestionIds.has(question.id)),
     [enabledQuestionIds, poll.questions],
   );
+
+  const hasUnlockableQuestions = useMemo(
+    () => hasUnlockablePollQuestions(poll.questions, enabledQuestionIds),
+    [enabledQuestionIds, poll.questions],
+  );
+
+  const isCaughtUp = useMemo(() => {
+    if (activeQuestions.length === 0) {
+      return false;
+    }
+    return activeQuestions.every((question) => completedQuestionIds.has(question.id));
+  }, [activeQuestions, completedQuestionIds]);
+
+  useEffect(() => {
+    if (!sessionId) {
+      setIsSessionLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadSessionAnswers(): Promise<void> {
+      setIsSessionLoading(true);
+      try {
+        const session = await fetchPollSessionAnswers(poll.slug, sessionId);
+        if (cancelled) {
+          return;
+        }
+        const mergedAnswers = mergeSessionAnswers(session.answers);
+        setAnswersByQuestionId((previous) => ({
+          ...previous,
+          ...mergedAnswers,
+        }));
+        setCompletedQuestionIds(
+          new Set(session.answers.map((item) => item.questionId).filter(Boolean)),
+        );
+      } catch {
+        if (!cancelled) {
+          // Resume is best-effort; the respondent can still answer from scratch.
+        }
+      } finally {
+        if (!cancelled) {
+          setIsSessionLoading(false);
+        }
+      }
+    }
+
+    void loadSessionAnswers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [poll.slug, sessionId]);
+
+  const positionedAfterSessionLoadRef = useRef(false);
+  const wasCaughtUpRef = useRef(false);
+
+  useEffect(() => {
+    if (isSessionLoading) {
+      positionedAfterSessionLoadRef.current = false;
+    }
+  }, [isSessionLoading]);
+
+  useEffect(() => {
+    if (isControlLoading || isSessionLoading || activeQuestions.length === 0) {
+      return;
+    }
+    if (positionedAfterSessionLoadRef.current) {
+      return;
+    }
+    positionedAfterSessionLoadRef.current = true;
+    if (isCaughtUp) {
+      return;
+    }
+    const nextIndex = activeQuestions.findIndex(
+      (question) => !completedQuestionIds.has(question.id),
+    );
+    if (nextIndex >= 0) {
+      setStepIndex(nextIndex);
+      setStepPhase('answer');
+    }
+  }, [
+    activeQuestions,
+    completedQuestionIds,
+    isCaughtUp,
+    isControlLoading,
+    isSessionLoading,
+  ]);
+
+  useEffect(() => {
+    if (isControlLoading || isSessionLoading) {
+      return;
+    }
+    if (isCaughtUp) {
+      wasCaughtUpRef.current = true;
+      return;
+    }
+    if (!wasCaughtUpRef.current) {
+      return;
+    }
+    wasCaughtUpRef.current = false;
+    const nextIndex = activeQuestions.findIndex(
+      (question) => !completedQuestionIds.has(question.id),
+    );
+    if (nextIndex >= 0) {
+      setStepIndex(nextIndex);
+      setStepPhase('answer');
+    }
+  }, [
+    activeQuestions,
+    completedQuestionIds,
+    isCaughtUp,
+    isControlLoading,
+    isSessionLoading,
+  ]);
 
   const resolvedStepIndex =
     activeQuestions.length === 0 ? 0 : Math.min(stepIndex, activeQuestions.length - 1);
@@ -58,7 +182,9 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     total: totalSteps,
   });
 
-  if (!isControlLoading && activeQuestions.length === 0) {
+  const isBootstrapping = isControlLoading || isSessionLoading;
+
+  if (!isBootstrapping && activeQuestions.length === 0) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
         <h2 className='es-type-title text-2xl'>{common.waiting.title}</h2>
@@ -67,7 +193,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     );
   }
 
-  if (isControlLoading || !currentQuestion) {
+  if (isBootstrapping || !currentQuestion) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
         <p className='es-text-body text-base'>{common.waiting.description}</p>
@@ -75,11 +201,16 @@ export function PollWizard({ poll, common }: PollWizardProps) {
     );
   }
 
-  if (isComplete) {
+  if (isCaughtUp) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
         <h2 className='es-type-title text-2xl'>{common.completion.title}</h2>
         <p className='es-text-body text-base'>{common.completion.description}</p>
+        {hasUnlockableQuestions ? (
+          <p className='es-text-body text-base'>
+            {common.completion.moreComingDescription}
+          </p>
+        ) : null}
       </section>
     );
   }
@@ -199,6 +330,11 @@ export function PollWizard({ poll, common }: PollWizardProps) {
       return;
     }
     setIsSaving(false);
+    setCompletedQuestionIds((previous) => {
+      const next = new Set(previous);
+      next.add(currentQuestion.id);
+      return next;
+    });
 
     if (currentQuestion.showAnswer) {
       setStepPhase('feedback');
@@ -210,16 +346,11 @@ export function PollWizard({ poll, common }: PollWizardProps) {
       return;
     }
 
-    if (isLastStep) {
-      setIsComplete(true);
-      return;
-    }
     advanceToNextQuestion();
   }
 
   function advanceToNextQuestion(): void {
     if (isLastStep) {
-      setIsComplete(true);
       return;
     }
     setStepIndex((index) => Math.min(index + 1, activeQuestions.length - 1));

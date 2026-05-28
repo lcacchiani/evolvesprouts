@@ -57,6 +57,24 @@ export interface PollControlState {
   updatedAt?: string;
 }
 
+export interface PollSessionAnswerItem {
+  pollSlug?: string;
+  sessionId?: string;
+  questionId: string;
+  questionType: PollQuestion['type'];
+  selectedOption?: string;
+  booleanAnswer?: boolean;
+  freeText?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PollSessionAnswers {
+  pollSlug: string;
+  sessionId: string;
+  answers: PollSessionAnswerItem[];
+}
+
 export type PollAggregatableQuestionType = 'select' | 'truefalse' | 'text' | 'email';
 
 export interface FetchPollQuestionResultsInput {
@@ -140,6 +158,32 @@ export async function persistPollControlState(
   }
 
   return (await response.json()) as PollControlState;
+}
+
+export async function fetchPollSessionAnswers(
+  pollSlug: string,
+  sessionId: string,
+): Promise<PollSessionAnswers> {
+  const config = resolvePollApiConfig();
+  if (!config) {
+    throw new PollApiError('Poll API is not configured', 0);
+  }
+
+  const params = new URLSearchParams({ sessionId });
+  const endpointPath = `${config.baseUrl}/v1/polls/${encodeURIComponent(pollSlug)}/answers?${params.toString()}`;
+  const response = await fetch(endpointPath, {
+    method: 'GET',
+    headers: {
+      'x-api-key': config.apiKey,
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new PollApiError('Failed to load poll session answers', response.status);
+  }
+
+  return (await response.json()) as PollSessionAnswers;
 }
 
 export async function persistPollAnswer(
