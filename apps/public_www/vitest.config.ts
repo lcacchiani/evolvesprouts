@@ -23,7 +23,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/app/generated/**'],
+      exclude: ['../../shared/styles/generated/**'],
       reporter: ['text', 'lcov'],
     },
   },

@@ -10,7 +10,7 @@ export function PollPage({ poll, common }: PollPageProps) {
   return (
     <main className='flex min-h-screen flex-col px-6 py-10'>
       <header className='mx-auto mb-8 w-full max-w-xl text-center'>
-        <h1 className='text-2xl font-semibold text-neutral-900'>{poll.title}</h1>
+        <h1 className='es-type-title text-2xl'>{poll.title}</h1>
       </header>
       <PollWizard poll={poll} common={common} />
     </main>

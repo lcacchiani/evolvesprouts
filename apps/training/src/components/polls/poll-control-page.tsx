@@ -18,12 +18,12 @@ export function PollControlPage({ poll, common }: PollControlPageProps) {
   return (
     <main className='flex min-h-screen flex-col px-6 py-10'>
       <header className='mx-auto mb-8 w-full max-w-3xl text-center'>
-        <h1 className='text-2xl font-semibold text-neutral-900'>{common.control.title}</h1>
-        <p className='mt-2 text-base text-neutral-700'>{poll.title}</p>
-        <p className='mt-1 text-sm text-neutral-600'>{common.control.description}</p>
+        <h1 className='es-type-title text-2xl'>{common.control.title}</h1>
+        <p className='es-text-body mt-2 text-base'>{poll.title}</p>
+        <p className='es-text-muted mt-1 text-sm'>{common.control.description}</p>
       </header>
       {bannerMessage ? (
-        <p className='mx-auto mb-4 w-full max-w-3xl text-sm text-red-700' role='alert'>
+        <p className='es-text-danger mx-auto mb-4 w-full max-w-3xl text-sm' role='alert'>
           {bannerMessage}
         </p>
       ) : null}
@@ -43,7 +43,7 @@ export function PollControlPage({ poll, common }: PollControlPageProps) {
         ))}
       </div>
       {!isLoading && enabledQuestionIds.size === 0 ? (
-        <p className='mx-auto mt-6 w-full max-w-3xl text-center text-sm text-neutral-600'>
+        <p className='es-text-muted mx-auto mt-6 w-full max-w-3xl text-center text-sm'>
           {common.waiting.description}
         </p>
       ) : null}

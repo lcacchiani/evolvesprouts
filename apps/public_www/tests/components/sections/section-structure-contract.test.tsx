@@ -107,7 +107,7 @@ describe('No-CSS fallback contract', () => {
   it('keeps the stylesheet marker and duplicate-hiding script wired', () => {
     const layoutSource = readFileSync(path.join(appDirectory, 'layout.tsx'), 'utf-8');
     const baseCssSource = readFileSync(
-      path.join(appDirectory, 'styles/original/base.css'),
+      path.join(appDirectory, '../../../../shared/styles/base.css'),
       'utf-8',
     );
     const fallbackScriptSource = readFileSync(

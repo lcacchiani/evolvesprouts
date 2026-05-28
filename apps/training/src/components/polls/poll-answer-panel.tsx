@@ -3,6 +3,9 @@
 import type { PollQuestion, PollsCommonContent } from '@/content/poll-types';
 import type { QuestionAnswerState } from '@/components/polls/poll-answer-state';
 
+const POLL_PANEL_CLASS =
+  'flex flex-col gap-3 rounded-inner border es-border-panel-soft es-bg-surface-muted p-4';
+
 export interface PollAnswerPanelProps {
   question: PollQuestion;
   common: PollsCommonContent;
@@ -13,11 +16,11 @@ export function PollAnswerPanel({ question, common, answer }: PollAnswerPanelPro
   if (question.type === 'truefalse') {
     const isCorrect = answer.trueFalseValue === question.answer;
     return (
-      <section className='flex flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4'>
-        <h2 className='text-lg font-semibold text-neutral-900'>
+      <section className={POLL_PANEL_CLASS}>
+        <h2 className='es-text-heading text-lg font-semibold'>
           {isCorrect ? common.truefalse.correctHeading : common.truefalse.incorrectHeading}
         </h2>
-        <p className='text-base text-neutral-800'>{question.answerNote}</p>
+        <p className='es-text-body text-base'>{question.answerNote}</p>
       </section>
     );
   }
@@ -33,9 +36,9 @@ export function PollAnswerPanel({ question, common, answer }: PollAnswerPanelPro
       );
     }
     return (
-      <section className='flex flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4'>
+      <section className={POLL_PANEL_CLASS}>
         {lines.map((line) => (
-          <p key={line} className='text-base text-neutral-800'>
+          <p key={line} className='es-text-body text-base'>
             {line}
           </p>
         ))}

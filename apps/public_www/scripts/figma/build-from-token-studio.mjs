@@ -3,7 +3,7 @@
  *
  * Reads Token Studio JSON files from figma/token-studio/ and generates:
  *   - figma/mdm/artifacts/tokens.normalized.json  (normalized artifact)
- *   - src/app/generated/figma-tokens.css           (CSS custom properties)
+ *   - shared/styles/generated/figma-tokens.css     (CSS custom properties)
  *
  * Supports:
  *   - All Token Studio token types (color, spacing, borderRadius, etc.)
@@ -22,6 +22,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const APP_ROOT = path.resolve(__dirname, '..', '..');
+const REPO_ROOT = path.resolve(APP_ROOT, '..', '..');
 
 const TOKEN_STUDIO_DIR = path.join(APP_ROOT, 'figma', 'token-studio');
 const OUTPUT_ARTIFACT_PATH = path.join(
@@ -32,9 +33,9 @@ const OUTPUT_ARTIFACT_PATH = path.join(
   'tokens.normalized.json',
 );
 const OUTPUT_CSS_PATH = path.join(
-  APP_ROOT,
-  'src',
-  'app',
+  REPO_ROOT,
+  'shared',
+  'styles',
   'generated',
   'figma-tokens.css',
 );

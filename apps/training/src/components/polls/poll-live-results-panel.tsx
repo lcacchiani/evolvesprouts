@@ -11,6 +11,9 @@ import {
 
 const LIVE_RESULTS_POLL_MS = 3000;
 
+const POLL_PANEL_CLASS =
+  'flex flex-col gap-3 rounded-inner border es-border-panel-soft es-bg-surface-muted p-4';
+
 export interface PollLiveResultsPanelProps {
   pollSlug: string;
   question: PollQuestion;
@@ -69,24 +72,24 @@ export function PollLiveResultsPanel({
   const maxCount = Math.max(1, ...buckets.map((bucket) => bucket.count));
 
   return (
-    <section className='flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-4'>
+    <section className={`${POLL_PANEL_CLASS} gap-4`}>
       <div className='flex flex-col gap-1'>
-        <h2 className='text-lg font-semibold text-neutral-900'>{common.liveResults.heading}</h2>
-        <p className='text-sm text-neutral-600'>
+        <h2 className='es-text-heading text-lg font-semibold'>{common.liveResults.heading}</h2>
+        <p className='es-text-muted text-sm'>
           {formatTotalResponses(common.liveResults.totalResponsesTemplate, results?.totalResponses ?? 0)}
         </p>
       </div>
       {errorMessage ? (
-        <p className='text-sm text-red-700' role='alert'>
+        <p className='es-text-danger text-sm' role='alert'>
           {errorMessage}
         </p>
       ) : null}
       <ul className='flex flex-col gap-3'>
         {buckets.map((bucket) => (
           <li key={bucket.label} className='flex flex-col gap-1'>
-            <div className='flex items-baseline justify-between gap-2 text-sm text-neutral-800'>
+            <div className='es-text-body flex items-baseline justify-between gap-2 text-sm'>
               <span>{resolveBucketLabel(question, bucket.label, common)}</span>
-              <span className='tabular-nums text-neutral-600'>
+              <span className='es-text-muted tabular-nums'>
                 {formatCountLabel(common.liveResults.countTemplate, bucket.count)}
               </span>
             </div>

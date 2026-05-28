@@ -143,7 +143,8 @@ Directory layout:
 
 - `figma/files/`: raw Figma API payloads
 - `figma/mdm/artifacts/`: normalized artifacts generated for the website
-- `src/app/generated/figma-tokens.css`: generated token CSS consumed by pages
+- `shared/styles/generated/figma-tokens.css`: generated token CSS (shared with training)
+- `shared/styles/evolve-sprouts.css`: shared brand styles (tokens, theme, base, core, utilities)
 
 To run `figma:pull`, set `FIGMA_FILE_KEY` and either:
 

@@ -11,6 +11,9 @@ import {
 
 const LIVE_RESULTS_POLL_MS = 3000;
 
+const POLL_PANEL_CLASS =
+  'flex flex-col gap-3 rounded-inner border es-border-panel-soft es-bg-surface-muted p-4';
+
 export interface PollTextResultsPanelProps {
   pollSlug: string;
   question: PollQuestion;
@@ -68,28 +71,28 @@ export function PollTextResultsPanel({
   const responses = results?.responses ?? [];
 
   return (
-    <section className='flex flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4'>
+    <section className={POLL_PANEL_CLASS}>
       <div className='flex flex-col gap-1'>
-        <h3 className='text-base font-semibold text-neutral-900'>
+        <h3 className='es-text-heading text-base font-semibold'>
           {common.control.textResponsesHeading}
         </h3>
-        <p className='text-sm text-neutral-600'>
+        <p className='es-text-muted text-sm'>
           {formatTotalResponses(common.liveResults.totalResponsesTemplate, results?.totalResponses ?? 0)}
         </p>
       </div>
       {errorMessage ? (
-        <p className='text-sm text-red-700' role='alert'>
+        <p className='es-text-danger text-sm' role='alert'>
           {errorMessage}
         </p>
       ) : null}
       {responses.length === 0 && !errorMessage ? (
-        <p className='text-sm text-neutral-600'>{common.control.noTextResponses}</p>
+        <p className='es-text-muted text-sm'>{common.control.noTextResponses}</p>
       ) : (
-        <ul className='flex max-h-48 flex-col gap-2 overflow-y-auto text-sm text-neutral-800'>
+        <ul className='flex max-h-48 flex-col gap-2 overflow-y-auto text-sm'>
           {responses.map((response, index) => (
             <li
               key={`${response}-${index}`}
-              className='rounded-md border border-neutral-200 bg-white px-3 py-2'
+              className='es-text-body rounded-inner border es-border-panel-soft es-bg-surface-white px-3 py-2'
             >
               {response}
             </li>

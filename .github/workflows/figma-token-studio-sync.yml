@@ -127,7 +127,7 @@ jobs:
           git add \
             apps/public_www/figma/token-studio/ \
             apps/public_www/figma/design-specs/ \
-            apps/public_www/src/app/generated/figma-tokens.css \
+            shared/styles/generated/figma-tokens.css \
             apps/public_www/src/components/sections/ \
             apps/public_www/src/content/
 
@@ -182,7 +182,7 @@ jobs:
             echo '- `apps/public_www/figma/token-studio/global.json`'
             echo '- `apps/public_www/figma/token-studio/semantic.json`'
             echo '- `apps/public_www/figma/token-studio/component.json`'
-            echo '- `apps/public_www/src/app/generated/figma-tokens.css`'
+            echo '- `shared/styles/generated/figma-tokens.css`'
             echo '- `apps/public_www/src/components/sections/*.tsx` (new only)'
             echo '- `apps/public_www/src/content/*.json` (new keys only)'
           } >> "$GITHUB_STEP_SUMMARY"

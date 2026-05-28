@@ -24,26 +24,24 @@ export function PollControlQuestionCard({
   const toggleId = `poll-control-toggle-${question.id}`;
 
   return (
-    <article className='flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm'>
+    <article className='flex flex-col gap-4 rounded-card border es-border-panel es-bg-surface-white p-5 shadow-card'>
       <div className='flex flex-wrap items-start justify-between gap-4'>
         <div className='flex min-w-0 flex-1 flex-col gap-1'>
-          <p className='text-xs font-medium uppercase tracking-wide text-neutral-500'>
-            {question.screen}
-          </p>
-          <h2 className='text-lg font-semibold text-neutral-900'>{question.question}</h2>
+          <p className='es-type-eyebrow text-xs'>{question.screen}</p>
+          <h2 className='es-text-heading text-lg font-semibold'>{question.question}</h2>
           {!enabled ? (
-            <p className='text-sm text-neutral-600'>{common.control.skippedLabel}</p>
+            <p className='es-text-muted text-sm'>{common.control.skippedLabel}</p>
           ) : null}
         </div>
         <label
           htmlFor={toggleId}
-          className='flex shrink-0 items-center gap-2 text-sm font-medium text-neutral-900'
+          className='es-text-heading flex shrink-0 items-center gap-2 text-sm font-medium'
         >
           <span>{enabled ? common.control.questionOnLabel : common.control.questionOffLabel}</span>
           <input
             id={toggleId}
             type='checkbox'
-            className='h-5 w-5 rounded border-neutral-300'
+            className='es-accent-brand es-focus-ring h-5 w-5 rounded'
             checked={enabled}
             disabled={disabled}
             onChange={onToggle}

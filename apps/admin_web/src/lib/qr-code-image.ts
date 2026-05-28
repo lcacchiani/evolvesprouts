@@ -1,7 +1,7 @@
 import QRCode from 'qrcode';
 import type { QRCode as QrModel } from 'qrcode';
 
-/** Matches public site `--es-color-brand-orange` (`apps/public_www/src/app/styles/original/base.css`). */
+/** Matches public site `--es-color-brand-orange` (`shared/styles/base.css`). */
 export const PUBLIC_SITE_PRIMARY_ORANGE = '#C84A16';
 
 /** Input for branded public-site QR PNG generation (referral links, marketing page URLs, etc.). */
