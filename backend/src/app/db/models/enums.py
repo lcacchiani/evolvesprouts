@@ -247,6 +247,13 @@ class EnrollmentStatus(str, enum.Enum):
     COMPLETED = "completed"
 
 
+class CompletionCertificateStatus(str, enum.Enum):
+    """Lifecycle status for completion certificates."""
+
+    ISSUED = "issued"
+    VOIDED = "voided"
+
+
 CAPACITY_ENROLLMENT_STATUSES: tuple[EnrollmentStatus, ...] = (
     EnrollmentStatus.REGISTERED,
     EnrollmentStatus.CONFIRMED,

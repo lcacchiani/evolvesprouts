@@ -27,6 +27,11 @@ info:
     - `PATCH|DELETE /v1/admin/services/{id}/instances/{instanceId}/enrollments/{enrollmentId}`
     - `GET|POST /v1/admin/discount-codes`
     - `PUT|DELETE /v1/admin/discount-codes/{id}`
+    - `GET|POST /v1/admin/completion-certificates`
+    - `POST /v1/admin/completion-certificates/preview`
+    - `GET|DELETE /v1/admin/completion-certificates/{id}`
+    - `GET /v1/admin/completion-certificates/{id}/pdf`
+    - `POST /v1/admin/completion-certificates/{id}/void`
     - `GET|POST /v1/admin/calendar/manual-blocks` (GET requires `purpose`, `from`, `to`)
     - `GET|PATCH|DELETE /v1/admin/calendar/manual-blocks/{id}`
     - `GET|POST /v1/admin/tags` (optional `include_archived`, `archived_only`)
@@ -1739,6 +1744,178 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DiscountCodeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/completion-certificates:
+    get:
+      summary: List completion certificates
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: contact_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: instance_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [issued, voided]
+      responses:
+        "200":
+          description: Certificate list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompletionCertificateListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Issue completion certificate
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IssueCompletionCertificateRequest"
+      responses:
+        "201":
+          description: Certificate issued.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompletionCertificateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/completion-certificates/preview:
+    post:
+      summary: Preview completion certificate PDF
+      description: |
+        Renders a certificate PDF from the request payload without persisting a row.
+        Returns a short-lived CloudFront-signed download URL.
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PreviewCompletionCertificateRequest"
+      responses:
+        "200":
+          description: Signed preview URL.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PdfDownloadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /v1/admin/completion-certificates/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CompletionCertificateId"
+    get:
+      summary: Get completion certificate
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Certificate detail.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompletionCertificateResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete completion certificate
+      description: Permanently removes the certificate row and best-effort deletes the stored PDF.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted]
+                properties:
+                  deleted:
+                    type: boolean
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/completion-certificates/{id}/pdf:
+    parameters:
+      - $ref: "#/components/parameters/CompletionCertificateId"
+    get:
+      summary: Download issued completion certificate PDF
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Signed download URL for an issued certificate.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PdfDownloadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/completion-certificates/{id}/void:
+    parameters:
+      - $ref: "#/components/parameters/CompletionCertificateId"
+    post:
+      summary: Void completion certificate
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Voided certificate.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompletionCertificateResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -4284,6 +4461,14 @@ components:
         type: string
         format: uuid
       description: Discount code identifier.
+    CompletionCertificateId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Completion certificate identifier.
     AdminContactId:
       name: id
       in: path
@@ -8072,6 +8257,7 @@ components:
         - family_ids
         - organization_ids
         - standalone_note_count
+        - has_completion_certificate
       properties:
         id:
           type: string
@@ -8186,6 +8372,162 @@ components:
           description: |
             Count of CRM notes on this contact that are not tied to a sales lead
             (`lead_id` is null). Lead-attached notes are excluded.
+        has_completion_certificate:
+          type: boolean
+          description: |
+            True when the contact has at least one issued (non-voided) completion certificate.
+    PdfDownloadResponse:
+      type: object
+      required: [downloadUrl, expiresAt]
+      properties:
+        downloadUrl:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+    CompletionCertificateStatus:
+      type: string
+      enum: [issued, voided]
+    CompletionCertificate:
+      type: object
+      required:
+        - id
+        - contact_id
+        - contact_label
+        - instance_id
+        - instance_label
+        - service_id
+        - service_label
+        - enrollment_id
+        - participation_date
+        - recipient_display_name
+        - program_title
+        - body_text
+        - status
+        - issued_at
+        - issued_by
+      properties:
+        id:
+          type: string
+          format: uuid
+        contact_id:
+          type: string
+          format: uuid
+        contact_label:
+          type: string
+        instance_id:
+          type: string
+          format: uuid
+        instance_label:
+          type: string
+        service_id:
+          type: string
+          format: uuid
+        service_label:
+          type: string
+        enrollment_id:
+          type: string
+          format: uuid
+        partner_organization_id:
+          type: string
+          format: uuid
+          nullable: true
+        participation_date:
+          type: string
+          format: date
+        recipient_display_name:
+          type: string
+        program_title:
+          type: string
+        partner_display_name:
+          type: string
+          nullable: true
+        partner_signer_name:
+          type: string
+          nullable: true
+        body_text:
+          type: string
+        status:
+          $ref: "#/components/schemas/CompletionCertificateStatus"
+        issued_at:
+          type: string
+          format: date-time
+        issued_by:
+          type: string
+        voided_at:
+          type: string
+          format: date-time
+          nullable: true
+        voided_by:
+          type: string
+          nullable: true
+        issued_pdf_sha256:
+          type: string
+          nullable: true
+        pdf_template_version:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    CompletionCertificateListResponse:
+      type: object
+      required: [items, total_count]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompletionCertificate"
+        next_cursor:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+          minimum: 0
+    CompletionCertificateResponse:
+      type: object
+      required: [certificate]
+      properties:
+        certificate:
+          $ref: "#/components/schemas/CompletionCertificate"
+    PreviewCompletionCertificateRequest:
+      type: object
+      required:
+        - contact_id
+        - service_id
+        - instance_id
+        - participation_date
+      properties:
+        contact_id:
+          type: string
+          format: uuid
+        service_id:
+          type: string
+          format: uuid
+        instance_id:
+          type: string
+          format: uuid
+        participation_date:
+          type: string
+          format: date
+        program_title:
+          type: string
+          nullable: true
+          description: Optional override; defaults to instance or service title.
+        partner_organization_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Required when the instance has linked partner organisations.
+    IssueCompletionCertificateRequest:
+      allOf:
+        - $ref: "#/components/schemas/PreviewCompletionCertificateRequest"
     AdminContactListResponse:
       type: object
       required:

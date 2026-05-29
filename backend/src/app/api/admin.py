@@ -13,6 +13,9 @@ from app.api.assets import (
     handle_user_assets_request,
 )
 from app.api.admin_geographic_areas import handle_admin_geographic_areas_request
+from app.api.admin_completion_certificates import (
+    handle_admin_completion_certificates_request,
+)
 from app.api.admin_discount_codes import handle_admin_discount_codes_request
 from app.api.admin_expenses import handle_admin_expenses_request
 from app.api.admin_leads import handle_admin_leads_request
@@ -207,6 +210,11 @@ _ROUTES: tuple[
         "/v1/admin/discount-codes",
         False,
         handle_admin_discount_codes_request,
+    ),
+    (
+        "/v1/admin/completion-certificates",
+        False,
+        handle_admin_completion_certificates_request,
     ),
     (
         "/v1/admin/expenses",

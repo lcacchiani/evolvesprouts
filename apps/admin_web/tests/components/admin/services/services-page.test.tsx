@@ -147,6 +147,10 @@ vi.mock('@/components/admin/services/partners-tab', () => ({
   PartnersTab: () => <div data-testid='partners-tab-mock'>Partners</div>,
 }));
 
+vi.mock('@/components/admin/services/certificates-tab', () => ({
+  CertificatesTab: () => <div data-testid='certificates-tab-mock'>Certificates</div>,
+}));
+
 import { ServicesPage } from '@/components/admin/services/services-page';
 
 const INSTANCE_FOR_SEARCH: ServiceInstance = {
@@ -214,6 +218,12 @@ describe('ServicesPage', () => {
     expect(state.setActiveView).toHaveBeenCalledWith('venues');
     await user.click(screen.getByRole('button', { name: 'Partners' }));
     expect(state.setActiveView).toHaveBeenCalledWith('partners');
+  });
+
+  it('renders Certificates panel when active view is certificates', () => {
+    state.activeView = 'certificates';
+    render(<ServicesPage />);
+    expect(screen.getByTestId('certificates-tab-mock')).toBeInTheDocument();
   });
 
   it('renders Partners panel when active view is partners', () => {

@@ -133,7 +133,9 @@ their primary responsibilities.
   `location_id` (partner venue); and
   `GET /v1/admin/services/{id}/discount-code-usage-summary` for
   aggregate discount usage before service key changes; `DELETE /v1/admin/services/{id}`
-  returns `409` when the service still has instances), `/v1/admin/discount-codes/*`
+  returns `409` when the service still has instances), `/v1/admin/completion-certificates/*`
+  (preview, issue, list, void, delete, PDF download; requires a completed enrollment for
+  the contact and instance), `/v1/admin/discount-codes/*`
   (`POST` returns `409` with `field: code` when the code collides with the
   case-insensitive unique index; `PUT` accepts `discount_value` `0` only when the
   effective discount type after the update is `referral`, otherwise `discount_value`

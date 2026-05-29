@@ -18,7 +18,13 @@ import { useServiceDetail } from './use-service-detail';
 import { useServiceList } from './use-service-list';
 import { useServiceMutations } from './use-service-mutations';
 
-export type ServicesView = 'catalog' | 'instances' | 'discount-codes' | 'venues' | 'partners';
+export type ServicesView =
+  | 'catalog'
+  | 'instances'
+  | 'discount-codes'
+  | 'venues'
+  | 'partners'
+  | 'certificates';
 
 export const SERVICES_VIEW_KEYS: readonly ServicesView[] = [
   'catalog',
@@ -26,6 +32,7 @@ export const SERVICES_VIEW_KEYS: readonly ServicesView[] = [
   'discount-codes',
   'venues',
   'partners',
+  'certificates',
 ];
 export const DEFAULT_SERVICES_VIEW: ServicesView = 'instances';
 

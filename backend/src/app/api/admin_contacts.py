@@ -46,6 +46,9 @@ from app.api.admin_validators import validate_string_length
 from app.api.assets.assets_common import extract_identity, split_route_parts
 from app.db.engine import get_engine
 from app.db.repositories import ContactRepository
+from app.services.completion_certificate_common import (
+    contact_ids_with_issued_certificates,
+)
 from app.exceptions import NotFoundError, ValidationError
 from app.utils import json_response
 from app.utils.logging import get_logger
@@ -226,6 +229,9 @@ def _list_contacts(event: Mapping[str, Any]) -> dict[str, Any]:
         note_counts = repository.count_standalone_notes_for_contacts(
             [r.id for r in page_rows]
         )
+        cert_contact_ids = contact_ids_with_issued_certificates(
+            session, [r.id for r in page_rows]
+        )
         return json_response(
             200,
             {
@@ -233,6 +239,7 @@ def _list_contacts(event: Mapping[str, Any]) -> dict[str, Any]:
                     serialize_contact_summary(
                         r,
                         standalone_note_count=note_counts.get(r.id, 0),
+                        has_completion_certificate=r.id in cert_contact_ids,
                     )
                     for r in page_rows
                 ],
@@ -250,12 +257,14 @@ def _get_contact(event: Mapping[str, Any], *, contact_id: UUID) -> dict[str, Any
         if contact is None:
             raise NotFoundError("Contact", str(contact_id))
         note_counts = repository.count_standalone_notes_for_contacts([contact.id])
+        cert_ids = contact_ids_with_issued_certificates(session, [contact.id])
         return json_response(
             200,
             {
                 "contact": serialize_contact_summary(
                     contact,
                     standalone_note_count=note_counts.get(contact.id, 0),
+                    has_completion_certificate=contact.id in cert_ids,
                 )
             },
             event=event,

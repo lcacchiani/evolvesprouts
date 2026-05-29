@@ -60,6 +60,8 @@ const CONTACT_NAME_FAMILY_EMOJI = '👨‍👩‍👧';
 const CONTACT_NAME_ORG_EMOJI = '🏢';
 /** Shown after the contact name when `relationship_type` is `client`. */
 const CONTACT_NAME_CLIENT_EMOJI = '🤝';
+/** Shown when the contact has at least one issued completion certificate. */
+const CONTACT_NAME_CERTIFICATE_EMOJI = '🎓';
 
 type ApiSchemas = components['schemas'];
 
@@ -96,6 +98,9 @@ function contactNameListSuffix(row: ApiSchemas['AdminContact']): string {
   }
   if (row.relationship_type === 'client') {
     parts.push(CONTACT_NAME_CLIENT_EMOJI);
+  }
+  if (row.has_completion_certificate) {
+    parts.push(CONTACT_NAME_CERTIFICATE_EMOJI);
   }
   return parts.length > 0 ? ` ${parts.join(' ')}` : '';
 }

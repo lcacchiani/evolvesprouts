@@ -95,6 +95,7 @@ def serialize_contact_summary(
     contact: Contact,
     *,
     standalone_note_count: int = 0,
+    has_completion_certificate: bool = False,
 ) -> dict[str, Any]:
     logger.debug("Serializing contact summary", extra={"contact_id": str(contact.id)})
     family_ids = {str(m.family_id) for m in contact.family_members}
@@ -140,6 +141,7 @@ def serialize_contact_summary(
         "family_ids": sorted(family_ids),
         "organization_ids": sorted(organization_ids),
         "standalone_note_count": standalone_note_count,
+        "has_completion_certificate": has_completion_certificate,
     }
 
 
