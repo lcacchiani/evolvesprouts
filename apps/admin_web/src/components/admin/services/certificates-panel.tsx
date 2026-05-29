@@ -30,11 +30,15 @@ import {
   type CompletionCertificate,
   type CompletionCertificateDraftPayload,
 } from '@/lib/completion-certificates-api';
-import { searchEntityContactsForPicker } from '@/lib/entity-api';
-import { formatDate, formatDiscountCodeInstanceOptionLabel, formatServiceTitleWithTier } from '@/lib/format';
-import { isAbortRequestError } from '@/lib/services-api';
+import {
+  formatDate,
+  formatDiscountCodeInstanceOptionLabel,
+  formatServiceTitleWithTier,
+  resolveEnrollmentListPartyLabel,
+} from '@/lib/format';
+import { isAbortRequestError, listEnrollments } from '@/lib/services-api';
 
-import type { ServiceSummary } from '@/types/services';
+import type { Enrollment, ServiceSummary } from '@/types/services';
 
 export interface CertificatesPanelProps {
   certificates: ReturnType<typeof useCompletionCertificates>;
@@ -90,10 +94,11 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
 
   const [contactId, setContactId] = useState('');
-  const [contactSearchInput, setContactSearchInput] = useState('');
-  const [contactSearchResults, setContactSearchResults] = useState<{ id: string; label: string }[]>([]);
   const [serviceId, setServiceId] = useState('');
   const [instanceId, setInstanceId] = useState('');
+  const [completedEnrollments, setCompletedEnrollments] = useState<Enrollment[]>([]);
+  const [enrollmentsLoading, setEnrollmentsLoading] = useState(false);
+  const [enrollmentsError, setEnrollmentsError] = useState('');
   const [partnerOrganizationId, setPartnerOrganizationId] = useState('');
   const [programTitle, setProgramTitle] = useState('');
   const [participationDate, setParticipationDate] = useState(todayIsoDate());
@@ -114,50 +119,76 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
     [selectedInstance],
   );
 
-  const contactOptions = useMemo(() => {
-    const byId = new Map(contactSearchResults.map((r) => [r.id, r.label]));
-    const cid = contactId.trim();
-    if (cid && !byId.has(cid)) {
-      byId.set(cid, contactSearchInput.trim() || cid);
+  const enrolledContactOptions = useMemo(() => {
+    const emptyMaps = new Map<string, string>();
+    const options: { contactId: string; label: string }[] = [];
+    for (const enrollment of completedEnrollments) {
+      const cid = enrollment.contactId?.trim();
+      if (!cid) {
+        continue;
+      }
+      const label = resolveEnrollmentListPartyLabel(
+        enrollment,
+        emptyMaps,
+        emptyMaps,
+        emptyMaps,
+      );
+      options.push({
+        contactId: cid,
+        label: label || cid,
+      });
     }
-    return Array.from(byId.entries()).map(([id, label]) => ({ id, label }));
-  }, [contactSearchResults, contactId, contactSearchInput]);
-
-  useEffect(() => {
-    const q = contactSearchInput.trim();
-    if (q.length < 2) {
-      setContactSearchResults([]);
-      return;
-    }
-    let cancelled = false;
-    const handle = setTimeout(() => {
-      void (async () => {
-        try {
-          const items = await searchEntityContactsForPicker({ query: q, limit: 50 });
-          if (!cancelled) {
-            setContactSearchResults(items);
-          }
-        } catch {
-          if (!cancelled) {
-            setContactSearchResults([]);
-          }
-        }
-      })();
-    }, 300);
-    return () => {
-      cancelled = true;
-      clearTimeout(handle);
-    };
-  }, [contactSearchInput]);
+    return options;
+  }, [completedEnrollments]);
 
   useEffect(() => {
     if (!serviceId.trim()) {
       setInstanceId('');
+      setContactId('');
+      setCompletedEnrollments([]);
+      setEnrollmentsError('');
       instanceOptions.loadForService(null);
       return;
     }
     void instanceOptions.loadForService(serviceId);
   }, [serviceId, instanceOptions]);
+
+  useEffect(() => {
+    const sid = serviceId.trim();
+    const iid = instanceId.trim();
+    if (!sid || !iid) {
+      setCompletedEnrollments([]);
+      setEnrollmentsError('');
+      setContactId('');
+      return;
+    }
+    setContactId('');
+    let cancelled = false;
+    setEnrollmentsLoading(true);
+    setEnrollmentsError('');
+    void (async () => {
+      try {
+        const page = await listEnrollments(sid, iid, { status: 'completed', limit: 100 });
+        if (!cancelled) {
+          setCompletedEnrollments(page.items);
+        }
+      } catch (caught) {
+        if (!cancelled) {
+          setCompletedEnrollments([]);
+          setEnrollmentsError(
+            toErrorMessage(caught, 'Failed to load completed enrollments for this instance.'),
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setEnrollmentsLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [serviceId, instanceId]);
 
   useEffect(() => {
     if (!selectedInstance) {
@@ -239,8 +270,8 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
 
   function resetEditor() {
     setContactId('');
-    setContactSearchInput('');
-    setContactSearchResults([]);
+    setCompletedEnrollments([]);
+    setEnrollmentsError('');
     setServiceId('');
     setInstanceId('');
     setPartnerOrganizationId('');
@@ -254,7 +285,7 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
 
   async function handleIssue() {
     if (!draftPayload) {
-      setEditorError('Contact, service, instance, and participation date are required.');
+      setEditorError('Service, instance, enrolled contact, and participation date are required.');
       return;
     }
     if (activePartners.length > 0 && !draftPayload.partnerOrganizationId) {
@@ -329,7 +360,7 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
       ) : null}
       <AdminEditorCard
         title='Issue certificate'
-        description='Link a completed enrollment to a certificate. Preview updates when the form is valid.'
+        description='Choose service, instance, and a contact with a completed enrollment. Preview updates when the form is valid.'
         actions={
           <>
             <Button type='button' variant='secondary' onClick={() => void refreshPreview()} disabled={previewLoading}>
@@ -346,35 +377,7 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
             {editorError}
           </StatusBanner>
         ) : null}
-        <div className='grid gap-4 md:grid-cols-2'>
-          <div className='flex flex-col gap-2'>
-            <Label htmlFor='cert-contact-search'>Contact search</Label>
-            <Input
-              id='cert-contact-search'
-              value={contactSearchInput}
-              onChange={(e) => setContactSearchInput(e.target.value)}
-              placeholder='Type at least 2 characters'
-            />
-            <Label htmlFor='cert-contact-id'>Contact</Label>
-            <Select
-              id='cert-contact-id'
-              value={contactId}
-              onChange={(e) => {
-                setContactId(e.target.value);
-                const label = contactOptions.find((o) => o.id === e.target.value)?.label;
-                if (label) {
-                  setContactSearchInput(label);
-                }
-              }}
-            >
-              <option value=''>Select contact</option>
-              {contactOptions.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.label}
-                </option>
-              ))}
-            </Select>
-          </div>
+        <div className='grid gap-4 md:grid-cols-3'>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='cert-service-id'>Service</Label>
             <Select
@@ -383,6 +386,7 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
               onChange={(e) => {
                 setServiceId(e.target.value);
                 setInstanceId('');
+                setContactId('');
               }}
             >
               <option value=''>Select service</option>
@@ -392,6 +396,8 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
                 </option>
               ))}
             </Select>
+          </div>
+          <div className='flex flex-col gap-2'>
             <Label htmlFor='cert-instance-id'>Instance</Label>
             <Select
               id='cert-instance-id'
@@ -407,23 +413,35 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
               ))}
             </Select>
           </div>
-          {activePartners.length > 0 ? (
-            <div className='flex flex-col gap-2 md:col-span-2'>
-              <Label htmlFor='cert-partner-id'>Partner</Label>
-              <Select
-                id='cert-partner-id'
-                value={partnerOrganizationId}
-                onChange={(e) => setPartnerOrganizationId(e.target.value)}
-              >
-                <option value=''>Select partner</option>
-                {activePartners.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          ) : null}
+          <div className='flex flex-col gap-2'>
+            <Label htmlFor='cert-contact-enrolled'>Contact enrolled</Label>
+            <Select
+              id='cert-contact-enrolled'
+              value={contactId}
+              onChange={(e) => setContactId(e.target.value)}
+              disabled={!serviceId || !instanceId || enrollmentsLoading}
+            >
+              <option value=''>
+                {enrollmentsLoading
+                  ? 'Loading enrollments…'
+                  : !serviceId || !instanceId
+                    ? 'Select service and instance first'
+                    : enrolledContactOptions.length === 0
+                      ? 'No completed contact enrollments'
+                      : 'Select enrolled contact'}
+              </option>
+              {enrolledContactOptions.map((o) => (
+                <option key={o.contactId} value={o.contactId}>
+                  {o.label}
+                </option>
+              ))}
+            </Select>
+            {enrollmentsError ? (
+              <p className='text-sm text-destructive'>{enrollmentsError}</p>
+            ) : null}
+          </div>
+        </div>
+        <div className='mt-4 grid gap-4 md:grid-cols-2'>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='cert-program-title'>Program title</Label>
             <Input
@@ -442,6 +460,23 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
             />
           </div>
         </div>
+        {activePartners.length > 0 ? (
+          <div className='mt-4 flex max-w-md flex-col gap-2'>
+            <Label htmlFor='cert-partner-id'>Partner</Label>
+            <Select
+              id='cert-partner-id'
+              value={partnerOrganizationId}
+              onChange={(e) => setPartnerOrganizationId(e.target.value)}
+            >
+              <option value=''>Select partner</option>
+              {activePartners.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
         <div className='mt-4 flex flex-col gap-2'>
           <p className='text-sm font-medium text-foreground'>Preview</p>
           {previewLoading ? <p className='text-sm text-muted-foreground'>Rendering preview…</p> : null}
