@@ -71,7 +71,7 @@
       "id": "onething",
       "type": "text",
       "screen": "Your one thing",
-      "question": "What is ONE thing you'll do differently — starting tomorrow?",
+      "question": "What is ONE thing you'll do differently — starting today?",
       "showAnswer": false,
       "showResults": false
     },
