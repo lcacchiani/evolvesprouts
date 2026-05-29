@@ -79,7 +79,7 @@
       "id": "email",
       "type": "email",
       "screen": "Stay connected",
-      "question": "Get todays's resources and tips by email",
+      "question": "Get today's resources and tips by email",
       "showAnswer": false,
       "showResults": false
     }
