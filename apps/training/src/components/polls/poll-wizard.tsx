@@ -325,7 +325,6 @@ function PollWizardActiveStep({
       return;
     }
     onSavingChange(false);
-    onPersistSuccess();
 
     if (question.showAnswer) {
       setStepPhase('feedback');
@@ -337,6 +336,11 @@ function PollWizardActiveStep({
       return;
     }
 
+    finishQuestionStep();
+  }
+
+  function finishQuestionStep(): void {
+    onPersistSuccess();
     if (!isLastStep) {
       onAdvance();
     }
