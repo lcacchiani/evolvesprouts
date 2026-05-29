@@ -118,7 +118,9 @@ def _parse_issue_payload(body: Mapping[str, Any]) -> dict[str, Any]:
     program_title_override = None
     if program_title is not None:
         if not isinstance(program_title, str):
-            raise ValidationError("program_title must be a string", field="program_title")
+            raise ValidationError(
+                "program_title must be a string", field="program_title"
+            )
         program_title_override = program_title.strip() or None
     partner_organization_id = parse_optional_uuid(
         body.get("partner_organization_id"),
@@ -169,7 +171,7 @@ def _issue_certificate(event: Mapping[str, Any], *, actor_sub: str) -> dict[str,
     payload = _parse_issue_payload(body)
     request_id = event.get("requestContext", {}).get("requestId")
     with Session(get_engine()) as session:
-        set_audit_context(session, user_sub=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=request_id)
         draft = resolve_certificate_draft(
             session,
             contact_id=payload["contact_id"],
@@ -268,7 +270,7 @@ def _void_certificate(
 
     request_id = event.get("requestContext", {}).get("requestId")
     with Session(get_engine()) as session:
-        set_audit_context(session, user_sub=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=request_id)
         cert = session.get(CompletionCertificate, certificate_id)
         if cert is None:
             raise NotFoundError("CompletionCertificate", str(certificate_id))
@@ -288,7 +290,7 @@ def _delete_certificate(
 ) -> dict[str, Any]:
     request_id = event.get("requestContext", {}).get("requestId")
     with Session(get_engine()) as session:
-        set_audit_context(session, user_sub=actor_sub, request_id=request_id)
+        set_audit_context(session, user_id=actor_sub, request_id=request_id)
         cert = session.get(CompletionCertificate, certificate_id)
         if cert is None:
             raise NotFoundError("CompletionCertificate", str(certificate_id))
