@@ -964,6 +964,16 @@ export class ApiStack extends cdk.Stack {
           "Trading name shown on invoice PDF From block and public site; align with NEXT_PUBLIC_BUSINESS_NAME.",
       }
     );
+    const publicWwwCertificateEsFounderName = new cdk.CfnParameter(
+      this,
+      "PublicWwwCertificateEsFounderName",
+      {
+        type: "String",
+        default: "",
+        description:
+          "Evolve Sprouts founder name on completion certificate PDFs.",
+      }
+    );
     const publicWwwBusinessLegalName = new cdk.CfnParameter(
       this,
       "PublicWwwBusinessLegalName",
@@ -1869,6 +1879,7 @@ export class ApiStack extends cdk.Stack {
           BUSINESS_PHONE_NUMBER: publicWwwBusinessPhoneNumber.valueAsString,
           BILLING_EMAIL: publicWwwBillingEmail.valueAsString,
           BUSINESS_NAME: publicWwwBusinessName.valueAsString,
+          CERTIFICATE_ES_FOUNDER_NAME: publicWwwCertificateEsFounderName.valueAsString,
           BUSINESS_LEGAL_NAME: publicWwwBusinessLegalName.valueAsString,
           BUSINESS_ADDRESS: publicWwwBusinessAddress.valueAsString,
           BUSINESS_REGISTRATION: publicWwwBusinessRegistration.valueAsString,

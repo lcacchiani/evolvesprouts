@@ -2315,6 +2315,286 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/completion-certificates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List completion certificates */
+        get: {
+            parameters: {
+                query?: {
+                    contact_id?: string;
+                    service_id?: string;
+                    instance_id?: string;
+                    status?: "issued" | "voided";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Certificate list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CompletionCertificateListResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        put?: never;
+        /** Issue completion certificate */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["IssueCompletionCertificateRequest"];
+                };
+            };
+            responses: {
+                /** @description Certificate issued. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CompletionCertificateResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/completion-certificates/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview completion certificate PDF
+         * @description Renders a certificate PDF from the request payload without persisting a row.
+         *     Returns a short-lived CloudFront-signed download URL.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PreviewCompletionCertificateRequest"];
+                };
+            };
+            responses: {
+                /** @description Signed preview URL. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PdfDownloadResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/completion-certificates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Completion certificate identifier. */
+                id: components["parameters"]["CompletionCertificateId"];
+            };
+            cookie?: never;
+        };
+        /** Get completion certificate */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Completion certificate identifier. */
+                    id: components["parameters"]["CompletionCertificateId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Certificate detail. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CompletionCertificateResponse"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete completion certificate
+         * @description Permanently removes the certificate row and best-effort deletes the stored PDF.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Completion certificate identifier. */
+                    id: components["parameters"]["CompletionCertificateId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            deleted: boolean;
+                        };
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/completion-certificates/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Completion certificate identifier. */
+                id: components["parameters"]["CompletionCertificateId"];
+            };
+            cookie?: never;
+        };
+        /** Download issued completion certificate PDF */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Completion certificate identifier. */
+                    id: components["parameters"]["CompletionCertificateId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Signed download URL for an issued certificate. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PdfDownloadResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/completion-certificates/{id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Completion certificate identifier. */
+                id: components["parameters"]["CompletionCertificateId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Void completion certificate */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Completion certificate identifier. */
+                    id: components["parameters"]["CompletionCertificateId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Voided certificate. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CompletionCertificateResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/calendar/manual-blocks": {
         parameters: {
             query?: never;
@@ -7500,7 +7780,80 @@ export interface components {
              *     (`lead_id` is null). Lead-attached notes are excluded.
              */
             standalone_note_count: number;
+            /** @description True when the contact has at least one issued (non-voided) completion certificate. */
+            has_completion_certificate: boolean;
         };
+        PdfDownloadResponse: {
+            /** Format: uri */
+            downloadUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        /** @enum {string} */
+        CompletionCertificateStatus: "issued" | "voided";
+        CompletionCertificate: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            contact_id: string;
+            contact_label: string;
+            /** Format: uuid */
+            instance_id: string;
+            instance_label: string;
+            /** Format: uuid */
+            service_id: string;
+            service_label: string;
+            /** Format: uuid */
+            enrollment_id: string;
+            /** Format: uuid */
+            partner_organization_id?: string | null;
+            /** Format: date */
+            participation_date: string;
+            recipient_display_name: string;
+            program_title: string;
+            partner_display_name?: string | null;
+            partner_signer_name?: string | null;
+            body_text: string;
+            status: components["schemas"]["CompletionCertificateStatus"];
+            /** Format: date-time */
+            issued_at: string;
+            issued_by: string;
+            /** Format: date-time */
+            voided_at?: string | null;
+            voided_by?: string | null;
+            issued_pdf_sha256?: string | null;
+            pdf_template_version?: string | null;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+        };
+        CompletionCertificateListResponse: {
+            items: components["schemas"]["CompletionCertificate"][];
+            next_cursor?: string | null;
+            total_count: number;
+        };
+        CompletionCertificateResponse: {
+            certificate: components["schemas"]["CompletionCertificate"];
+        };
+        PreviewCompletionCertificateRequest: {
+            /** Format: uuid */
+            contact_id: string;
+            /** Format: uuid */
+            service_id: string;
+            /** Format: uuid */
+            instance_id: string;
+            /** Format: date */
+            participation_date: string;
+            /** @description Optional override; defaults to instance or service title. */
+            program_title?: string | null;
+            /**
+             * Format: uuid
+             * @description Required when the instance has linked partner organisations.
+             */
+            partner_organization_id?: string | null;
+        };
+        IssueCompletionCertificateRequest: components["schemas"]["PreviewCompletionCertificateRequest"];
         AdminContactListResponse: {
             items: components["schemas"]["AdminContact"][];
             next_cursor?: string | null;
@@ -7892,6 +8245,8 @@ export interface components {
         EnrollmentId: string;
         /** @description Discount code identifier. */
         DiscountCodeId: string;
+        /** @description Completion certificate identifier. */
+        CompletionCertificateId: string;
         /** @description CRM contact identifier. */
         AdminContactId: string;
         /** @description CRM note identifier. */

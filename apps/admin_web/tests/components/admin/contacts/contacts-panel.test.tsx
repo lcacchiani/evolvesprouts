@@ -281,6 +281,47 @@ describe('ContactsPanel', () => {
     );
   });
 
+  it('shows certificate emoji when has_completion_certificate is true', () => {
+    const row: components['schemas']['AdminContact'] = {
+      id: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+      email: null,
+      instagram_handle: null,
+      phone_region: null,
+      phone_national_number: null,
+      phone_e164: null,
+      contact_type: 'parent',
+      relationship_type: 'prospect',
+      source: 'manual',
+      mailchimp_status: 'pending',
+      active: true,
+      created_at: '2020-01-01T00:00:00.000Z',
+      updated_at: '2020-01-01T00:00:00.000Z',
+      tag_ids: [],
+      tags: [],
+      standalone_note_count: 0,
+      has_completion_certificate: true,
+      first_name: 'Grad',
+      last_name: 'uate',
+      family_ids: [],
+      organization_ids: [],
+      family_location_summary: null,
+      organization_location_summary: null,
+    };
+    render(
+      <ContactsPanel
+        contacts={buildContactsHook({ contacts: [row] })}
+        adminUsers={[]}
+        onPatchStandaloneNoteCount={vi.fn()}
+        tags={[]}
+        locations={[]}
+        geographicAreas={[]}
+        areasLoading={false}
+        refreshLocations={noopRefresh}
+      />
+    );
+    expect(screen.getByText(/Grad uate/)).toHaveTextContent('Grad uate 🎓');
+  });
+
   it('shows read-only family and organisation venue lines in the Location box when the row is selected', async () => {
     const user = userEvent.setup();
     const summary = {

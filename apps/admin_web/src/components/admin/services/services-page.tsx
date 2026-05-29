@@ -22,6 +22,7 @@ import { InstanceDetailPanel } from './instance-detail-panel';
 import { InstanceListPanel } from './instance-list-panel';
 import { ServiceDetailPanel } from './service-detail-panel';
 import { ServiceListPanel } from './service-list-panel';
+import { CertificatesTab } from './certificates-tab';
 import { PartnersTab } from './partners-tab';
 import { ServicesHeader } from './services-header';
 
@@ -416,6 +417,8 @@ export function ServicesPage() {
           onUpdatePartial={state.venues.updateVenuePartial}
           onDelete={state.venues.deleteVenue}
         />
+      ) : state.activeView === 'certificates' ? (
+        <CertificatesTab serviceOptions={allServiceOptionsIncludingArchived} />
       ) : (
         <PartnersTab
           locations={state.locationList.locations}

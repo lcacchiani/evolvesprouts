@@ -653,6 +653,12 @@ Migration `0055_customer_billing_ar` introduces:
   **`payment_unapplied_amount`** sums allocations **matching the parent payment's currency** only
   (one currency per payment; multi-currency allocation is not supported).
 - `customer_receipts`: one row per succeeded inbound payment (`customer_payment_id` unique).
+- `completion_certificates` (migration `0069_completion_certs`): issued training
+  completion PDFs linked to `contacts`, `service_instances`, `services`, and
+  `enrollments`. Snapshots recipient name, program title, partner branding, and body
+  text at issue time. `status` is `issued` or `voided`; voided rows drop the contact
+  award badge. Multiple issued rows per contact/instance are allowed. PDF object keys
+  live under `completion-certificates/` in the assets bucket.
 - `document_counters`: serialized numbering per scope and year; **invoices** use one
   global sequence per year (`INV-YYYY-NNNNNN`), while **receipts** keep a per-currency scope.
 - Audit: same `audit_trigger_func()` as `0054_add_audit_log` on all five billing tables.

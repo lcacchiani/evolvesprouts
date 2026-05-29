@@ -7,6 +7,7 @@ from app.db.models.bulk_expense_import_job import (
     BulkExpenseImportJob,
     BulkExpenseImportJobStatus,
 )
+from app.db.models.completion_certificate import CompletionCertificate
 from app.db.models.contact import Contact
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.customer_payment import CustomerPayment
@@ -23,6 +24,7 @@ from app.db.models.enums import (
     BillingInvoiceStatus,
     BillingPaymentDirection,
     BillingPaymentStatus,
+    CompletionCertificateStatus,
     ConsultationFormat,
     ConsultationPricingModel,
     ContactSource,
@@ -94,6 +96,8 @@ __all__ = [
     "ConsultationDetails",
     "ConsultationFormat",
     "ConsultationPricingModel",
+    "CompletionCertificate",
+    "CompletionCertificateStatus",
     "Contact",
     "ContactSource",
     "ContactTag",
