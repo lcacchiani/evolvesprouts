@@ -227,7 +227,9 @@ def resolve_certificate_draft(
     )
 
 
-def draft_to_pdf_context(draft: ResolvedCertificateDraft) -> CompletionCertificatePdfContext:
+def draft_to_pdf_context(
+    draft: ResolvedCertificateDraft,
+) -> CompletionCertificatePdfContext:
     return CompletionCertificatePdfContext(
         recipient_display_name=draft.recipient_display_name,
         program_title=draft.program_title,

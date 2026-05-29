@@ -112,6 +112,4 @@ class CompletionCertificate(Base):
     instance: Mapped["ServiceInstance"] = relationship("ServiceInstance")
     service: Mapped["Service"] = relationship("Service")
     enrollment: Mapped["Enrollment"] = relationship("Enrollment")
-    partner_organization: Mapped["Organization | None"] = relationship(
-        "Organization"
-    )
+    partner_organization: Mapped["Organization | None"] = relationship("Organization")
