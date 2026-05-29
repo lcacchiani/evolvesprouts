@@ -287,7 +287,7 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
       title: 'Void certificate?',
       description: `Void the certificate for ${row.recipient_display_name}? The contact will no longer show the award badge.`,
       confirmLabel: 'Void',
-      variant: 'destructive',
+      variant: 'danger',
     });
     if (!ok) {
       return;
@@ -304,7 +304,7 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
       title: 'Delete certificate?',
       description: `Permanently delete the certificate record for ${row.recipient_display_name}?`,
       confirmLabel: 'Delete',
-      variant: 'destructive',
+      variant: 'danger',
     });
     if (!ok) {
       return;
@@ -470,6 +470,7 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
         isLoading={isLoading}
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
+        error={error}
         onLoadMore={loadMore}
         loadingLabel='Loading certificates…'
         toolbar={
@@ -544,8 +545,8 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
                     ) : null}
                     <Button
                       type='button'
-                      variant='ghost'
-                      size='icon'
+                      size='sm'
+                      variant='danger'
                       aria-label='Delete certificate'
                       title='Delete certificate'
                       onClick={(e) => {
@@ -553,7 +554,7 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
                         void handleDeleteRow(row);
                       }}
                     >
-                      <DeleteIcon />
+                      <DeleteIcon className='h-4 w-4' />
                     </Button>
                   </div>
                 </AdminDataTableCell>

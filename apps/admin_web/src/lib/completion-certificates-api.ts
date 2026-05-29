@@ -1,4 +1,5 @@
-import { adminApiRequest, unwrapPayload } from '@/lib/api-admin-client';
+import { adminApiRequest } from '@/lib/api-admin-client';
+import { unwrapPayload } from '@/lib/api-payload';
 
 import type { components } from '@/types/generated/admin-api.generated';
 
