@@ -154,7 +154,7 @@ def aggregate_poll_question_results(
         ]
         total = sum(bucket["count"] for bucket in buckets)
     elif question_type == "multiselect":
-        counts: Counter[str] = Counter()
+        counts = Counter[str]()
         total = 0
         for item in matching:
             raw_options = item.get("selectedOptions")
