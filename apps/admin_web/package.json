@@ -38,14 +38,14 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.6",
     "jsdom": "^29.1.1",
-    "libphonenumber-js": "^1.13.3",
+    "libphonenumber-js": "^1.13.4",
     "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.1.18",
     "typescript": "^6.0.3",
-    "vite": "^8.0.14",
+    "vite": "^8.0.16",
     "vite-plugin-svgr": "^5.2.0",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.8"
   },
   "overrides": {
     "vitest": {
