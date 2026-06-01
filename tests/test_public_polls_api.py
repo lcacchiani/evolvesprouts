@@ -50,6 +50,37 @@ def test_put_poll_answer_persists_select(api_gateway_event: Any, mock_env: Any) 
     assert item["selectedOption"] == "Parent"
 
 
+def test_put_poll_answer_persists_multiselect(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = {"Item": None}
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "challenge",
+        "questionType": "multiselect",
+        "selectedOptions": [
+            "My child refuses new foods",
+            "Mealtimes are stressful for everyone",
+        ],
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 200
+    item = table.put_item.call_args.kwargs["Item"]
+    assert item["selectedOptions"] == [
+        "My child refuses new foods",
+        "Mealtimes are stressful for everyone",
+    ]
+
+
 def test_put_poll_answer_persists_truefalse(api_gateway_event: Any, mock_env: Any) -> None:
     table = MagicMock()
     table.get_item.return_value = {"Item": None}
@@ -249,6 +280,59 @@ def test_get_poll_question_results_aggregates_select(
     assert body["buckets"] == [
         {"label": "Parent", "count": 2},
         {"label": "Grandparent", "count": 1},
+    ]
+
+
+def test_get_poll_question_results_aggregates_multiselect(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.query.return_value = {
+        "Items": [
+            {
+                "questionId": "challenge",
+                "questionType": "multiselect",
+                "selectedOptions": [
+                    "My child refuses new foods",
+                    "Mealtimes are stressful for everyone",
+                ],
+            },
+            {
+                "questionId": "challenge",
+                "questionType": "multiselect",
+                "selectedOptions": ["No challenges for me"],
+            },
+            {
+                "questionId": "challenge",
+                "questionType": "multiselect",
+                "selectedOptions": [
+                    "My child refuses new foods",
+                    "No challenges for me",
+                ],
+            },
+        ],
+    }
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    event = api_gateway_event(
+        method="GET",
+        path="/www/v1/polls/workshop-food-jun-26/questions/challenge/results",
+        query_params={"questionType": "multiselect"},
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "GET",
+        "/www/v1/polls/workshop-food-jun-26/questions/challenge/results",
+    )
+    assert resp["statusCode"] == 200
+    body = json.loads(resp["body"])
+    assert body["totalResponses"] == 3
+    assert body["buckets"] == [
+        {"label": "My child refuses new foods", "count": 2},
+        {"label": "No challenges for me", "count": 2},
+        {"label": "Mealtimes are stressful for everyone", "count": 1},
     ]
 
 

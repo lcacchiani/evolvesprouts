@@ -1153,7 +1153,7 @@ paths:
         facilitator control page for every question. Counts all rows in DynamoDB
         `evolvesprouts-poll-responses` for the poll partition with matching
         `questionId` (one row per session per question; re-answers overwrite).
-        Requires `questionType` of `select`, `truefalse`, `text`, or `email`.
+        Requires `questionType` of `select`, `multiselect`, `truefalse`, `text`, or `email`.
         For `text` and `email`, returns a `responses` array of answer strings.
         Requires API key.
       security:
@@ -1176,7 +1176,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [select, truefalse, text, email]
+            enum: [select, multiselect, truefalse, text, email]
       responses:
         "200":
           description: Aggregated counts.
@@ -1313,7 +1313,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [select, truefalse, text, email]
+            enum: [select, multiselect, truefalse, text, email]
       responses:
         "200":
           description: Aggregated counts.
@@ -2599,11 +2599,19 @@ components:
           pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
         questionType:
           type: string
-          enum: [select, truefalse, text, email]
+          enum: [select, multiselect, truefalse, text, email]
         selectedOption:
           type: string
           maxLength: 500
           description: Selected option label for `select` questions.
+        selectedOptions:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 500
+          description: Selected option labels for `multiselect` questions.
         booleanAnswer:
           type: boolean
           description: Respondent answer for `truefalse` questions.
@@ -2645,9 +2653,13 @@ components:
           type: string
         questionType:
           type: string
-          enum: [select, truefalse, text, email]
+          enum: [select, multiselect, truefalse, text, email]
         selectedOption:
           type: string
+        selectedOptions:
+          type: array
+          items:
+            type: string
         booleanAnswer:
           type: boolean
         freeText:
@@ -2716,7 +2728,7 @@ components:
           type: string
         questionType:
           type: string
-          enum: [select, truefalse, text, email]
+          enum: [select, multiselect, truefalse, text, email]
         totalResponses:
           type: integer
           minimum: 0
@@ -2730,7 +2742,7 @@ components:
             type: string
           description: >
             Free-text answers for `text` and `email` questions (presenter
-            control view). Omitted for `select` and `truefalse`.
+            control view). Omitted for `select`, `multiselect`, and `truefalse`.
     PollQuestionResultsBucket:
       type: object
       required:

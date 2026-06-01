@@ -25,15 +25,19 @@ export function PollAnswerPanel({ question, common, answer }: PollAnswerPanelPro
     );
   }
 
-  if (question.type === 'select') {
+  if (question.type === 'select' || question.type === 'multiselect') {
     const lines: string[] = [];
     if (question.presenterNote) {
       lines.push(question.presenterNote);
     }
-    if (answer.selectedOption) {
-      lines.push(
-        common.results.yourAnswerTemplate.replace('{answer}', answer.selectedOption),
-      );
+    const selectedLabels =
+      question.type === 'select'
+        ? answer.selectedOption
+          ? [answer.selectedOption]
+          : []
+        : answer.selectedOptions;
+    for (const label of selectedLabels) {
+      lines.push(common.results.yourAnswerTemplate.replace('{answer}', label));
     }
     return (
       <section className={POLL_PANEL_CLASS}>

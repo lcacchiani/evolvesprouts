@@ -17,6 +17,14 @@ export interface PollSelectQuestion extends PollQuestionBase {
   presenterNote?: string;
 }
 
+export interface PollMultiselectQuestion extends PollQuestionBase {
+  type: 'multiselect';
+  options: string[];
+  /** When set, selecting this option clears others; selecting others clears this option. */
+  exclusiveOption?: string;
+  presenterNote?: string;
+}
+
 export interface PollTrueFalseQuestion extends PollQuestionBase {
   type: 'truefalse';
   answer: boolean;
@@ -33,6 +41,7 @@ export interface PollEmailQuestion extends PollQuestionBase {
 
 export type PollQuestion =
   | PollSelectQuestion
+  | PollMultiselectQuestion
   | PollTrueFalseQuestion
   | PollTextQuestion
   | PollEmailQuestion;

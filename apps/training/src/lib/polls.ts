@@ -8,6 +8,7 @@ export {
   type PollContent,
   type PollEmailQuestion,
   type PollQuestion,
+  type PollMultiselectQuestion,
   type PollSelectQuestion,
   type PollSlug,
   type PollsCommonContent,

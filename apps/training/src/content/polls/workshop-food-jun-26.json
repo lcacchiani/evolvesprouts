@@ -13,16 +13,18 @@
     },
     {
       "id": "challenge",
-      "type": "select",
+      "type": "multiselect",
       "screen": "Your biggest challenge",
       "question": "What is the biggest mealtime challenge in your home?",
       "options": [
         "My child refuses new foods",
         "My child won't eat independently",
-        "My helper and I aren't aligned",
+        "My helper and I choose different food",
         "Mealtimes are stressful for everyone",
-        "My child only eats a few things"
+        "My child only eats a few things",
+        "No challenges for me"
       ],
+      "exclusiveOption": "No challenges for me",
       "showAnswer": false,
       "showResults": false,
       "presenterNote": "We asked you this as you arrived. Here's what you said."

@@ -69,6 +69,7 @@ def upsert_poll_answer(
     question_id: str,
     question_type: str,
     selected_option: str | None = None,
+    selected_options: list[str] | None = None,
     boolean_answer: bool | None = None,
     free_text: str | None = None,
 ) -> dict[str, Any]:
@@ -89,6 +90,8 @@ def upsert_poll_answer(
     }
     if selected_option is not None:
         item["selectedOption"] = selected_option
+    if selected_options is not None:
+        item["selectedOptions"] = selected_options
     if boolean_answer is not None:
         item["booleanAnswer"] = boolean_answer
     if free_text is not None:
@@ -150,6 +153,28 @@ def aggregate_poll_question_results(
             )
         ]
         total = sum(bucket["count"] for bucket in buckets)
+    elif question_type == "multiselect":
+        counts: Counter[str] = Counter()
+        total = 0
+        for item in matching:
+            raw_options = item.get("selectedOptions")
+            if not isinstance(raw_options, list):
+                continue
+            options = [
+                str(value).strip()
+                for value in raw_options
+                if isinstance(value, str) and str(value).strip()
+            ]
+            if not options:
+                continue
+            total += 1
+            counts.update(options)
+        buckets = [
+            _PollResultBucket(label=label, count=count)
+            for label, count in sorted(
+                counts.items(), key=lambda pair: (-pair[1], pair[0])
+            )
+        ]
     elif question_type == "truefalse":
         true_count = _count_boolean_answers(matching, expected=True)
         false_count = _count_boolean_answers(matching, expected=False)
@@ -375,6 +400,15 @@ def serialize_poll_answer_item(item: Mapping[str, Any]) -> dict[str, Any]:
     selected_option = item.get("selectedOption")
     if isinstance(selected_option, str):
         row["selectedOption"] = selected_option
+    selected_options = item.get("selectedOptions")
+    if isinstance(selected_options, list):
+        normalized_options = [
+            str(value).strip()
+            for value in selected_options
+            if isinstance(value, str) and str(value).strip()
+        ]
+        if normalized_options:
+            row["selectedOptions"] = normalized_options
     boolean_answer = item.get("booleanAnswer")
     if isinstance(boolean_answer, bool):
         row["booleanAnswer"] = boolean_answer

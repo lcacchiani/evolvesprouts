@@ -40,10 +40,14 @@ _SESSION_ID_PATTERN = re.compile(
 )
 
 _SELECT_TYPES = frozenset({"select"})
+_MULTISELECT_TYPES = frozenset({"multiselect"})
 _TRUEFALSE_TYPES = frozenset({"truefalse"})
 _TEXT_TYPES = frozenset({"text"})
 _EMAIL_TYPES = frozenset({"email"})
-_AGGREGATABLE_TYPES = _SELECT_TYPES | _TRUEFALSE_TYPES | _TEXT_TYPES | _EMAIL_TYPES
+_AGGREGATABLE_TYPES = (
+    _SELECT_TYPES | _MULTISELECT_TYPES | _TRUEFALSE_TYPES | _TEXT_TYPES | _EMAIL_TYPES
+)
+_MAX_SELECTED_OPTIONS = 20
 
 
 def handle_public_polls_request(
@@ -176,7 +180,9 @@ def _require_aggregatable_question_type(value: Any) -> str:
         raise ValidationError("questionType query parameter is required")
     normalized = value.strip().lower()
     if normalized not in _AGGREGATABLE_TYPES:
-        raise ValidationError("questionType must be select, truefalse, text, or email")
+        raise ValidationError(
+            "questionType must be select, multiselect, truefalse, text, or email"
+        )
     return normalized
 
 
@@ -339,6 +345,17 @@ def _validate_put_body(
         return {
             **base,
             "selected_option": selected_option,
+            "selected_options": None,
+            "boolean_answer": None,
+            "free_text": None,
+        }
+
+    if question_type in _MULTISELECT_TYPES:
+        selected_options = _require_selected_options(body.get("selectedOptions"))
+        return {
+            **base,
+            "selected_option": None,
+            "selected_options": selected_options,
             "boolean_answer": None,
             "free_text": None,
         }
@@ -348,6 +365,7 @@ def _validate_put_body(
         return {
             **base,
             "selected_option": None,
+            "selected_options": None,
             "boolean_answer": boolean_answer,
             "free_text": None,
         }
@@ -365,9 +383,40 @@ def _validate_put_body(
     return {
         **base,
         "selected_option": None,
+        "selected_options": None,
         "boolean_answer": None,
         "free_text": free_text,
     }
+
+
+def _require_selected_options(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        raise ValidationError("selectedOptions is required")
+    if not value:
+        raise ValidationError("selectedOptions must contain at least one option")
+    if len(value) > _MAX_SELECTED_OPTIONS:
+        raise ValidationError(
+            f"selectedOptions must contain at most {_MAX_SELECTED_OPTIONS} options"
+        )
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for raw in value:
+        if not isinstance(raw, str):
+            raise ValidationError("selectedOptions must contain strings")
+        option = raw.strip()
+        if not option:
+            raise ValidationError("selectedOptions must not contain empty strings")
+        if len(option) > _MAX_SELECTED_OPTION:
+            raise ValidationError(
+                f"each selectedOptions entry must be at most {_MAX_SELECTED_OPTION} characters"
+            )
+        if option in seen:
+            continue
+        seen.add(option)
+        normalized.append(option)
+    if not normalized:
+        raise ValidationError("selectedOptions must contain at least one option")
+    return normalized
 
 
 def _require_session_id(value: Any) -> str:
@@ -392,9 +441,17 @@ def _require_question_type(value: Any) -> str:
     if not isinstance(value, str):
         raise ValidationError("questionType is required")
     normalized = value.strip().lower()
-    allowed = _SELECT_TYPES | _TRUEFALSE_TYPES | _TEXT_TYPES | _EMAIL_TYPES
+    allowed = (
+        _SELECT_TYPES
+        | _MULTISELECT_TYPES
+        | _TRUEFALSE_TYPES
+        | _TEXT_TYPES
+        | _EMAIL_TYPES
+    )
     if normalized not in allowed:
-        raise ValidationError("questionType must be select, truefalse, text, or email")
+        raise ValidationError(
+            "questionType must be select, multiselect, truefalse, text, or email"
+        )
     return normalized
 
 
