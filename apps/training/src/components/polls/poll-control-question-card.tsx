@@ -48,7 +48,9 @@ export function PollControlQuestionCard({
           />
         </label>
       </div>
-      {question.type === 'select' || question.type === 'truefalse' ? (
+      {question.type === 'select' ||
+      question.type === 'multiselect' ||
+      question.type === 'truefalse' ? (
         <PollLiveResultsPanel
           pollSlug={pollSlug}
           question={{

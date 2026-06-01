@@ -3,6 +3,7 @@ import type { PollSessionAnswerItem } from '@/lib/polls-api';
 
 export interface QuestionAnswerState {
   selectedOption: string;
+  selectedOptions: string[];
   trueFalseValue: boolean | null;
   freeText: string;
 }
@@ -10,6 +11,7 @@ export interface QuestionAnswerState {
 export function emptyAnswerState(): QuestionAnswerState {
   return {
     selectedOption: '',
+    selectedOptions: [],
     trueFalseValue: null,
     freeText: '',
   };
@@ -21,6 +23,21 @@ export function answerStateFromSessionItem(
   if (item.questionType === 'select') {
     return {
       selectedOption: item.selectedOption?.trim() ?? '',
+      selectedOptions: [],
+      trueFalseValue: null,
+      freeText: '',
+    };
+  }
+  if (item.questionType === 'multiselect') {
+    const options = Array.isArray(item.selectedOptions)
+      ? item.selectedOptions
+          .filter((value): value is string => typeof value === 'string')
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0)
+      : [];
+    return {
+      selectedOption: '',
+      selectedOptions: options,
       trueFalseValue: null,
       freeText: '',
     };
@@ -28,6 +45,7 @@ export function answerStateFromSessionItem(
   if (item.questionType === 'truefalse') {
     return {
       selectedOption: '',
+      selectedOptions: [],
       trueFalseValue:
         typeof item.booleanAnswer === 'boolean' ? item.booleanAnswer : null,
       freeText: '',
@@ -35,6 +53,7 @@ export function answerStateFromSessionItem(
   }
   return {
     selectedOption: '',
+    selectedOptions: [],
     trueFalseValue: null,
     freeText: item.freeText?.trim() ?? '',
   };
@@ -77,6 +96,9 @@ export function hasUnlockablePollQuestions(
 export function isAnswerValid(question: PollQuestion, answer: QuestionAnswerState): boolean {
   if (question.type === 'select') {
     return answer.selectedOption.trim().length > 0;
+  }
+  if (question.type === 'multiselect') {
+    return answer.selectedOptions.length > 0;
   }
   if (question.type === 'truefalse') {
     return answer.trueFalseValue !== null;

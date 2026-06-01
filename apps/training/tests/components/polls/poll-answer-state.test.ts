@@ -69,6 +69,19 @@ describe('session answer helpers', () => {
       }),
     ).toEqual({
       selectedOption: 'Parent',
+      selectedOptions: [],
+      trueFalseValue: null,
+      freeText: '',
+    });
+    expect(
+      answerStateFromSessionItem({
+        questionId: 'challenge',
+        questionType: 'multiselect',
+        selectedOptions: ['No challenges for me'],
+      }),
+    ).toEqual({
+      selectedOption: '',
+      selectedOptions: ['No challenges for me'],
       trueFalseValue: null,
       freeText: '',
     });
@@ -105,7 +118,7 @@ describe('session answer helpers', () => {
       },
       {
         id: 'challenge',
-        type: 'select',
+        type: 'multiselect',
         screen: 's',
         question: 'q',
         options: ['A'],

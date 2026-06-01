@@ -46,6 +46,39 @@ export function PollQuestionField({
           })}
         </fieldset>
       ) : null}
+      {question.type === 'multiselect' ? (
+        <fieldset className='flex flex-col gap-2'>
+          {question.options.map((option) => {
+            const inputId = `${question.id}-${slugifyOption(option)}`;
+            const isSelected = answer.selectedOptions.includes(option);
+            return (
+              <label
+                key={option}
+                htmlFor={inputId}
+                className={`poll-option-label flex cursor-pointer items-start gap-3 rounded-inner border px-3 py-2 es-bg-surface-white ${isSelected ? 'poll-option-label--selected' : ''}`}
+              >
+                <input
+                  id={inputId}
+                  type='checkbox'
+                  name={question.id}
+                  className='es-accent-brand es-focus-ring mt-1 h-4 w-4 shrink-0'
+                  checked={isSelected}
+                  onChange={() =>
+                    onAnswerChange({
+                      selectedOptions: toggleMultiselectOption(
+                        answer.selectedOptions,
+                        option,
+                        question.exclusiveOption,
+                      ),
+                    })
+                  }
+                />
+                <span className='es-text-body text-base'>{option}</span>
+              </label>
+            );
+          })}
+        </fieldset>
+      ) : null}
       {question.type === 'truefalse' ? (
         <div className='flex flex-wrap gap-2'>
           <button
@@ -96,4 +129,22 @@ function slugifyOption(option: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
+}
+
+function toggleMultiselectOption(
+  current: string[],
+  option: string,
+  exclusiveOption?: string,
+): string[] {
+  const isSelected = current.includes(option);
+  if (isSelected) {
+    return current.filter((value) => value !== option);
+  }
+  if (exclusiveOption && option === exclusiveOption) {
+    return [option];
+  }
+  if (exclusiveOption) {
+    return [...current.filter((value) => value !== exclusiveOption), option];
+  }
+  return [...current, option];
 }

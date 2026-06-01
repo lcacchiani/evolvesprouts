@@ -63,6 +63,7 @@ export interface PollSessionAnswerItem {
   questionId: string;
   questionType: PollQuestion['type'];
   selectedOption?: string;
+  selectedOptions?: string[];
   booleanAnswer?: boolean;
   freeText?: string;
   createdAt?: string;
@@ -75,7 +76,12 @@ export interface PollSessionAnswers {
   answers: PollSessionAnswerItem[];
 }
 
-export type PollAggregatableQuestionType = 'select' | 'truefalse' | 'text' | 'email';
+export type PollAggregatableQuestionType =
+  | 'select'
+  | 'multiselect'
+  | 'truefalse'
+  | 'text'
+  | 'email';
 
 export interface FetchPollQuestionResultsInput {
   pollSlug: string;
@@ -223,6 +229,13 @@ function buildPersistBody(input: PersistPollAnswerInput): Record<string, unknown
     return {
       ...base,
       selectedOption: input.answer.selectedOption.trim(),
+    };
+  }
+
+  if (input.question.type === 'multiselect') {
+    return {
+      ...base,
+      selectedOptions: input.answer.selectedOptions.map((option) => option.trim()),
     };
   }
 

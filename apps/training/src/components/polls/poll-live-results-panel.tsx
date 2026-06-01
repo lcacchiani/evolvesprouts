@@ -29,7 +29,11 @@ export function PollLiveResultsPanel({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (question.type !== 'select' && question.type !== 'truefalse') {
+    if (
+      question.type !== 'select' &&
+      question.type !== 'multiselect' &&
+      question.type !== 'truefalse'
+    ) {
       return;
     }
 
@@ -64,7 +68,11 @@ export function PollLiveResultsPanel({
     };
   }, [common, pollSlug, question]);
 
-  if (question.type !== 'select' && question.type !== 'truefalse') {
+  if (
+    question.type !== 'select' &&
+    question.type !== 'multiselect' &&
+    question.type !== 'truefalse'
+  ) {
     return null;
   }
 
@@ -114,7 +122,7 @@ function mergeResultBuckets(
     counts.set(bucket.label, bucket.count);
   }
 
-  if (question.type === 'select') {
+  if (question.type === 'select' || question.type === 'multiselect') {
     return question.options.map((label) => ({
       label,
       count: counts.get(label) ?? 0,

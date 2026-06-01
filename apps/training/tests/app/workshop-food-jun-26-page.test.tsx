@@ -127,8 +127,8 @@ describe('WorkshopFoodJun26PollPage', () => {
     await user.click(screen.getByRole('button', { name: POLLS_COMMON.navigation.next }));
 
     const challenge = poll.questions[1];
-    if (!challenge || challenge.type !== 'select') {
-      throw new Error('Expected challenge select question');
+    if (!challenge || challenge.type !== 'multiselect') {
+      throw new Error('Expected challenge multiselect question');
     }
     await user.click(screen.getByLabelText(challenge.options[0] ?? ''));
     await user.click(screen.getByRole('button', { name: POLLS_COMMON.navigation.next }));

@@ -318,21 +318,23 @@ This repository configures Cursor cloud agents with
 `.cursor/environment.json`.
 
 - `install`: adds `~/.local/bin` to PATH (and persists it in `~/.profile` and
-  `~/.bashrc`), installs `pre-commit`, `pytest`, `boto3`, and `semgrep`, then
-  runs:
-  - `cd apps/admin_web && npm ci`
+  `~/.bashrc`), optionally installs AWS CLI v2 when `unzip` is available,
+  installs backend Python dependencies (`backend/requirements.txt` and
+  `backend[test]`) before `pre-commit` and `semgrep`, then runs:
+  - `cd apps/admin_web && npm ci` (and verifies `openapi-typescript` is present)
   - `cd backend/infrastructure && npm ci`
   - `cd backend && python3 scripts/build_lambda_bundle.py --cache-only`
 - `start`: ensures `~/.local/bin` PATH wiring remains in place, installs the
   same Python tools only if missing, then runs:
   - `cd apps/admin_web && ( [ -d node_modules ] || npm ci )`
   - `cd apps/public_www && ( [ -d node_modules ] || npm ci )`
+  - `cd apps/training && ( [ -d node_modules ] || npm ci )`
   - `cd backend/infrastructure && ( [ -d node_modules ] || npm ci )`
   - `cd backend && python3 scripts/build_lambda_bundle.py --cache-only`
 
 Using `npm ci` keeps dependency installation aligned to committed lockfiles
-(`apps/admin_web/package-lock.json`, `apps/public_www/package-lock.json`, and
-`backend/infrastructure/package-lock.json`).
+(`apps/admin_web/package-lock.json`, `apps/public_www/package-lock.json`,
+`apps/training/package-lock.json`, and `backend/infrastructure/package-lock.json`).
 The `--cache-only` bundle step pre-builds a deterministic Python dependency cache
 from `backend/requirements.txt` so later `npm run synth` executions can reuse
 cached Lambda dependencies instead of reinstalling them every run.
