@@ -70,18 +70,18 @@
       "showResults": true
     },
     {
-      "id": "onething",
-      "type": "text",
-      "screen": "Your one thing",
-      "question": "What is ONE thing you'll do differently — starting today?",
-      "showAnswer": false,
-      "showResults": false
-    },
-    {
       "id": "email",
       "type": "email",
       "screen": "Stay connected",
       "question": "Get today's resources and tips by email",
+      "showAnswer": false,
+      "showResults": false
+    },
+    {
+      "id": "onething",
+      "type": "text",
+      "screen": "Your one thing",
+      "question": "What is ONE thing you'll do differently — starting today?",
       "showAnswer": false,
       "showResults": false
     }
