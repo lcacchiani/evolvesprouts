@@ -27,7 +27,13 @@ function parseFormAnswerRow(value: unknown): AdminFormAnswerRow {
     sessionId: typeof row.sessionId === 'string' ? row.sessionId : '',
     questionId: typeof row.questionId === 'string' ? row.questionId : '',
     questionType:
-      row.questionType === 'select' || row.questionType === 'text' || row.questionType === 'email'
+      row.questionType === 'select' ||
+      row.questionType === 'multiselect' ||
+      row.questionType === 'rating' ||
+      row.questionType === 'segmented' ||
+      row.questionType === 'consent' ||
+      row.questionType === 'text' ||
+      row.questionType === 'email'
         ? row.questionType
         : 'text',
     createdAt: typeof row.createdAt === 'string' ? row.createdAt : '',
@@ -35,6 +41,17 @@ function parseFormAnswerRow(value: unknown): AdminFormAnswerRow {
   };
   if (typeof row.selectedOption === 'string') {
     parsed.selectedOption = row.selectedOption;
+  }
+  if (Array.isArray(row.selectedOptions)) {
+    parsed.selectedOptions = row.selectedOptions.filter(
+      (option): option is string => typeof option === 'string' && option.trim().length > 0
+    );
+  }
+  if (typeof row.ratingValue === 'number' && Number.isFinite(row.ratingValue)) {
+    parsed.ratingValue = row.ratingValue;
+  }
+  if (typeof row.booleanAnswer === 'boolean') {
+    parsed.booleanAnswer = row.booleanAnswer;
   }
   if (typeof row.freeText === 'string') {
     parsed.freeText = row.freeText;
@@ -102,8 +119,21 @@ export async function exportAdminFormAnswersCsv(formSlug: string): Promise<Blob>
 }
 
 export function formatFormAnswerValue(row: AdminFormAnswerRow): string {
+  if (typeof row.ratingValue === 'number') {
+    return String(row.ratingValue);
+  }
   if (typeof row.selectedOption === 'string' && row.selectedOption.trim()) {
     return row.selectedOption;
+  }
+  if (Array.isArray(row.selectedOptions) && row.selectedOptions.length > 0) {
+    return row.selectedOptions.join('; ');
+  }
+  if (typeof row.booleanAnswer === 'boolean') {
+    const consentBase = row.booleanAnswer ? 'yes' : 'no';
+    if (row.questionType === 'consent' && typeof row.freeText === 'string' && row.freeText.trim()) {
+      return `${consentBase}; ${row.freeText.trim()}`;
+    }
+    return consentBase;
   }
   if (typeof row.freeText === 'string' && row.freeText.trim()) {
     return row.freeText;

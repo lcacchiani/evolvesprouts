@@ -13,7 +13,15 @@ export function getOrCreateFormSessionId(formSlug: string): string {
   if (existing) {
     return existing;
   }
+  return resetFormSessionId(formSlug);
+}
+
+/** Mint a new session id and persist it for this form slug (shared-device handoff). */
+export function resetFormSessionId(formSlug: string): string {
+  if (typeof window === 'undefined') {
+    return '';
+  }
   const created = crypto.randomUUID();
-  window.sessionStorage.setItem(key, created);
+  window.sessionStorage.setItem(storageKey(formSlug), created);
   return created;
 }

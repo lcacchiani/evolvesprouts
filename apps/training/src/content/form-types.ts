@@ -1,10 +1,15 @@
 import formsCommonJson from '@/content/forms-common.json';
+import workshopExitFeedbackJson from '@/content/forms/workshop-exit-feedback.json';
 import workshopFeedbackJson from '@/content/forms/workshop-feedback.json';
 
 export interface FormQuestionBase {
   id: string;
-  screen: string;
+  /** Eyebrow label; optional on scroll-layout forms. */
+  screen?: string;
   question: string;
+  hint?: string;
+  /** When false, the question may be skipped. Defaults to true. */
+  required?: boolean;
 }
 
 export interface FormSelectQuestion extends FormQuestionBase {
@@ -12,20 +17,85 @@ export interface FormSelectQuestion extends FormQuestionBase {
   options: string[];
 }
 
+export interface FormMultiselectQuestion extends FormQuestionBase {
+  type: 'multiselect';
+  options: string[];
+  /** Maximum number of options the respondent may select. */
+  maxSelections: number;
+}
+
+export interface FormRatingOption {
+  value: number;
+  emoji: string;
+  /** Accessible label when the emoji alone is insufficient. */
+  ariaLabel?: string;
+}
+
+export interface FormRatingQuestion extends FormQuestionBase {
+  type: 'rating';
+  options: FormRatingOption[];
+  minLabel?: string;
+  maxLabel?: string;
+}
+
+export interface FormSegmentedOption {
+  value: string;
+  label: string;
+  variant?: 'yes' | 'maybe' | 'no';
+}
+
+export interface FormSegmentedQuestion extends FormQuestionBase {
+  type: 'segmented';
+  options: FormSegmentedOption[];
+}
+
+export interface FormConsentQuestion extends FormQuestionBase {
+  type: 'consent';
+  consentText: string;
+  followUp?: {
+    placeholder: string;
+    required?: boolean;
+  };
+}
+
 export interface FormTextQuestion extends FormQuestionBase {
   type: 'text';
+  placeholder?: string;
 }
 
 export interface FormEmailQuestion extends FormQuestionBase {
   type: 'email';
+  placeholder?: string;
 }
 
-export type FormQuestion = FormSelectQuestion | FormTextQuestion | FormEmailQuestion;
+export type FormQuestion =
+  | FormSelectQuestion
+  | FormMultiselectQuestion
+  | FormRatingQuestion
+  | FormSegmentedQuestion
+  | FormConsentQuestion
+  | FormTextQuestion
+  | FormEmailQuestion;
+
+export interface FormScrollIntro {
+  subtitle: string;
+  durationLabel: string;
+  brandName?: string;
+  partnerName?: string;
+}
 
 export interface FormContent {
   title: string;
   slug: string;
+  /** `wizard` steps one question at a time; `scroll` shows all questions on one page. */
+  layout?: 'wizard' | 'scroll';
+  intro?: FormScrollIntro;
   questions: FormQuestion[];
+  completion?: {
+    description?: string;
+    allowAnother?: boolean;
+    anotherLabel?: string;
+  };
 }
 
 export interface FormsCommonContent {
@@ -38,11 +108,23 @@ export interface FormsCommonContent {
     title: string;
     description: string;
   };
+  multiselect: {
+    pickUpToTemplate: string;
+    lockedAriaLabel: string;
+  };
+  scroll: {
+    submitLabel: string;
+    brandPartnerSeparator: string;
+    brandName: string;
+    submitAnotherLabel: string;
+    requiredMarker: string;
+  };
   errors: {
     required: string;
     invalidEmail: string;
     persistFailed: string;
     missingApiConfig: string;
+    maxSelectionsTemplate: string;
   };
   a11y: {
     progressTemplate: string;
@@ -52,9 +134,11 @@ export interface FormsCommonContent {
 export const FORMS_COMMON = formsCommonJson as FormsCommonContent;
 
 const workshopFeedback = workshopFeedbackJson as FormContent;
+const workshopExitFeedback = workshopExitFeedbackJson as FormContent;
 
 const FORMS = {
   'workshop-feedback': workshopFeedback,
+  'workshop-exit-feedback': workshopExitFeedback,
 } satisfies Record<string, FormContent>;
 
 export type FormSlug = keyof typeof FORMS;
@@ -78,4 +162,8 @@ export function getFormContent(slug: string): FormContent | null {
 
 export function buildFormPath(slug: FormSlug | string): string {
   return `/forms/${slug}/`;
+}
+
+export function isQuestionRequired(question: FormQuestion): boolean {
+  return question.required !== false;
 }

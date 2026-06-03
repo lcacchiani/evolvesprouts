@@ -1,0 +1,85 @@
+{
+  "title": "Before you go…",
+  "slug": "workshop-exit-feedback",
+  "layout": "scroll",
+  "intro": {
+    "subtitle": "Two minutes of honesty helps us do this better at the next school.",
+    "durationLabel": "about 90 seconds",
+    "partnerName": "Menon Wellness"
+  },
+  "completion": {
+    "description": "That's genuinely useful — it makes the next one better for the families who come after you.",
+    "allowAnother": true,
+    "anotherLabel": "Submit another (shared device)"
+  },
+  "questions": [
+    {
+      "id": "usefulness",
+      "type": "rating",
+      "question": "How useful was this morning?",
+      "hint": "Tap one.",
+      "minLabel": "Not really",
+      "maxLabel": "Loved it",
+      "options": [
+        { "value": 1, "emoji": "😕", "ariaLabel": "Not really" },
+        { "value": 2, "emoji": "😐", "ariaLabel": "Neutral" },
+        { "value": 3, "emoji": "🙂", "ariaLabel": "Somewhat useful" },
+        { "value": 4, "emoji": "😀", "ariaLabel": "Very useful" },
+        { "value": 5, "emoji": "🤩", "ariaLabel": "Loved it" }
+      ],
+      "required": true
+    },
+    {
+      "id": "most-useful",
+      "type": "multiselect",
+      "question": "What was most useful?",
+      "maxSelections": 3,
+      "options": [
+        "Mealtime scripts",
+        "The table scenarios",
+        "Practical tips",
+        "The balanced plate",
+        "Helper alignment",
+        "Division of responsibility"
+      ],
+      "required": false
+    },
+    {
+      "id": "recommend",
+      "type": "segmented",
+      "question": "Would you tell another parent to come?",
+      "options": [
+        { "value": "Yes", "label": "Yes", "variant": "yes" },
+        { "value": "Maybe", "label": "Maybe", "variant": "maybe" },
+        { "value": "No", "label": "No", "variant": "no" }
+      ],
+      "required": true
+    },
+    {
+      "id": "missed",
+      "type": "text",
+      "question": "Anything we missed?",
+      "hint": "A topic we didn't cover, or one you wished we'd spent more time on.",
+      "placeholder": "e.g. More on fussy toddlers, or what to do at restaurants.",
+      "required": false
+    },
+    {
+      "id": "comments",
+      "type": "text",
+      "question": "Anything else you'd like to tell us?",
+      "hint": "Any other comments — warm or critical. We read every one.",
+      "placeholder": "Optional",
+      "required": false
+    },
+    {
+      "id": "share-consent",
+      "type": "consent",
+      "question": "Sharing permission",
+      "consentText": "You may share my comments to help reach more families — shown only as \"Parent of a Year [X] student at FIS\". No name needed.",
+      "followUp": {
+        "placeholder": "Which year is your child in? (optional)"
+      },
+      "required": false
+    }
+  ]
+}

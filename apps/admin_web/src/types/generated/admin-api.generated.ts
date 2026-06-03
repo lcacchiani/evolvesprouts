@@ -7643,8 +7643,11 @@ export interface components {
             sessionId: string;
             questionId: string;
             /** @enum {string} */
-            questionType: "select" | "text" | "email";
+            questionType: "select" | "multiselect" | "rating" | "segmented" | "consent" | "text" | "email";
             selectedOption?: string;
+            selectedOptions?: string[];
+            ratingValue?: number;
+            booleanAnswer?: boolean;
             freeText?: string;
             /** Format: date-time */
             createdAt: string;

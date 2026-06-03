@@ -8035,10 +8035,29 @@ components:
           pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
         questionType:
           type: string
-          enum: [select, text, email]
+          enum:
+            - select
+            - multiselect
+            - rating
+            - segmented
+            - consent
+            - text
+            - email
         selectedOption:
           type: string
           maxLength: 500
+        selectedOptions:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 500
+        ratingValue:
+          type: integer
+          minimum: 1
+          maximum: 10
+        booleanAnswer:
+          type: boolean
         freeText:
           type: string
           maxLength: 4000

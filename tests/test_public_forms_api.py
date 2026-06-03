@@ -73,6 +73,74 @@ def test_put_form_answer_persists_text(api_gateway_event: Any, mock_env: Any) ->
     assert item["freeText"] == "Great workshop"
 
 
+def test_put_form_answer_persists_rating(api_gateway_event: Any, mock_env: Any) -> None:
+    table = MagicMock()
+    table.get_item.return_value = {"Item": None}
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "usefulness",
+        "questionType": "rating",
+        "ratingValue": 4,
+    }
+    resp = pf.handle_public_forms_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/forms/workshop-exit-feedback/answers",
+    )
+    assert resp["statusCode"] == 200
+    item = table.put_item.call_args.kwargs["Item"]
+    assert item["ratingValue"] == 4
+
+
+def test_put_form_answer_persists_multiselect(api_gateway_event: Any, mock_env: Any) -> None:
+    table = MagicMock()
+    table.get_item.return_value = {"Item": None}
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "most-useful",
+        "questionType": "multiselect",
+        "selectedOptions": ["Mealtime scripts", "Practical tips"],
+    }
+    resp = pf.handle_public_forms_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/forms/workshop-exit-feedback/answers",
+    )
+    assert resp["statusCode"] == 200
+    item = table.put_item.call_args.kwargs["Item"]
+    assert item["selectedOptions"] == ["Mealtime scripts", "Practical tips"]
+
+
+def test_put_form_answer_persists_consent(api_gateway_event: Any, mock_env: Any) -> None:
+    table = MagicMock()
+    table.get_item.return_value = {"Item": None}
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "share-consent",
+        "questionType": "consent",
+        "booleanAnswer": True,
+        "freeText": "Year 3",
+    }
+    resp = pf.handle_public_forms_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/forms/workshop-exit-feedback/answers",
+    )
+    assert resp["statusCode"] == 200
+    item = table.put_item.call_args.kwargs["Item"]
+    assert item["booleanAnswer"] is True
+    assert item["freeText"] == "Year 3"
+
+
 def test_put_form_answer_rejects_truefalse(api_gateway_event: Any, mock_env: Any) -> None:
     table = MagicMock()
     store.configure_table_for_tests(table)

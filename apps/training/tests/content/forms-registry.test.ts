@@ -14,6 +14,7 @@ describe('forms registry', () => {
   it('returns registered slugs and resolves content', () => {
     const slugs = getAllFormSlugs();
     expect(slugs).toContain('workshop-feedback');
+    expect(slugs).toContain('workshop-exit-feedback');
     const content = getFormContent('workshop-feedback');
     expect(content?.title).toBeTruthy();
     expect(content?.slug).toBe('workshop-feedback');
