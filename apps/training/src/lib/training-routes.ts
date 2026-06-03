@@ -5,6 +5,7 @@
 export const TRAINING_ROUTES = {
   home: '/',
   formsWorkshopFeedback: '/forms/workshop-feedback',
+  formsWorkshopExitFeedback: '/forms/workshop-exit-feedback',
   pollsWorkshopFoodJun26: '/polls/workshop-food-jun-26',
 } as const;
 

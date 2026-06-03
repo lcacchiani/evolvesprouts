@@ -120,12 +120,38 @@ def _export_form_answers(
             "Question ID",
             "Question Type",
             "Selected Option",
+            "Selected Options",
+            "Rating Value",
+            "Boolean Answer",
             "Free Text",
             "Created At",
             "Updated At",
         ]
     )
     for item in items:
+        selected_options = item.get("selectedOptions")
+        if isinstance(selected_options, list):
+            options_cell = "; ".join(
+                option
+                for option in selected_options
+                if isinstance(option, str) and option.strip()
+            )
+        else:
+            options_cell = ""
+        rating_value = item.get("ratingValue")
+        rating_cell = (
+            str(int(rating_value))
+            if isinstance(rating_value, (int, float)) and not isinstance(rating_value, bool)
+            else ""
+        )
+        boolean_answer = item.get("booleanAnswer")
+        boolean_cell = (
+            "true"
+            if boolean_answer is True
+            else "false"
+            if boolean_answer is False
+            else ""
+        )
         writer.writerow(
             [
                 item.get("formSlug") or form_slug,
@@ -133,6 +159,9 @@ def _export_form_answers(
                 item.get("questionId") or "",
                 item.get("questionType") or "",
                 item.get("selectedOption") or "",
+                options_cell,
+                rating_cell,
+                boolean_cell,
                 item.get("freeText") or "",
                 item.get("createdAt") or "",
                 item.get("updatedAt") or "",

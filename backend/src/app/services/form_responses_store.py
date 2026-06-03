@@ -63,6 +63,9 @@ def upsert_form_answer(
     question_id: str,
     question_type: str,
     selected_option: str | None = None,
+    selected_options: list[str] | None = None,
+    boolean_answer: bool | None = None,
+    rating_value: int | None = None,
     free_text: str | None = None,
 ) -> dict[str, Any]:
     """Persist one question answer; overwrites prior value for the same session/question."""
@@ -82,6 +85,12 @@ def upsert_form_answer(
     }
     if selected_option is not None:
         item["selectedOption"] = selected_option
+    if selected_options is not None:
+        item["selectedOptions"] = selected_options
+    if boolean_answer is not None:
+        item["booleanAnswer"] = boolean_answer
+    if rating_value is not None:
+        item["ratingValue"] = rating_value
     if free_text is not None:
         item["freeText"] = free_text
 
@@ -188,6 +197,19 @@ def serialize_form_answer_item(item: Mapping[str, Any]) -> dict[str, Any]:
     selected_option = item.get("selectedOption")
     if isinstance(selected_option, str):
         row["selectedOption"] = selected_option
+    selected_options = item.get("selectedOptions")
+    if isinstance(selected_options, list):
+        row["selectedOptions"] = [
+            option
+            for option in selected_options
+            if isinstance(option, str) and option.strip()
+        ]
+    boolean_answer = item.get("booleanAnswer")
+    if isinstance(boolean_answer, bool):
+        row["booleanAnswer"] = boolean_answer
+    rating_value = item.get("ratingValue")
+    if isinstance(rating_value, (int, float)) and not isinstance(rating_value, bool):
+        row["ratingValue"] = int(rating_value)
     free_text = item.get("freeText")
     if isinstance(free_text, str):
         row["freeText"] = free_text

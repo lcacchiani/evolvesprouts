@@ -1,3 +1,4 @@
+import { FormScrollSurvey } from '@/components/forms/form-scroll-survey';
 import { FormWizard } from '@/components/forms/form-wizard';
 import type { FormContent, FormsCommonContent } from '@/content/form-types';
 import { getPublicWwwHomeUrl } from '@/lib/public-www-url';
@@ -35,9 +36,21 @@ export function FormPage({ form, common }: FormPageProps) {
             logo
           )}
         </div>
-        <h1 className='es-type-title text-2xl'>{form.title}</h1>
+        <h1
+          className={
+            form.layout === 'scroll'
+              ? 'form-scroll-title text-3xl font-extrabold'
+              : 'es-type-title text-2xl'
+          }
+        >
+          {form.title}
+        </h1>
       </header>
-      <FormWizard form={form} common={common} />
+      {form.layout === 'scroll' ? (
+        <FormScrollSurvey form={form} common={common} />
+      ) : (
+        <FormWizard form={form} common={common} />
+      )}
     </main>
   );
 }

@@ -22,6 +22,9 @@ _WWW_FORM_API_PREFIX = "/www/v1/forms/"
 
 _MAX_SELECTED_OPTION = 500
 _MAX_FREE_TEXT = 4000
+_MAX_SELECTED_OPTIONS = 20
+_MIN_RATING_VALUE = 1
+_MAX_RATING_VALUE = 10
 
 _QUESTION_ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _SESSION_ID_PATTERN = re.compile(
@@ -29,7 +32,10 @@ _SESSION_ID_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-_SELECT_TYPES = frozenset({"select"})
+_SELECT_TYPES = frozenset({"select", "segmented"})
+_MULTISELECT_TYPES = frozenset({"multiselect"})
+_RATING_TYPES = frozenset({"rating"})
+_CONSENT_TYPES = frozenset({"consent"})
 _TEXT_TYPES = frozenset({"text"})
 _EMAIL_TYPES = frozenset({"email"})
 
@@ -142,7 +148,55 @@ def _validate_put_body(
         return {
             **base,
             "selected_option": selected_option,
+            "selected_options": None,
+            "boolean_answer": None,
+            "rating_value": None,
             "free_text": None,
+        }
+
+    if question_type in _MULTISELECT_TYPES:
+        selected_options = _require_selected_options(body.get("selectedOptions"))
+        return {
+            **base,
+            "selected_option": None,
+            "selected_options": selected_options,
+            "boolean_answer": None,
+            "rating_value": None,
+            "free_text": None,
+        }
+
+    if question_type in _RATING_TYPES:
+        rating_value = _require_rating_value(body.get("ratingValue"))
+        return {
+            **base,
+            "selected_option": None,
+            "selected_options": None,
+            "boolean_answer": None,
+            "rating_value": rating_value,
+            "free_text": None,
+        }
+
+    if question_type in _CONSENT_TYPES:
+        boolean_answer = _require_boolean(body.get("booleanAnswer"))
+        free_text_raw = body.get("freeText")
+        free_text: str | None = None
+        if free_text_raw is not None:
+            if not isinstance(free_text_raw, str):
+                raise ValidationError("freeText must be a string")
+            normalized_text = free_text_raw.strip()
+            if normalized_text:
+                if len(normalized_text) > _MAX_FREE_TEXT:
+                    raise ValidationError(
+                        f"freeText must be at most {_MAX_FREE_TEXT} characters"
+                    )
+                free_text = normalized_text
+        return {
+            **base,
+            "selected_option": None,
+            "selected_options": None,
+            "boolean_answer": boolean_answer,
+            "rating_value": None,
+            "free_text": free_text,
         }
 
     free_text = _require_non_empty_string(body.get("freeText"), field="freeText")
@@ -158,8 +212,52 @@ def _validate_put_body(
     return {
         **base,
         "selected_option": None,
+        "selected_options": None,
+        "boolean_answer": None,
+        "rating_value": None,
         "free_text": free_text,
     }
+
+
+def _require_selected_options(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        raise ValidationError("selectedOptions is required")
+    if not value:
+        raise ValidationError("selectedOptions must contain at least one option")
+    if len(value) > _MAX_SELECTED_OPTIONS:
+        raise ValidationError(
+            f"selectedOptions must contain at most {_MAX_SELECTED_OPTIONS} options"
+        )
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for raw in value:
+        if not isinstance(raw, str):
+            raise ValidationError("selectedOptions must contain strings")
+        option = raw.strip()
+        if not option:
+            raise ValidationError("selectedOptions must not contain empty strings")
+        if len(option) > _MAX_SELECTED_OPTION:
+            raise ValidationError(
+                "each selectedOptions entry must be at most "
+                f"{_MAX_SELECTED_OPTION} characters"
+            )
+        if option in seen:
+            continue
+        seen.add(option)
+        normalized.append(option)
+    if not normalized:
+        raise ValidationError("selectedOptions must contain at least one option")
+    return normalized
+
+
+def _require_rating_value(value: Any) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValidationError("ratingValue must be an integer")
+    if value < _MIN_RATING_VALUE or value > _MAX_RATING_VALUE:
+        raise ValidationError(
+            f"ratingValue must be between {_MIN_RATING_VALUE} and {_MAX_RATING_VALUE}"
+        )
+    return value
 
 
 def _require_session_id(value: Any) -> str:
@@ -184,10 +282,26 @@ def _require_question_type(value: Any) -> str:
     if not isinstance(value, str):
         raise ValidationError("questionType is required")
     normalized = value.strip().lower()
-    allowed = _SELECT_TYPES | _TEXT_TYPES | _EMAIL_TYPES
+    allowed = (
+        _SELECT_TYPES
+        | _MULTISELECT_TYPES
+        | _RATING_TYPES
+        | _CONSENT_TYPES
+        | _TEXT_TYPES
+        | _EMAIL_TYPES
+    )
     if normalized not in allowed:
-        raise ValidationError("questionType must be select, text, or email")
+        raise ValidationError(
+            "questionType must be select, multiselect, rating, segmented, "
+            "consent, text, or email"
+        )
     return normalized
+
+
+def _require_boolean(value: Any) -> bool:
+    if not isinstance(value, bool):
+        raise ValidationError("booleanAnswer must be a boolean")
+    return value
 
 
 def _require_non_empty_string(value: Any, *, field: str) -> str:
