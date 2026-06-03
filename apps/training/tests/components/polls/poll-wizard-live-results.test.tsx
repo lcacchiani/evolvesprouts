@@ -48,7 +48,7 @@ describe('PollWizard live results', () => {
       ).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('button', { name: 'False' }));
+    await user.click(screen.getByRole('radio', { name: 'False' }));
     await user.click(screen.getByRole('button', { name: 'Finish' }));
 
     await waitFor(() => {
@@ -58,5 +58,55 @@ describe('PollWizard live results', () => {
     expect(
       screen.queryByText('Children must finish everything on their plate.'),
     ).toBeNull();
+  });
+
+  it('marks the question complete after continuing from live results', async () => {
+    const poll = getPollContent('workshop-food-jun-26');
+    if (!poll) {
+      throw new Error('expected poll fixture');
+    }
+
+    vi.spyOn(pollsApi, 'fetchPollControlState').mockResolvedValue({
+      pollSlug: poll.slug,
+      enabledQuestionIds: ['myth1'],
+    });
+    vi.spyOn(pollsApi, 'fetchPollSessionAnswers').mockResolvedValue({
+      pollSlug: poll.slug,
+      sessionId: '550e8400-e29b-41d4-a716-446655440000',
+      answers: [],
+    });
+    vi.spyOn(pollsApi, 'persistPollAnswer').mockResolvedValue();
+    vi.spyOn(pollsApi, 'fetchPollQuestionResults').mockResolvedValue({
+      pollSlug: poll.slug,
+      questionId: 'myth1',
+      questionType: 'truefalse',
+      totalResponses: 1,
+      buckets: [
+        { label: 'true', count: 0 },
+        { label: 'false', count: 1 },
+      ],
+    });
+
+    const user = userEvent.setup();
+    render(<PollWizard poll={poll} common={POLLS_COMMON} />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Children must finish everything on their plate.'),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('radio', { name: 'False' }));
+    await user.click(screen.getByRole('button', { name: 'Finish' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Room results')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(POLLS_COMMON.completion.title)).toBeInTheDocument();
+    });
   });
 });

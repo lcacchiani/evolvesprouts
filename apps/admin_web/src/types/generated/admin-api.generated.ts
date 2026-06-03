@@ -2330,6 +2330,8 @@ export interface paths {
                     service_id?: string;
                     instance_id?: string;
                     status?: "issued" | "voided";
+                    limit?: number;
+                    cursor?: string;
                 };
                 header?: never;
                 path?: never;
@@ -7669,8 +7671,9 @@ export interface components {
             sessionId: string;
             questionId: string;
             /** @enum {string} */
-            questionType: "select" | "truefalse" | "text" | "email";
+            questionType: "select" | "multiselect" | "truefalse" | "text" | "email";
             selectedOption?: string;
+            selectedOptions?: string[];
             booleanAnswer?: boolean;
             freeText?: string;
             /** Format: date-time */
@@ -7831,7 +7834,8 @@ export interface components {
         CompletionCertificateListResponse: {
             items: components["schemas"]["CompletionCertificate"][];
             next_cursor?: string | null;
-            total_count: number;
+            /** @description Omitted when the total is unknown; do not treat page length as a total. */
+            total_count?: number | null;
         };
         CompletionCertificateResponse: {
             certificate: components["schemas"]["CompletionCertificate"];

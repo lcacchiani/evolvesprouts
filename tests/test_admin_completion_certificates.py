@@ -12,7 +12,8 @@ from app.api.admin_completion_certificates import (
     _parse_issue_payload,
     handle_admin_completion_certificates_request,
 )
-from app.exceptions import ValidationError
+from app.exceptions import AppError, ValidationError
+from app.services.customer_billing import store_pdf_in_assets_bucket
 from app.services.completion_certificate_pdf import (
     build_certificate_body_text,
     render_completion_certificate_pdf,
@@ -27,6 +28,36 @@ def test_build_certificate_body_text_with_partner() -> None:
     )
     assert "Evolve Sprouts × Parachute" in text
     assert "Montessori-informed" in text
+
+
+def test_render_completion_certificate_pdf_escapes_special_characters() -> None:
+    pdf = render_completion_certificate_pdf(
+        CompletionCertificatePdfContext(
+            recipient_display_name='Alex & Co <test>',
+            program_title='Program <title> & more',
+            participation_date=date(2026, 6, 14),
+            trading_name="Evolve Sprouts",
+            partner_display_name=None,
+            partner_signer_name=None,
+            es_founder_name="Ida De Gregorio",
+            body_text=build_certificate_body_text(
+                trading_name="Evolve Sprouts",
+                partner_display_name=None,
+            ),
+        )
+    )
+    assert pdf.startswith(b"%PDF")
+
+
+def test_store_pdf_requires_assets_bucket_when_required(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ASSETS_BUCKET_NAME", raising=False)
+    with pytest.raises(AppError, match="Assets bucket is not configured"):
+        store_pdf_in_assets_bucket(
+            s3_key="completion-certificates/test.pdf",
+            body=b"%PDF-1.4",
+            content_type="application/pdf",
+            require_upload=True,
+        )
 
 
 def test_render_completion_certificate_pdf_returns_bytes() -> None:

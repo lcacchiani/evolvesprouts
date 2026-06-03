@@ -26,7 +26,7 @@ export function FormWizard({ form, common }: FormWizardProps) {
     Record<string, FormAnswerState>
   >({});
 
-  const sessionId = useMemo(() => getOrCreateFormSessionId(), []);
+  const sessionId = useMemo(() => getOrCreateFormSessionId(form.slug), [form.slug]);
   const questions = form.questions;
   const totalSteps = questions.length;
   const resolvedStepIndex = totalSteps === 0 ? 0 : Math.min(stepIndex, totalSteps - 1);

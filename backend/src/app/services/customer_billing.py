@@ -46,9 +46,22 @@ def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def store_pdf_in_assets_bucket(*, s3_key: str, body: bytes, content_type: str) -> None:
+def store_pdf_in_assets_bucket(
+    *,
+    s3_key: str,
+    body: bytes,
+    content_type: str,
+    require_upload: bool = False,
+) -> None:
     bucket = os.getenv("ASSETS_BUCKET_NAME", "").strip()
     if not bucket:
+        if require_upload:
+            from app.exceptions import AppError
+
+            raise AppError(
+                "Assets bucket is not configured",
+                status_code=500,
+            )
         logger.warning("ASSETS_BUCKET_NAME not set; skipping PDF upload")
         return
     get_s3_client().put_object(

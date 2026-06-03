@@ -172,10 +172,10 @@ def render_completion_certificate_pdf(ctx: CompletionCertificatePdfContext) -> b
     story.append(Spacer(1, 8 * mm))
     story.append(Paragraph(_header_brand_line(ctx), brand_style))
     story.append(Paragraph("CERTIFICATE OF COMPLETION", title_style))
-    story.append(Paragraph(ctx.program_title, program_style))
+    story.append(Paragraph(_escape_xml(ctx.program_title), program_style))
     story.append(Paragraph("This certifies that", body_style))
-    story.append(Paragraph(ctx.recipient_display_name, recipient_style))
-    story.append(Paragraph(ctx.body_text, body_style))
+    story.append(Paragraph(_escape_xml(ctx.recipient_display_name), recipient_style))
+    story.append(Paragraph(_escape_xml(ctx.body_text), body_style))
     story.append(Spacer(1, 6 * mm))
 
     sig_blocks: list[str] = []

@@ -72,20 +72,6 @@ export function mergeSessionAnswers(
   return merged;
 }
 
-export function findFirstUnansweredQuestionIndex(
-  questions: PollQuestion[],
-  answersByQuestionId: Record<string, QuestionAnswerState>,
-): number {
-  const index = questions.findIndex((question) => {
-    const answer = answersByQuestionId[question.id] ?? emptyAnswerState();
-    return !isAnswerValid(question, answer);
-  });
-  if (index < 0) {
-    return Math.max(0, questions.length - 1);
-  }
-  return index;
-}
-
 export function hasUnlockablePollQuestions(
   allQuestions: PollQuestion[],
   enabledQuestionIds: ReadonlySet<string>,

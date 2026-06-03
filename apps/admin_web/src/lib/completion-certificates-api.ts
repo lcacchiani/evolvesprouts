@@ -13,6 +13,7 @@ export interface CompletionCertificateListParams {
   instanceId?: string;
   status?: ApiSchemas['CompletionCertificateStatus'];
   limit?: number;
+  cursor?: string;
 }
 
 export interface CompletionCertificateDraftPayload {
@@ -38,7 +39,11 @@ function toIssueBody(payload: CompletionCertificateDraftPayload): ApiSchemas['Is
 export async function listCompletionCertificates(
   params: CompletionCertificateListParams = {},
   signal?: AbortSignal,
-): Promise<{ items: CompletionCertificate[]; nextCursor: string | null; totalCount: number }> {
+): Promise<{
+  items: CompletionCertificate[];
+  nextCursor: string | null;
+  totalCount?: number;
+}> {
   const q = new URLSearchParams();
   if (params.contactId?.trim()) {
     q.set('contact_id', params.contactId.trim());
@@ -55,6 +60,9 @@ export async function listCompletionCertificates(
   if (typeof params.limit === 'number') {
     q.set('limit', String(params.limit));
   }
+  if (params.cursor?.trim()) {
+    q.set('cursor', params.cursor.trim());
+  }
   const qs = q.toString();
   const payload = await adminApiRequest<ApiSchemas['CompletionCertificateListResponse']>({
     endpointPath: qs
@@ -67,7 +75,7 @@ export async function listCompletionCertificates(
   return {
     items: Array.isArray(root.items) ? root.items : [],
     nextCursor: root.next_cursor ?? null,
-    totalCount: root.total_count ?? 0,
+    totalCount: root.total_count ?? undefined,
   };
 }
 

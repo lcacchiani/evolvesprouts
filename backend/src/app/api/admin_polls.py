@@ -120,6 +120,7 @@ def _export_poll_answers(
             "Question ID",
             "Question Type",
             "Selected Option",
+            "Selected Options",
             "Boolean Answer",
             "Free Text",
             "Created At",
@@ -133,7 +134,8 @@ def _export_poll_answers(
                 item.get("sessionId") or "",
                 item.get("questionId") or "",
                 item.get("questionType") or "",
-                _format_selected_options_csv(item),
+                item.get("selectedOption") or "",
+                _format_multiselect_options_csv(item),
                 _format_boolean_csv(item.get("booleanAnswer")),
                 item.get("freeText") or "",
                 item.get("createdAt") or "",
@@ -155,7 +157,7 @@ def _export_poll_answers(
     }
 
 
-def _format_selected_options_csv(item: Mapping[str, Any]) -> str:
+def _format_multiselect_options_csv(item: Mapping[str, Any]) -> str:
     selected_options = item.get("selectedOptions")
     if isinstance(selected_options, list):
         labels = [
@@ -165,9 +167,6 @@ def _format_selected_options_csv(item: Mapping[str, Any]) -> str:
         ]
         if labels:
             return "; ".join(labels)
-    selected_option = item.get("selectedOption")
-    if isinstance(selected_option, str):
-        return selected_option
     return ""
 
 

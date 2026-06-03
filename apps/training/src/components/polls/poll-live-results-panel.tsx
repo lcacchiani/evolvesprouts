@@ -105,6 +105,7 @@ export function PollLiveResultsPanel({
               className='poll-live-results-bar h-3 w-full overflow-hidden rounded-full'
               value={bucket.count}
               max={maxCount}
+              aria-label={`${resolveBucketLabel(question, bucket.label, common)}: ${formatCountLabel(common.liveResults.countTemplate, bucket.count)}`}
             />
           </li>
         ))}

@@ -248,7 +248,9 @@ function PollWizardActiveStep({
 
   return (
     <section className='mx-auto flex w-full max-w-xl flex-col gap-6'>
-      <p className='es-text-muted text-sm'>{progressLabel}</p>
+      <p className='es-text-muted text-sm' aria-label={progressLabel}>
+        {progressLabel}
+      </p>
       {showingFeedback ? (
         <PollAnswerPanel question={question} common={common} answer={answer} />
       ) : null}
@@ -299,9 +301,7 @@ function PollWizardActiveStep({
         setStepPhase('liveResults');
         return;
       }
-      if (!isLastStep) {
-        onAdvance();
-      }
+      finishQuestionStep();
       return;
     }
 

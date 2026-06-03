@@ -125,6 +125,10 @@ def upsert_poll_answer(
     }
 
 
+def _is_poll_answer_item(item: Mapping[str, Any]) -> bool:
+    return item.get("sk") != _SK_CONTROL
+
+
 def aggregate_poll_question_results(
     *,
     poll_slug: str,
@@ -134,7 +138,11 @@ def aggregate_poll_question_results(
     """Return live aggregate counts for one poll question across all sessions."""
     table = _get_table()
     items = _query_poll_items(table=table, poll_slug=poll_slug)
-    matching = [item for item in items if item.get("questionId") == question_id]
+    matching = [
+        item
+        for item in items
+        if _is_poll_answer_item(item) and item.get("questionId") == question_id
+    ]
     buckets: list[_PollResultBucket]
 
     responses: list[str] = []
@@ -308,6 +316,8 @@ def list_poll_summaries() -> list[dict[str, Any]]:
         while True:
             response = table.scan(**scan_kwargs)
             for item in response.get("Items", []):
+                if not _is_poll_answer_item(item):
+                    continue
                 slug = _extract_poll_slug_from_item(item)
                 if slug:
                     slug_counts[slug] += 1
@@ -375,7 +385,8 @@ def list_poll_answers(*, poll_slug: str) -> list[dict[str, Any]]:
             status_code=500,
         ) from None
 
-    serialized = [serialize_poll_answer_item(item) for item in items]
+    answer_items = [item for item in items if _is_poll_answer_item(item)]
+    serialized = [serialize_poll_answer_item(item) for item in answer_items]
     serialized.sort(
         key=lambda row: (
             str(row.get("updatedAt") or ""),
@@ -433,12 +444,13 @@ def clear_poll_answers(*, poll_slug: str) -> int:
             status_code=500,
         ) from None
 
-    if not items:
+    answer_items = [item for item in items if _is_poll_answer_item(item)]
+    if not answer_items:
         return 0
 
     try:
         with table.batch_writer() as batch:
-            for item in items:
+            for item in answer_items:
                 batch.delete_item(
                     Key={
                         "pk": item["pk"],
@@ -455,7 +467,7 @@ def clear_poll_answers(*, poll_slug: str) -> int:
             status_code=500,
         ) from None
 
-    return len(items)
+    return len(answer_items)
 
 
 def _extract_poll_slug_from_item(item: Mapping[str, Any]) -> str | None:
