@@ -129,7 +129,11 @@ export function formatFormAnswerValue(row: AdminFormAnswerRow): string {
     return row.selectedOptions.join('; ');
   }
   if (typeof row.booleanAnswer === 'boolean') {
-    return row.booleanAnswer ? 'yes' : 'no';
+    const consentBase = row.booleanAnswer ? 'yes' : 'no';
+    if (row.questionType === 'consent' && typeof row.freeText === 'string' && row.freeText.trim()) {
+      return `${consentBase}; ${row.freeText.trim()}`;
+    }
+    return consentBase;
   }
   if (typeof row.freeText === 'string' && row.freeText.trim()) {
     return row.freeText;

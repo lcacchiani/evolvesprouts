@@ -16,7 +16,6 @@
     {
       "id": "usefulness",
       "type": "rating",
-      "number": 1,
       "question": "How useful was this morning?",
       "hint": "Tap one.",
       "minLabel": "Not really",
@@ -33,9 +32,7 @@
     {
       "id": "most-useful",
       "type": "multiselect",
-      "number": 2,
       "question": "What was most useful?",
-      "hint": "Pick up to 3.",
       "maxSelections": 3,
       "options": [
         "Mealtime scripts",
@@ -50,7 +47,6 @@
     {
       "id": "recommend",
       "type": "segmented",
-      "number": 3,
       "question": "Would you tell another parent to come?",
       "options": [
         { "value": "Yes", "label": "Yes", "variant": "yes" },
@@ -62,7 +58,6 @@
     {
       "id": "missed",
       "type": "text",
-      "number": 4,
       "question": "Anything we missed?",
       "hint": "A topic we didn't cover, or one you wished we'd spent more time on.",
       "placeholder": "e.g. More on fussy toddlers, or what to do at restaurants.",
@@ -71,7 +66,6 @@
     {
       "id": "comments",
       "type": "text",
-      "number": 5,
       "question": "Anything else you'd like to tell us?",
       "hint": "Any other comments — warm or critical. We read every one.",
       "placeholder": "Optional",

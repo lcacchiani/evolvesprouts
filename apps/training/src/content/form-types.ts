@@ -82,6 +82,7 @@ export type FormQuestion =
 export interface FormScrollIntro {
   subtitle: string;
   durationLabel: string;
+  brandName?: string;
   partnerName?: string;
 }
 
@@ -116,7 +117,9 @@ export interface FormsCommonContent {
   scroll: {
     submitLabel: string;
     brandPartnerSeparator: string;
+    brandName: string;
     submitAnotherLabel: string;
+    requiredMarker: string;
   };
   errors: {
     required: string;
@@ -127,8 +130,6 @@ export interface FormsCommonContent {
   };
   a11y: {
     progressTemplate: string;
-    ratingGroupTemplate: string;
-    consentCheckboxLabel: string;
   };
 }
 

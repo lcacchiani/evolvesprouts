@@ -1,4 +1,4 @@
-import type { FormQuestion } from '@/content/form-types';
+import type { FormQuestion, FormsCommonContent } from '@/content/form-types';
 import { isQuestionRequired } from '@/content/form-types';
 
 export interface FormAnswerState {
@@ -36,6 +36,9 @@ export function isFormAnswerValid(question: FormQuestion, answer: FormAnswerStat
     return answer.selectedOption.trim().length > 0;
   }
   if (question.type === 'multiselect') {
+    if (answer.selectedOptions.length > question.maxSelections) {
+      return false;
+    }
     return answer.selectedOptions.length > 0;
   }
   if (question.type === 'rating') {
@@ -76,6 +79,34 @@ function isValidEmail(value: string): boolean {
     return false;
   }
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+}
+
+export function getFormValidationError(
+  question: FormQuestion,
+  answer: FormAnswerState,
+  common: Pick<FormsCommonContent, 'errors'>,
+): string | null {
+  if (question.type === 'multiselect') {
+    if (answer.selectedOptions.length > question.maxSelections) {
+      return common.errors.maxSelectionsTemplate.replace(
+        '{max}',
+        String(question.maxSelections),
+      );
+    }
+    if (isQuestionRequired(question) && answer.selectedOptions.length === 0) {
+      return common.errors.required;
+    }
+    return null;
+  }
+
+  if (isFormAnswerValid(question, answer)) {
+    return null;
+  }
+
+  if (question.type === 'email') {
+    return common.errors.invalidEmail;
+  }
+  return common.errors.required;
 }
 
 export function toggleMultiselectOption(

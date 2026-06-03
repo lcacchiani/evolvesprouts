@@ -1,6 +1,7 @@
 'use client';
 
 import type { FormQuestion, FormsCommonContent } from '@/content/form-types';
+import { isQuestionRequired } from '@/content/form-types';
 import type { FormAnswerState } from '@/components/forms/form-answer-state';
 import { toggleMultiselectOption } from '@/components/forms/form-answer-state';
 
@@ -10,6 +11,8 @@ export interface FormQuestionFieldProps {
   answer: FormAnswerState;
   onAnswerChange: (patch: Partial<FormAnswerState>) => void;
   variant?: 'wizard' | 'scroll';
+  /** 1-based display index for scroll layout (derived from question order). */
+  displayNumber?: number;
 }
 
 export function FormQuestionField({
@@ -18,9 +21,19 @@ export function FormQuestionField({
   answer,
   onAnswerChange,
   variant = 'wizard',
+  displayNumber,
 }: FormQuestionFieldProps) {
   const headingId = `${question.id}-heading`;
   const isScroll = variant === 'scroll';
+  const required = isQuestionRequired(question);
+  const numberPrefix =
+    displayNumber !== undefined
+      ? displayNumber
+      : question.number !== undefined
+        ? question.number
+        : undefined;
+
+  const resolvedHint = resolveQuestionHint(question, common);
 
   return (
     <div className={`flex w-full flex-col ${isScroll ? 'gap-3' : 'gap-4'}`}>
@@ -34,14 +47,20 @@ export function FormQuestionField({
               : 'es-text-heading text-xl font-semibold'
           }
         >
-          {question.number !== undefined ? (
-            <span className='form-scroll-question-number'>{question.number}. </span>
+          {numberPrefix !== undefined ? (
+            <span className='form-scroll-question-number'>{numberPrefix}. </span>
           ) : null}
           {question.question}
+          {required && isScroll ? (
+            <span className='form-scroll-required-marker text-sm font-medium'>
+              {' '}
+              ({common.scroll.requiredMarker})
+            </span>
+          ) : null}
         </h2>
-        {question.hint ? (
+        {resolvedHint ? (
           <p className={isScroll ? 'form-scroll-hint text-sm' : 'es-text-muted text-sm'}>
-            {question.hint}
+            {resolvedHint}
           </p>
         ) : null}
       </div>
@@ -49,7 +68,6 @@ export function FormQuestionField({
         <RatingField
           question={question}
           headingId={headingId}
-          common={common}
           answer={answer}
           onAnswerChange={onAnswerChange}
         />
@@ -76,7 +94,6 @@ export function FormQuestionField({
         <ConsentField
           question={question}
           headingId={headingId}
-          common={common}
           answer={answer}
           onAnswerChange={onAnswerChange}
         />
@@ -129,43 +146,51 @@ export function FormQuestionField({
   );
 }
 
+function resolveQuestionHint(question: FormQuestion, common: FormsCommonContent): string | undefined {
+  if (question.hint) {
+    return question.hint;
+  }
+  if (question.type === 'multiselect') {
+    return common.multiselect.pickUpToTemplate.replace('{max}', String(question.maxSelections));
+  }
+  return undefined;
+}
+
 function RatingField({
   question,
   headingId,
-  common,
   answer,
   onAnswerChange,
 }: {
   question: Extract<FormQuestion, { type: 'rating' }>;
   headingId: string;
-  common: FormsCommonContent;
   answer: FormAnswerState;
   onAnswerChange: (patch: Partial<FormAnswerState>) => void;
 }) {
-  const groupLabel = common.a11y.ratingGroupTemplate.replace('{question}', question.question);
-
   return (
-    <div className='flex flex-col gap-2'>
-      <div
-        role='radiogroup'
-        aria-labelledby={headingId}
-        aria-label={groupLabel}
-        className='form-rating-row'
-      >
+    <fieldset aria-labelledby={headingId} className='flex flex-col gap-2 border-0 p-0'>
+      <div className='form-rating-row'>
         {question.options.map((option) => {
           const isSelected = answer.ratingValue === option.value;
+          const inputId = `${question.id}-rating-${option.value}`;
           return (
-            <button
+            <label
               key={option.value}
-              type='button'
-              role='radio'
-              aria-checked={isSelected}
-              aria-label={option.ariaLabel ?? `Rating ${option.value}`}
-              className={`form-rating-option es-focus-ring ${isSelected ? 'form-rating-option--selected' : ''}`}
-              onClick={() => onAnswerChange({ ratingValue: option.value })}
+              htmlFor={inputId}
+              className={`form-rating-option ${isSelected ? 'form-rating-option--selected' : ''}`}
             >
+              <input
+                id={inputId}
+                type='radio'
+                name={`${question.id}-rating`}
+                className='sr-only'
+                checked={isSelected}
+                value={option.value}
+                onChange={() => onAnswerChange({ ratingValue: option.value })}
+              />
               <span aria-hidden='true'>{option.emoji}</span>
-            </button>
+              <span className='sr-only'>{option.ariaLabel ?? `Rating ${option.value}`}</span>
+            </label>
           );
         })}
       </div>
@@ -175,7 +200,7 @@ function RatingField({
           <span>{question.maxLabel ?? ''}</span>
         </div>
       ) : null}
-    </div>
+    </fieldset>
   );
 }
 
@@ -198,11 +223,7 @@ function MultiselectField({
 
   if (isScroll) {
     return (
-      <div
-        role='group'
-        aria-labelledby={headingId}
-        className='form-chip-row'
-      >
+      <div role='group' aria-labelledby={headingId} className='form-chip-row'>
         {question.options.map((option) => {
           const isSelected = answer.selectedOptions.includes(option);
           const isLocked = atMax && !isSelected;
@@ -285,49 +306,55 @@ function SegmentedField({
   onAnswerChange: (patch: Partial<FormAnswerState>) => void;
 }) {
   return (
-    <div role='radiogroup' aria-labelledby={headingId} className='form-segmented-row'>
+    <fieldset aria-labelledby={headingId} className='form-segmented-row border-0 p-0'>
       {question.options.map((option) => {
         const isSelected = answer.selectedOption === option.value;
         const variantClass = option.variant ? `form-segmented-option--${option.variant}` : '';
+        const inputId = `${question.id}-segmented-${slugifyOption(option.value)}`;
         return (
-          <button
+          <label
             key={option.value}
-            type='button'
-            role='radio'
-            aria-checked={isSelected}
-            className={`form-segmented-option es-focus-ring ${variantClass} ${isSelected ? 'form-segmented-option--selected' : ''}`}
-            onClick={() => onAnswerChange({ selectedOption: option.value })}
+            htmlFor={inputId}
+            className={`form-segmented-option ${variantClass} ${isSelected ? 'form-segmented-option--selected' : ''}`}
           >
+            <input
+              id={inputId}
+              type='radio'
+              name={`${question.id}-segmented`}
+              className='sr-only'
+              checked={isSelected}
+              value={option.value}
+              onChange={() => onAnswerChange({ selectedOption: option.value })}
+            />
             {option.label}
-          </button>
+          </label>
         );
       })}
-    </div>
+    </fieldset>
   );
 }
 
 function ConsentField({
   question,
   headingId,
-  common,
   answer,
   onAnswerChange,
 }: {
   question: Extract<FormQuestion, { type: 'consent' }>;
   headingId: string;
-  common: FormsCommonContent;
   answer: FormAnswerState;
   onAnswerChange: (patch: Partial<FormAnswerState>) => void;
 }) {
   const isChecked = answer.trueFalseValue === true;
   const showFollowUp = Boolean(question.followUp) && isChecked;
+  const consentTextId = `${question.id}-consent-text`;
 
   return (
     <div className='flex flex-col gap-3'>
       <button
         type='button'
         className='form-consent-row es-focus-ring'
-        aria-labelledby={headingId}
+        aria-labelledby={`${headingId} ${consentTextId}`}
         aria-pressed={isChecked}
         onClick={() =>
           onAnswerChange({
@@ -342,7 +369,10 @@ function ConsentField({
         >
           {isChecked ? <span className='form-consent-checkmark'>✓</span> : null}
         </span>
-        <span className='form-consent-text text-left text-sm leading-snug'>
+        <span
+          id={consentTextId}
+          className='form-consent-text text-left text-sm leading-snug'
+        >
           {question.consentText}
         </span>
       </button>
@@ -350,7 +380,7 @@ function ConsentField({
         <input
           type='text'
           className='es-focus-ring es-form-input w-full'
-          aria-label={common.a11y.consentCheckboxLabel}
+          aria-label={question.followUp.placeholder}
           placeholder={question.followUp.placeholder}
           value={answer.freeText}
           onChange={(event) => onAnswerChange({ freeText: event.target.value })}

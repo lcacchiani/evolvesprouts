@@ -1,16 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import {
   emptyFormAnswerState,
-  isFormAnswerValid,
+  getFormValidationError,
   type FormAnswerState,
 } from '@/components/forms/form-answer-state';
 import { FormQuestionField } from '@/components/forms/form-question-field';
 import type { FormContent, FormQuestion, FormsCommonContent } from '@/content/form-types';
 import { isQuestionRequired } from '@/content/form-types';
-import { getOrCreateFormSessionId } from '@/lib/form-session';
+import { getOrCreateFormSessionId, resetFormSessionId } from '@/lib/form-session';
 import { FormApiError, persistFormAnswer } from '@/lib/forms-api';
 
 export interface FormScrollSurveyProps {
@@ -25,17 +25,10 @@ export function FormScrollSurvey({ form, common }: FormScrollSurveyProps) {
   const [answersByQuestionId, setAnswersByQuestionId] = useState<
     Record<string, FormAnswerState>
   >({});
+  const [sessionId, setSessionId] = useState(() => getOrCreateFormSessionId(form.slug));
 
-  const sessionId = useMemo(() => getOrCreateFormSessionId(form.slug), [form.slug]);
   const questions = form.questions;
-
-  const canSubmit = useMemo(() => {
-    return questions
-      .filter((question) => isQuestionRequired(question))
-      .every((question) =>
-        isFormAnswerValid(question, answersByQuestionId[question.id] ?? emptyFormAnswerState()),
-      );
-  }, [answersByQuestionId, questions]);
+  const brandName = form.intro?.brandName ?? common.scroll.brandName;
 
   if (isComplete) {
     return (
@@ -52,6 +45,7 @@ export function FormScrollSurvey({ form, common }: FormScrollSurveyProps) {
             type='button'
             className='form-scroll-again es-focus-ring'
             onClick={() => {
+              setSessionId(resetFormSessionId(form.slug));
               setAnswersByQuestionId({});
               setIsComplete(false);
               setErrorMessage(null);
@@ -70,7 +64,7 @@ export function FormScrollSurvey({ form, common }: FormScrollSurveyProps) {
         <div className='flex flex-col gap-2 text-center'>
           {form.intro.partnerName ? (
             <p className='form-scroll-brand text-sm font-semibold'>
-              <span className='form-scroll-brand-primary'>Evolve Sprouts</span>
+              <span className='form-scroll-brand-primary'>{brandName}</span>
               <span className='form-scroll-brand-separator'>
                 {common.scroll.brandPartnerSeparator}
               </span>
@@ -84,12 +78,13 @@ export function FormScrollSurvey({ form, common }: FormScrollSurveyProps) {
         </div>
       ) : null}
 
-      {questions.map((question) => (
+      {questions.map((question, index) => (
         <article key={question.id} className='form-scroll-card rounded-2xl border p-4'>
           <FormQuestionField
             question={question}
             common={common}
             variant='scroll'
+            displayNumber={index + 1}
             answer={answersByQuestionId[question.id] ?? emptyFormAnswerState()}
             onAnswerChange={(patch) => updateAnswerState(question.id, patch)}
           />
@@ -105,7 +100,7 @@ export function FormScrollSurvey({ form, common }: FormScrollSurveyProps) {
       <button
         type='button'
         className='form-scroll-submit es-focus-ring w-full'
-        disabled={!canSubmit || isSaving}
+        disabled={isSaving}
         onClick={() => void handleSubmit()}
       >
         {common.scroll.submitLabel}
@@ -135,6 +130,7 @@ export function FormScrollSurvey({ form, common }: FormScrollSurveyProps) {
 
     setIsSaving(true);
     try {
+      // One PUT per answered question; a mid-loop failure leaves prior rows saved (retry is safe).
       for (const question of questions) {
         const answer = answersByQuestionId[question.id] ?? emptyFormAnswerState();
         if (!shouldPersistAnswer(question, answer)) {
@@ -165,9 +161,15 @@ function shouldPersistAnswer(question: FormQuestion, answer: FormAnswerState): b
     return answer.freeText.trim().length > 0;
   }
   if (question.type === 'consent') {
-    return answer.trueFalseValue === true || isQuestionRequired(question);
+    return answer.trueFalseValue === true;
   }
-  return isFormAnswerValid(question, answer);
+  if (question.type === 'rating') {
+    return answer.ratingValue !== null;
+  }
+  if (question.type === 'select' || question.type === 'segmented') {
+    return answer.selectedOption.trim().length > 0;
+  }
+  return false;
 }
 
 function findFirstValidationError(
@@ -177,21 +179,12 @@ function findFirstValidationError(
 ): string | null {
   for (const question of questions) {
     const answer = answersByQuestionId[question.id] ?? emptyFormAnswerState();
-    if (!isFormAnswerValid(question, answer)) {
-      if (question.type === 'email') {
-        return common.errors.invalidEmail;
-      }
-      if (question.type === 'multiselect' && isQuestionRequired(question)) {
-        return formatMaxSelectionsError(common, question.maxSelections);
-      }
-      return common.errors.required;
+    const error = getFormValidationError(question, answer, common);
+    if (error) {
+      return error;
     }
   }
   return null;
-}
-
-function formatMaxSelectionsError(common: FormsCommonContent, max: number): string {
-  return common.errors.maxSelectionsTemplate.replace('{max}', String(max));
 }
 
 function resolvePersistErrorMessage(error: unknown, common: FormsCommonContent): string {

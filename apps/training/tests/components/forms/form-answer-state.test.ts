@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   emptyFormAnswerState,
+  getFormValidationError,
   isFormAnswerValid,
   toggleMultiselectOption,
 } from '@/components/forms/form-answer-state';
 import type { FormQuestion } from '@/content/form-types';
+import { FORMS_COMMON } from '@/lib/forms';
 
 describe('form answer state', () => {
   it('validates rating when required', () => {
@@ -37,6 +39,38 @@ describe('form answer state', () => {
       required: false,
     };
     expect(isFormAnswerValid(question, emptyFormAnswerState())).toBe(true);
+  });
+
+  it('returns required message for empty required multiselect', () => {
+    const question: FormQuestion = {
+      id: 'topics',
+      type: 'multiselect',
+      question: 'Topics',
+      options: ['A'],
+      maxSelections: 2,
+      required: true,
+    };
+    expect(getFormValidationError(question, emptyFormAnswerState(), FORMS_COMMON)).toBe(
+      FORMS_COMMON.errors.required,
+    );
+  });
+
+  it('returns max-selection message when multiselect exceeds limit', () => {
+    const question: FormQuestion = {
+      id: 'topics',
+      type: 'multiselect',
+      question: 'Topics',
+      options: ['A', 'B', 'C'],
+      maxSelections: 2,
+      required: false,
+    };
+    expect(
+      getFormValidationError(
+        question,
+        { ...emptyFormAnswerState(), selectedOptions: ['A', 'B', 'C'] },
+        FORMS_COMMON,
+      ),
+    ).toBe('Please select at most 2 options.');
   });
 
   it('validates optional consent without follow-up', () => {

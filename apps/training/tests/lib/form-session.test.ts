@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { getOrCreateFormSessionId } from '@/lib/form-session';
+import {
+  getOrCreateFormSessionId,
+  resetFormSessionId,
+} from '@/lib/form-session';
 
-describe('getOrCreateFormSessionId', () => {
+describe('form session ids', () => {
   afterEach(() => {
     window.sessionStorage.clear();
   });
@@ -17,5 +20,14 @@ describe('getOrCreateFormSessionId', () => {
     );
     expect(second).not.toBe(first);
     expect(firstAgain).toBe(first);
+  });
+
+  it('resetFormSessionId replaces the stored id with a new uuid', () => {
+    const initial = getOrCreateFormSessionId('workshop-exit-feedback');
+    const reset = resetFormSessionId('workshop-exit-feedback');
+    const afterReset = getOrCreateFormSessionId('workshop-exit-feedback');
+
+    expect(reset).not.toBe(initial);
+    expect(afterReset).toBe(reset);
   });
 });

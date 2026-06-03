@@ -96,8 +96,12 @@ progress.poll-live-results-bar::-moz-progress-bar {
 
 .form-rating-option--selected {
   border-color: var(--es-color-brand-teal, #2a9d8f);
-  background-color: #effaf8;
+  background-color: var(--es-color-rating-selected-bg, #effaf8);
   transform: scale(1.04);
+}
+
+.form-scroll-required-marker {
+  color: var(--es-color-text-muted);
 }
 
 .form-rating-labels {
