@@ -25,8 +25,8 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: 'Evolve Sprouts Training',
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
+    icon: '/images/evolvesprouts-logo.svg',
+    shortcut: '/images/evolvesprouts-logo.svg',
   },
   robots: {
     index: false,

@@ -1533,6 +1533,13 @@ export class ApiStack extends cdk.Stack {
           enabled: true,
           noncurrentVersionExpiration: cdk.Duration.days(90),
         },
+        {
+          id: "ExpireCompletionCertificatePreviews",
+          enabled: true,
+          prefix: "completion-certificates/preview/",
+          expiration: cdk.Duration.days(7),
+          abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
+        },
       ],
       cors: [
         {

@@ -4,14 +4,21 @@ from __future__ import annotations
 
 import time
 from collections.abc import Mapping
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.api.admin_request import parse_body, parse_limit, parse_uuid, query_param
+from app.api.admin_request import (
+    encode_created_cursor,
+    parse_body,
+    parse_created_cursor,
+    parse_limit,
+    parse_uuid,
+    query_param,
+)
 from app.api.admin_services_payload_utils import parse_optional_uuid
 from app.api.assets.assets_common import (
     delete_s3_object,
@@ -38,6 +45,7 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 
 _DEFAULT_LIMIT = 50
+_CERTIFICATE_DOWNLOAD_LINK_EXPIRY = timedelta(hours=1)
 
 
 def _parse_required_uuid(value: Any, *, field: str) -> UUID:
@@ -154,6 +162,7 @@ def _preview_certificate(event: Mapping[str, Any]) -> dict[str, Any]:
     download = generate_download_url(
         s3_key=s3_key,
         cache_bust_key=str(time.time_ns()),
+        expires_at=datetime.now(UTC) + _CERTIFICATE_DOWNLOAD_LINK_EXPIRY,
     )
     return json_response(
         200,
@@ -190,6 +199,7 @@ def _issue_certificate(event: Mapping[str, Any], *, actor_sub: str) -> dict[str,
 
 def _list_certificates(event: Mapping[str, Any]) -> dict[str, Any]:
     limit = parse_limit(event, default=_DEFAULT_LIMIT)
+    cursor_ts, cursor_id = parse_created_cursor(query_param(event, "cursor"))
     contact_id = parse_optional_uuid(query_param(event, "contact_id"), "contact_id")
     instance_id = parse_optional_uuid(query_param(event, "instance_id"), "instance_id")
     service_id = parse_optional_uuid(query_param(event, "service_id"), "service_id")
@@ -214,16 +224,29 @@ def _list_certificates(event: Mapping[str, Any]) -> dict[str, Any]:
             stmt = stmt.where(CompletionCertificate.service_id == service_id)
         if status_filter is not None:
             stmt = stmt.where(CompletionCertificate.status == status_filter)
+        if cursor_ts is not None and cursor_id is not None:
+            stmt = stmt.where(
+                or_(
+                    CompletionCertificate.issued_at < cursor_ts,
+                    (
+                        (CompletionCertificate.issued_at == cursor_ts)
+                        & (CompletionCertificate.id < cursor_id)
+                    ),
+                )
+            )
         rows = list(session.execute(stmt.limit(limit + 1)).scalars().all())
         has_more = len(rows) > limit
         page = rows[:limit]
         items = [serialize_completion_certificate(session, row) for row in page]
+        next_cursor = None
+        if has_more and page:
+            last = page[-1]
+            next_cursor = encode_created_cursor(last.issued_at, last.id)
         return json_response(
             200,
             {
                 "items": items,
-                "next_cursor": None if not has_more else str(page[-1].id),
-                "total_count": len(items),
+                "next_cursor": next_cursor,
             },
             event=event,
         )
@@ -251,6 +274,7 @@ def _get_certificate_pdf(
         download = generate_download_url(
             s3_key=cert.issued_pdf_s3_key or "",
             cache_bust_key=str(time.time_ns()),
+            expires_at=datetime.now(UTC) + _CERTIFICATE_DOWNLOAD_LINK_EXPIRY,
         )
     return json_response(
         200,
@@ -266,9 +290,8 @@ def _get_certificate_pdf(
 def _void_certificate(
     event: Mapping[str, Any], *, certificate_id: UUID, actor_sub: str
 ) -> dict[str, Any]:
-    from datetime import UTC, datetime
-
     request_id = event.get("requestContext", {}).get("requestId")
+    s3_key = ""
     with Session(get_engine()) as session:
         set_audit_context(session, user_id=actor_sub, request_id=request_id)
         cert = session.get(CompletionCertificate, certificate_id)
@@ -276,12 +299,22 @@ def _void_certificate(
             raise NotFoundError("CompletionCertificate", str(certificate_id))
         if cert.status == CompletionCertificateStatus.VOIDED:
             raise ValidationError("Certificate is already voided", field="id")
+        s3_key = (cert.issued_pdf_s3_key or "").strip()
         cert.status = CompletionCertificateStatus.VOIDED
         cert.voided_at = datetime.now(UTC)
         cert.voided_by = actor_sub
+        cert.issued_pdf_s3_key = None
         session.commit()
         session.refresh(cert)
         serialized = serialize_completion_certificate(session, cert)
+    if s3_key:
+        try:
+            delete_s3_object(s3_key=s3_key)
+        except Exception:
+            logger.exception(
+                "Failed to delete voided completion certificate PDF from S3",
+                extra={"certificate_id": str(certificate_id)},
+            )
     return json_response(200, {"certificate": serialized}, event=event)
 
 

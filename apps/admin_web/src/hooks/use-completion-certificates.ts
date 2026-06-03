@@ -48,6 +48,9 @@ export function useCompletionCertificates() {
       if (params.status) {
         apiParams.status = params.status;
       }
+      if (params.cursor) {
+        apiParams.cursor = params.cursor;
+      }
       return listCompletionCertificates(apiParams);
     },
     [],

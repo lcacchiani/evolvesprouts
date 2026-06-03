@@ -28,6 +28,7 @@ function parsePollAnswerRow(value: unknown): AdminPollAnswerRow {
     questionId: typeof row.questionId === 'string' ? row.questionId : '',
     questionType:
       row.questionType === 'select' ||
+      row.questionType === 'multiselect' ||
       row.questionType === 'truefalse' ||
       row.questionType === 'text' ||
       row.questionType === 'email'
@@ -38,6 +39,11 @@ function parsePollAnswerRow(value: unknown): AdminPollAnswerRow {
   };
   if (typeof row.selectedOption === 'string') {
     parsed.selectedOption = row.selectedOption;
+  }
+  if (Array.isArray(row.selectedOptions)) {
+    parsed.selectedOptions = row.selectedOptions.filter(
+      (value): value is string => typeof value === 'string' && value.trim().length > 0,
+    );
   }
   if (typeof row.booleanAnswer === 'boolean') {
     parsed.booleanAnswer = row.booleanAnswer;
@@ -108,6 +114,9 @@ export async function exportAdminPollAnswersCsv(pollSlug: string): Promise<Blob>
 export function formatPollAnswerValue(row: AdminPollAnswerRow): string {
   if (typeof row.selectedOption === 'string' && row.selectedOption.trim()) {
     return row.selectedOption;
+  }
+  if (Array.isArray(row.selectedOptions) && row.selectedOptions.length > 0) {
+    return row.selectedOptions.join('; ');
   }
   if (typeof row.booleanAnswer === 'boolean') {
     return row.booleanAnswer ? 'True' : 'False';

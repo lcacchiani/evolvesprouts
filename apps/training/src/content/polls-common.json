@@ -43,6 +43,8 @@
     "required": "Please answer this question before continuing.",
     "invalidEmail": "Enter a valid email address.",
     "persistFailed": "We could not save your answer. Please try again.",
+    "questionClosed": "This question just closed. Wait for the presenter to open the next one.",
+    "pollNotAccepting": "The poll is not accepting answers right now. Please wait for the presenter.",
     "resultsLoadFailed": "We could not load live results. Please try again.",
     "missingApiConfig": "This poll cannot be saved right now. Please try again later."
   },

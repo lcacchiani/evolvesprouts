@@ -28,9 +28,20 @@ def _event(api_gateway_event: Any, *, body: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def _poll_control_item(*enabled_question_ids: str) -> dict[str, Any]:
+    return {
+        "Item": {
+            "pk": "POLL#workshop-food-jun-26",
+            "sk": "CONTROL",
+            "enabledQuestionIds": list(enabled_question_ids),
+            "updatedAt": "2026-06-26T10:00:00Z",
+        }
+    }
+
+
 def test_put_poll_answer_persists_select(api_gateway_event: Any, mock_env: Any) -> None:
     table = MagicMock()
-    table.get_item.return_value = {"Item": None}
+    table.get_item.return_value = _poll_control_item("role")
     store.configure_table_for_tests(table)
     mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
 
@@ -55,7 +66,7 @@ def test_put_poll_answer_persists_multiselect(
     mock_env: Any,
 ) -> None:
     table = MagicMock()
-    table.get_item.return_value = {"Item": None}
+    table.get_item.return_value = _poll_control_item("challenge")
     store.configure_table_for_tests(table)
     mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
 
@@ -83,7 +94,7 @@ def test_put_poll_answer_persists_multiselect(
 
 def test_put_poll_answer_persists_truefalse(api_gateway_event: Any, mock_env: Any) -> None:
     table = MagicMock()
-    table.get_item.return_value = {"Item": None}
+    table.get_item.return_value = _poll_control_item("myth1")
     store.configure_table_for_tests(table)
     mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
 
@@ -105,7 +116,7 @@ def test_put_poll_answer_persists_truefalse(api_gateway_event: Any, mock_env: An
 
 def test_put_poll_answer_persists_text(api_gateway_event: Any, mock_env: Any) -> None:
     table = MagicMock()
-    table.get_item.return_value = {"Item": None}
+    table.get_item.return_value = _poll_control_item("onething")
     store.configure_table_for_tests(table)
     mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
 
@@ -127,7 +138,7 @@ def test_put_poll_answer_persists_text(api_gateway_event: Any, mock_env: Any) ->
 
 def test_put_poll_answer_persists_email(api_gateway_event: Any, mock_env: Any) -> None:
     table = MagicMock()
-    table.get_item.return_value = {"Item": None}
+    table.get_item.return_value = _poll_control_item("email")
     store.configure_table_for_tests(table)
     mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
 
@@ -475,6 +486,58 @@ def test_get_poll_question_results_lists_text_responses(
     body = json.loads(resp["body"])
     assert body["totalResponses"] == 2
     assert body["responses"] == ["Offer fruit daily", "Smaller portions"]
+
+
+def test_put_poll_answer_rejects_disabled_question(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = _poll_control_item("role")
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "myth1",
+        "questionType": "truefalse",
+        "booleanAnswer": True,
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 409
+    body = json.loads(resp["body"])
+    assert body["error"] == "question_not_open"
+    table.put_item.assert_not_called()
+
+
+def test_put_poll_answer_rejects_when_poll_not_accepting(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = _poll_control_item()
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "role",
+        "questionType": "select",
+        "selectedOption": "Parent",
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 409
+    payload = json.loads(resp["body"])
+    assert payload["error"] == "poll_not_accepting_answers"
+    table.put_item.assert_not_called()
 
 
 def test_put_poll_answer_rejects_unknown_path(api_gateway_event: Any) -> None:

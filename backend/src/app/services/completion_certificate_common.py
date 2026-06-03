@@ -252,6 +252,7 @@ def upload_preview_pdf(pdf_bytes: bytes) -> str:
         s3_key=key,
         body=pdf_bytes,
         content_type="application/pdf",
+        require_upload=True,
     )
     return key
 
@@ -290,6 +291,7 @@ def create_issued_certificate(
         s3_key=key,
         body=pdf_bytes,
         content_type="application/pdf",
+        require_upload=True,
     )
     cert.issued_pdf_s3_key = key
     cert.issued_pdf_sha256 = digest

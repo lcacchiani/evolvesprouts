@@ -16,14 +16,18 @@ export function PollQuestionField({
   answer,
   onAnswerChange,
 }: PollQuestionFieldProps) {
+  const headingId = `${question.id}-heading`;
+
   return (
     <div className='flex w-full flex-col gap-4'>
       <div className='flex flex-col gap-1'>
         <p className='es-type-eyebrow'>{question.screen}</p>
-        <h2 className='es-text-heading text-xl font-semibold'>{question.question}</h2>
+        <h2 id={headingId} className='es-text-heading text-xl font-semibold'>
+          {question.question}
+        </h2>
       </div>
       {question.type === 'select' ? (
-        <fieldset className='flex flex-col gap-2'>
+        <fieldset aria-labelledby={headingId} className='flex flex-col gap-2'>
           {question.options.map((option) => {
             const inputId = `${question.id}-${slugifyOption(option)}`;
             return (
@@ -47,7 +51,7 @@ export function PollQuestionField({
         </fieldset>
       ) : null}
       {question.type === 'multiselect' ? (
-        <fieldset className='flex flex-col gap-2'>
+        <fieldset aria-labelledby={headingId} className='flex flex-col gap-2'>
           {question.options.map((option) => {
             const inputId = `${question.id}-${slugifyOption(option)}`;
             const isSelected = answer.selectedOptions.includes(option);
@@ -80,9 +84,15 @@ export function PollQuestionField({
         </fieldset>
       ) : null}
       {question.type === 'truefalse' ? (
-        <div className='flex flex-wrap gap-2'>
+        <div
+          role='radiogroup'
+          aria-labelledby={headingId}
+          className='flex flex-wrap gap-2'
+        >
           <button
             type='button'
+            role='radio'
+            aria-checked={answer.trueFalseValue === true}
             className={trueFalseButtonClass(answer.trueFalseValue === true)}
             onClick={() => onAnswerChange({ trueFalseValue: true })}
           >
@@ -90,6 +100,8 @@ export function PollQuestionField({
           </button>
           <button
             type='button'
+            role='radio'
+            aria-checked={answer.trueFalseValue === false}
             className={trueFalseButtonClass(answer.trueFalseValue === false)}
             onClick={() => onAnswerChange({ trueFalseValue: false })}
           >
@@ -100,6 +112,7 @@ export function PollQuestionField({
       {question.type === 'text' ? (
         <textarea
           className='es-focus-ring es-form-input min-h-28 w-full'
+          aria-labelledby={headingId}
           value={answer.freeText}
           onChange={(event) => onAnswerChange({ freeText: event.target.value })}
         />
@@ -109,6 +122,7 @@ export function PollQuestionField({
           type='email'
           autoComplete='email'
           className='es-focus-ring es-form-input w-full'
+          aria-labelledby={headingId}
           value={answer.freeText}
           onChange={(event) => onAnswerChange({ freeText: event.target.value })}
         />

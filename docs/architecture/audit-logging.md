@@ -162,6 +162,7 @@ The following tables have audit triggers:
 - `customer_invoice_lines`
 - `payment_allocations`
 - `customer_receipts`
+- `completion_certificates`
 
 Application-level `AuditService` entries supplement invoice draft/issue flows where noted in code
 (for example `DRAFT_CREATED` and `DRAFT_CREATED_CUSTOMIZED` on `customer_invoices` when creating enrollment-based or customized drafts,
