@@ -141,7 +141,8 @@ def _export_form_answers(
         rating_value = item.get("ratingValue")
         rating_cell = (
             str(int(rating_value))
-            if isinstance(rating_value, (int, float)) and not isinstance(rating_value, bool)
+            if isinstance(rating_value, (int, float))
+            and not isinstance(rating_value, bool)
             else ""
         )
         boolean_answer = item.get("booleanAnswer")
