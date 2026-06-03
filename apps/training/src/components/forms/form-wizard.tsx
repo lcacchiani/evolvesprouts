@@ -63,6 +63,7 @@ export function FormWizard({ form, common }: FormWizardProps) {
       <p className='es-text-muted text-sm'>{progressLabel}</p>
       <FormQuestionField
         question={currentQuestion}
+        common={common}
         answer={currentAnswer}
         onAnswerChange={(patch) => updateAnswerState(currentQuestion.id, patch)}
       />
