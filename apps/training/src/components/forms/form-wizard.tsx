@@ -4,11 +4,11 @@ import { useMemo, useState } from 'react';
 
 import {
   emptyFormAnswerState,
-  isFormAnswerValid,
+  getFormValidationError,
   type FormAnswerState,
 } from '@/components/forms/form-answer-state';
 import { FormQuestionField } from '@/components/forms/form-question-field';
-import type { FormContent, FormQuestion, FormsCommonContent } from '@/content/form-types';
+import type { FormContent, FormsCommonContent } from '@/content/form-types';
 import { getOrCreateFormSessionId } from '@/lib/form-session';
 import { FormApiError, persistFormAnswer } from '@/lib/forms-api';
 
@@ -45,7 +45,9 @@ export function FormWizard({ form, common }: FormWizardProps) {
     return (
       <section className='mx-auto flex w-full max-w-xl flex-col gap-3 text-center'>
         <h2 className='es-type-title text-2xl'>{common.completion.title}</h2>
-        <p className='es-text-body text-base'>{common.completion.description}</p>
+        <p className='es-text-body text-base'>
+          {form.completion?.description ?? common.completion.description}
+        </p>
       </section>
     );
   }
@@ -112,7 +114,7 @@ export function FormWizard({ form, common }: FormWizardProps) {
   async function handlePrimaryAction(): Promise<void> {
     setErrorMessage(null);
 
-    const validationError = validateAnswer(currentQuestion, currentAnswer, common);
+    const validationError = getFormValidationError(currentQuestion, currentAnswer, common);
     if (validationError) {
       setErrorMessage(validationError);
       return;
@@ -146,20 +148,6 @@ function resolvePersistErrorMessage(error: unknown, common: FormsCommonContent):
     return common.errors.missingApiConfig;
   }
   return common.errors.persistFailed;
-}
-
-function validateAnswer(
-  question: FormQuestion,
-  answer: FormAnswerState,
-  common: FormsCommonContent,
-): string | null {
-  if (!isFormAnswerValid(question, answer)) {
-    if (question.type === 'email') {
-      return common.errors.invalidEmail;
-    }
-    return common.errors.required;
-  }
-  return null;
 }
 
 function formatProgressLabel({

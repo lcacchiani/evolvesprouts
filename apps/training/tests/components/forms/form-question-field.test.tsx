@@ -22,12 +22,13 @@ describe('FormQuestionField accessibility', () => {
         common={FORMS_COMMON}
         answer={emptyFormAnswerState()}
         onAnswerChange={vi.fn()}
-        variant='scroll'
       />,
     );
 
-    const control = screen.getByRole('button', { name: /You may share my comments with other families/ });
-    expect(control).toHaveAttribute('aria-pressed', 'false');
+    const control = screen.getByRole('checkbox', {
+      name: /You may share my comments with other families/,
+    });
+    expect(control).not.toBeChecked();
   });
 
   it('selects segmented options with keyboard on native radios', () => {
@@ -37,8 +38,8 @@ describe('FormQuestionField accessibility', () => {
       type: 'segmented',
       question: 'Would you recommend?',
       options: [
-        { value: 'Yes', label: 'Yes', variant: 'yes' },
-        { value: 'No', label: 'No', variant: 'no' },
+        { value: 'Yes', label: 'Yes' },
+        { value: 'No', label: 'No' },
       ],
       required: true,
     };
@@ -49,7 +50,6 @@ describe('FormQuestionField accessibility', () => {
         common={FORMS_COMMON}
         answer={emptyFormAnswerState()}
         onAnswerChange={onAnswerChange}
-        variant='scroll'
       />,
     );
 
@@ -74,7 +74,6 @@ describe('FormQuestionField accessibility', () => {
         common={FORMS_COMMON}
         answer={emptyFormAnswerState()}
         onAnswerChange={onAnswerChange}
-        variant='scroll'
       />,
     );
 

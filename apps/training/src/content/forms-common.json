@@ -9,15 +9,7 @@
     "description": "Your responses have been saved."
   },
   "multiselect": {
-    "pickUpToTemplate": "Pick up to {max}.",
-    "lockedAriaLabel": "maximum selections reached"
-  },
-  "scroll": {
-    "submitLabel": "Send my feedback →",
-    "brandPartnerSeparator": "×",
-    "brandName": "Evolve Sprouts",
-    "submitAnotherLabel": "Submit another (shared device)",
-    "requiredMarker": "Required"
+    "pickUpToTemplate": "Pick up to {max}."
   },
   "errors": {
     "required": "Please answer this question before continuing.",

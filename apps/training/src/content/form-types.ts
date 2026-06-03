@@ -4,7 +4,7 @@ import workshopFeedbackJson from '@/content/forms/workshop-feedback.json';
 
 export interface FormQuestionBase {
   id: string;
-  /** Eyebrow label; optional on scroll-layout forms. */
+  /** Eyebrow label shown above the question. */
   screen?: string;
   question: string;
   hint?: string;
@@ -34,14 +34,11 @@ export interface FormRatingOption {
 export interface FormRatingQuestion extends FormQuestionBase {
   type: 'rating';
   options: FormRatingOption[];
-  minLabel?: string;
-  maxLabel?: string;
 }
 
 export interface FormSegmentedOption {
   value: string;
   label: string;
-  variant?: 'yes' | 'maybe' | 'no';
 }
 
 export interface FormSegmentedQuestion extends FormQuestionBase {
@@ -77,24 +74,12 @@ export type FormQuestion =
   | FormTextQuestion
   | FormEmailQuestion;
 
-export interface FormScrollIntro {
-  subtitle: string;
-  durationLabel: string;
-  brandName?: string;
-  partnerName?: string;
-}
-
 export interface FormContent {
   title: string;
   slug: string;
-  /** `wizard` steps one question at a time; `scroll` shows all questions on one page. */
-  layout?: 'wizard' | 'scroll';
-  intro?: FormScrollIntro;
   questions: FormQuestion[];
   completion?: {
     description?: string;
-    allowAnother?: boolean;
-    anotherLabel?: string;
   };
 }
 
@@ -110,14 +95,6 @@ export interface FormsCommonContent {
   };
   multiselect: {
     pickUpToTemplate: string;
-    lockedAriaLabel: string;
-  };
-  scroll: {
-    submitLabel: string;
-    brandPartnerSeparator: string;
-    brandName: string;
-    submitAnotherLabel: string;
-    requiredMarker: string;
   };
   errors: {
     required: string;
