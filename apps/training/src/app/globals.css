@@ -90,6 +90,11 @@ progress.poll-live-results-bar::-moz-progress-bar {
   transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
 }
 
+.form-rating-option:focus-within {
+  outline: 2px solid var(--es-focus-ring-color, rgba(0, 0, 0, 0.4));
+  outline-offset: 2px;
+}
+
 .form-rating-option:active {
   transform: scale(0.92);
 }
@@ -163,6 +168,11 @@ progress.poll-live-results-bar::-moz-progress-bar {
   cursor: pointer;
   transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease,
     color 0.12s ease;
+}
+
+.form-segmented-option:focus-within {
+  outline: 2px solid var(--es-focus-ring-color, rgba(0, 0, 0, 0.4));
+  outline-offset: 2px;
 }
 
 .form-segmented-option:active {

@@ -26,12 +26,7 @@ export function FormQuestionField({
   const headingId = `${question.id}-heading`;
   const isScroll = variant === 'scroll';
   const required = isQuestionRequired(question);
-  const numberPrefix =
-    displayNumber !== undefined
-      ? displayNumber
-      : question.number !== undefined
-        ? question.number
-        : undefined;
+  const numberPrefix = displayNumber;
 
   const resolvedHint = resolveQuestionHint(question, common);
 

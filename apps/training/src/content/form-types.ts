@@ -10,8 +10,6 @@ export interface FormQuestionBase {
   hint?: string;
   /** When false, the question may be skipped. Defaults to true. */
   required?: boolean;
-  /** Display order prefix (for example `1` renders as `1.`). */
-  number?: number;
 }
 
 export interface FormSelectQuestion extends FormQuestionBase {
