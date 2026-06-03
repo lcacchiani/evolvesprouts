@@ -97,6 +97,8 @@ export interface PollsCommonContent {
     required: string;
     invalidEmail: string;
     persistFailed: string;
+    questionClosed: string;
+    pollNotAccepting: string;
     resultsLoadFailed: string;
     missingApiConfig: string;
   };

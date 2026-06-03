@@ -22,6 +22,8 @@ export interface UsePollControlStateResult {
   errorMessage: string | null;
   isQuestionEnabled: (questionId: string) => boolean;
   toggleQuestion: (questionId: string) => Promise<void>;
+  /** Reload facilitator toggles (for example after a submit conflict). */
+  refetch: () => Promise<void>;
 }
 
 export function usePollControlState({
@@ -42,6 +44,18 @@ export function usePollControlState({
   const applyState = useCallback((ids: string[]) => {
     setEnabledQuestionIds(new Set(ids));
   }, []);
+
+  const refetch = useCallback(async () => {
+    try {
+      const state = await fetchPollControlState(pollSlug);
+      applyState(state.enabledQuestionIds);
+      setErrorMessage(null);
+    } catch {
+      setErrorMessage('load');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [applyState, pollSlug]);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,5 +132,6 @@ export function usePollControlState({
     errorMessage,
     isQuestionEnabled,
     toggleQuestion,
+    refetch,
   };
 }

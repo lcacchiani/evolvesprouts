@@ -304,7 +304,6 @@ def _void_certificate(
         cert.voided_at = datetime.now(UTC)
         cert.voided_by = actor_sub
         cert.issued_pdf_s3_key = None
-        cert.issued_pdf_sha256 = None
         session.commit()
         session.refresh(cert)
         serialized = serialize_completion_certificate(session, cert)

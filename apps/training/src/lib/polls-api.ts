@@ -15,11 +15,14 @@ export interface PersistPollAnswerInput {
 
 export class PollApiError extends Error {
   readonly statusCode: number;
+  /** API ``error`` body when present (for example ``question_not_open``). */
+  readonly errorCode: string | null;
 
-  constructor(message: string, statusCode: number) {
+  constructor(message: string, statusCode: number, errorCode: string | null = null) {
     super(message);
     this.name = 'PollApiError';
     this.statusCode = statusCode;
+    this.errorCode = errorCode;
   }
 }
 
@@ -213,7 +216,17 @@ export async function persistPollAnswer(
   });
 
   if (!response.ok) {
-    throw new PollApiError('Failed to persist poll answer', response.status);
+    const errorCode = await readPollApiErrorCode(response);
+    throw new PollApiError('Failed to persist poll answer', response.status, errorCode);
+  }
+}
+
+async function readPollApiErrorCode(response: Response): Promise<string | null> {
+  try {
+    const body = (await response.json()) as { error?: unknown };
+    return typeof body.error === 'string' ? body.error : null;
+  } catch {
+    return null;
   }
 }
 

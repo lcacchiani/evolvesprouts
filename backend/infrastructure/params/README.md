@@ -14,6 +14,14 @@ Use `production.json` as a template for CDK parameters.
 
 `TrainingDomainName` is also passed to the backend stack for API Gateway CORS allowlisting.
 
+## Completion certificate parameters
+
+`production.json` includes `PublicWwwCertificateEsFounderName`, resolved in CI from
+the GitHub Actions repository variable **`CDK_PARAM_CERTIFICATE_ES_FOUNDER_NAME`**
+(the certificate ES founder display name). Create that variable before production
+deploy; if it is missing or empty, certificate preview and issue fail validation
+even though the CDK param entry exists in the JSON file.
+
 ## Public website parameters
 
 `production.json` now includes both production and staging parameters for the

@@ -42,7 +42,6 @@ export async function listCompletionCertificates(
 ): Promise<{
   items: CompletionCertificate[];
   nextCursor: string | null;
-  totalCount?: number;
 }> {
   const q = new URLSearchParams();
   if (params.contactId?.trim()) {
@@ -75,7 +74,6 @@ export async function listCompletionCertificates(
   return {
     items: Array.isArray(root.items) ? root.items : [],
     nextCursor: root.next_cursor ?? null,
-    totalCount: root.total_count ?? undefined,
   };
 }
 

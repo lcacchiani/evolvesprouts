@@ -7834,8 +7834,6 @@ export interface components {
         CompletionCertificateListResponse: {
             items: components["schemas"]["CompletionCertificate"][];
             next_cursor?: string | null;
-            /** @description Omitted when the total is unknown; do not treat page length as a total. */
-            total_count?: number | null;
         };
         CompletionCertificateResponse: {
             certificate: components["schemas"]["CompletionCertificate"];

@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urlparse
 
 from app.api.admin_request import parse_body
 from app.api.validators import validate_email
-from app.exceptions import AuthorizationError, ValidationError
+from app.exceptions import ConflictError, ValidationError
 from app.services.poll_responses_store import (
     aggregate_poll_question_results,
     get_poll_control_state,
@@ -290,12 +290,14 @@ def _handle_put_poll_answer(
         return json_response(exc.status_code, exc.to_dict(), event=event)
 
     control = get_poll_control_state(poll_slug=poll_slug)
-    enabled_ids = control.get("enabledQuestionIds")
-    if (
-        not isinstance(enabled_ids, list)
-        or normalized["question_id"] not in enabled_ids
-    ):
-        error = AuthorizationError("This question is not open for responses")
+    enabled_raw = control.get("enabledQuestionIds")
+    enabled_ids = enabled_raw if isinstance(enabled_raw, list) else []
+    question_id = normalized["question_id"]
+    if not enabled_ids:
+        error = ConflictError("poll_not_accepting_answers")
+        return json_response(error.status_code, error.to_dict(), event=event)
+    if question_id not in enabled_ids:
+        error = ConflictError("question_not_open")
         return json_response(error.status_code, error.to_dict(), event=event)
 
     result = upsert_poll_answer(**normalized)

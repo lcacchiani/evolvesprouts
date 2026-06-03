@@ -8506,11 +8506,6 @@ components:
         next_cursor:
           type: string
           nullable: true
-        total_count:
-          type: integer
-          minimum: 0
-          nullable: true
-          description: Omitted when the total is unknown; do not treat page length as a total.
     CompletionCertificateResponse:
       type: object
       required: [certificate]

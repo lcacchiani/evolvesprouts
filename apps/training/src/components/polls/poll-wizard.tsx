@@ -49,7 +49,11 @@ export function PollWizard({ poll, common }: PollWizardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { enabledQuestionIds, isLoading: isControlLoading } = usePollControlState({
+  const {
+    enabledQuestionIds,
+    isLoading: isControlLoading,
+    refetch: refetchPollControl,
+  } = usePollControlState({
     pollSlug: poll.slug,
     allowWrites: false,
   });
@@ -177,6 +181,7 @@ export function PollWizard({ poll, common }: PollWizardProps) {
           activeQuestionIdsKey,
         });
       }}
+      onResyncControl={refetchPollControl}
     />
   );
 
@@ -213,6 +218,7 @@ interface PollWizardActiveStepProps {
   onSavingChange: (isSaving: boolean) => void;
   onPersistSuccess: () => void;
   onAdvance: () => void;
+  onResyncControl: () => Promise<void>;
 }
 
 function PollWizardActiveStep({
@@ -232,6 +238,7 @@ function PollWizardActiveStep({
   onSavingChange,
   onPersistSuccess,
   onAdvance,
+  onResyncControl,
 }: PollWizardActiveStepProps) {
   const [stepPhase, setStepPhase] = useState<StepPhase>('answer');
 
@@ -320,6 +327,9 @@ function PollWizardActiveStep({
         answer,
       });
     } catch (error) {
+      if (error instanceof PollApiError && (error.statusCode === 409 || error.statusCode === 403)) {
+        await onResyncControl();
+      }
       onErrorMessage(resolvePersistErrorMessage(error, common));
       onSavingChange(false);
       return;
@@ -427,8 +437,19 @@ function resolvePersistErrorMessage(
   error: unknown,
   common: PollsCommonContent,
 ): string {
-  if (error instanceof PollApiError && error.statusCode === 0) {
-    return common.errors.missingApiConfig;
+  if (error instanceof PollApiError) {
+    if (error.statusCode === 0) {
+      return common.errors.missingApiConfig;
+    }
+    if (error.errorCode === 'question_not_open') {
+      return common.errors.questionClosed;
+    }
+    if (error.errorCode === 'poll_not_accepting_answers') {
+      return common.errors.pollNotAccepting;
+    }
+    if (error.statusCode === 409 || error.statusCode === 403) {
+      return common.errors.questionClosed;
+    }
   }
   return common.errors.persistFailed;
 }
