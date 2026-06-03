@@ -10,6 +10,7 @@ on:
     paths:
       - "apps/training/**"
       - "scripts/deploy/deploy-training.sh"
+      - "scripts/deploy/aws-retry.sh"
 
 permissions:
   contents: read
@@ -91,3 +92,10 @@ jobs:
           fi
         env:
           TRAINING_STACK_NAME: evolvesprouts-training
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_MAX_ATTEMPTS: "10"
+          AWS_RETRY_MODE: adaptive
+          AWS_DEPLOY_MAX_ATTEMPTS: "5"
+          AWS_DEPLOY_RETRY_DELAY_SECONDS: "20"
+          AWS_CLI_CONNECT_TIMEOUT: "60"
+          AWS_CLI_READ_TIMEOUT: "120"
