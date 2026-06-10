@@ -40,6 +40,7 @@ sys.path.append(str(base_dir / "src"))
 
 from app.db.base import Base  # noqa: E402
 from app.db import models  # noqa: F401,E402
+from app.db.connection import ensure_database_url_sslmode  # noqa: E402
 
 target_metadata = Base.metadata
 
@@ -65,7 +66,7 @@ def get_database_url() -> str:
         url = os.getenv("DATABASE_URL")
     if not url:
         raise RuntimeError("DATABASE_URL is required for Alembic migrations.")
-    return _normalize_sqlalchemy_postgres_url(url)
+    return ensure_database_url_sslmode(_normalize_sqlalchemy_postgres_url(url))
 
 
 def _escape_for_config(value: str) -> str:

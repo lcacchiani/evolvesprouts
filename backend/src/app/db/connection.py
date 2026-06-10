@@ -5,8 +5,35 @@ from __future__ import annotations
 import os
 from urllib.parse import quote_plus
 
+from sqlalchemy.engine import make_url
+
 from app.services.aws_clients import get_rds_client
 from app.services.secrets import get_secret_json
+
+# Local development/CI hosts exempt from the sslmode=require default.
+_LOCAL_DB_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+
+def ensure_database_url_sslmode(database_url: str) -> str:
+    """Default ``sslmode=require`` on non-local URLs that omit it.
+
+    URLs that already carry an explicit ``sslmode`` are returned unchanged,
+    as are URLs pointing at local development hosts (allowed exception per
+    repository rules). Unparseable values are returned as-is so the driver
+    can surface its own error.
+    """
+
+    try:
+        url = make_url(database_url)
+    except Exception:
+        return database_url
+    if "sslmode" in url.query:
+        return database_url
+    if (url.host or "").lower() in _LOCAL_DB_HOSTS:
+        return database_url
+    return url.update_query_dict({"sslmode": "require"}).render_as_string(
+        hide_password=False
+    )
 
 
 def get_database_url() -> str:
@@ -14,7 +41,7 @@ def get_database_url() -> str:
 
     database_url = os.getenv("DATABASE_URL")
     if database_url:
-        return database_url
+        return ensure_database_url_sslmode(database_url)
 
     secret_arn = os.getenv("DATABASE_SECRET_ARN")
     if not secret_arn:
