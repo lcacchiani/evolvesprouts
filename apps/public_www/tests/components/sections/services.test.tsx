@@ -31,13 +31,13 @@ describe('Services', () => {
     expect(screen.getByText(enContent.services.eyebrow)).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Go to My Best Auntie Programme' }),
-    ).toHaveAttribute('href', '/services/my-best-auntie-training-course');
+    ).toHaveAttribute('href', '/en/services/my-best-auntie-training-course');
     expect(
       screen.getByRole('link', { name: 'Go to Family Consultations' }),
-    ).toHaveAttribute('href', '/services/consultations');
+    ).toHaveAttribute('href', '/en/services/consultations');
     expect(
       screen.getByRole('link', { name: 'Go to Free Guides & Resources' }),
-    ).toHaveAttribute('href', '/services/free-guides-and-resources');
+    ).toHaveAttribute('href', '/en/services/free-guides-and-resources');
 
     const cardsGrid = screen
       .getByRole('link', { name: 'Go to My Best Auntie Programme' })

@@ -24,7 +24,7 @@ describe('RealTalk', () => {
     expect(screen.getAllByText(enContent.realTalk.eyebrow).length).toBeGreaterThan(0);
     expect(
       screen.getByRole('link', { name: enContent.realTalk.ctaLabel }),
-    ).toHaveAttribute('href', enContent.realTalk.ctaHref);
+    ).toHaveAttribute('href', '/en/services/my-best-auntie-training-course');
 
     for (const item of enContent.realTalk.items) {
       expect(screen.getByText(item.title)).toBeInTheDocument();

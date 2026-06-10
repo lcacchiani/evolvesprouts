@@ -31,7 +31,7 @@ describe('FreeIntroSession section', () => {
 
     const cta = screen.getByRole('link', { name: content.ctaLabel });
     expect(cta).toBeInTheDocument();
-    expect(cta.getAttribute('href')).toBe('/book-a-free-call#intro-call-booking');
+    expect(cta.getAttribute('href')).toBe('/en/book-a-free-call#intro-call-booking');
   });
 
   it('renders titleOverride instead of content title when provided', () => {

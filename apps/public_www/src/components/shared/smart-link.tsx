@@ -2,8 +2,8 @@ import type {
   AnchorHTMLAttributes,
   ReactNode,
 } from 'react';
-import Link from 'next/link';
 
+import { LocaleAwareLink } from '@/components/shared/locale-aware-link';
 import {
   getHrefKind,
   isSameRootDomainHttpHref,
@@ -97,18 +97,20 @@ export function SmartLink({
   };
 
   if (hrefKind === 'internal') {
+    // LocaleAwareLink keeps the active locale on internal navigation so
+    // locale-agnostic content hrefs do not bounce visitors to /en/.
     if (resolvedHref.includes('#')) {
       return (
-        <Link href={resolvedHref} prefetch={false} {...sharedProps}>
+        <LocaleAwareLink href={resolvedHref} {...sharedProps}>
           {linkChildren}
-        </Link>
+        </LocaleAwareLink>
       );
     }
 
     return (
-      <Link href={resolvedHref} prefetch={false} scroll={false} {...sharedProps}>
+      <LocaleAwareLink href={resolvedHref} scroll={false} {...sharedProps}>
         {linkChildren}
-      </Link>
+      </LocaleAwareLink>
     );
   }
 

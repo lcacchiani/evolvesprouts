@@ -548,7 +548,7 @@ describe('my-best-auntie booking modals footer content', () => {
     const termsLink = screen.getByRole('link', {
       name: bookingModalContent.termsLinkLabel,
     });
-    expect(termsLink).toHaveAttribute('href', bookingModalContent.termsHref);
+    expect(termsLink).toHaveAttribute('href', '/en/terms/');
 
     const acknowledgementsBlock = pendingAcknowledgement.closest(
       'div[data-booking-acknowledgements="true"]',
@@ -1823,7 +1823,7 @@ describe('my-best-auntie booking modals footer content', () => {
     const termsLink = screen.getByRole('link', {
       name: bookingModalContent.termsLinkLabel,
     });
-    expect(termsLink).toHaveAttribute('href', bookingModalContent.termsHref);
+    expect(termsLink).toHaveAttribute('href', '/en/terms/');
     expect(termsLink).toHaveAttribute('target', '_blank');
     expect(termsLink).toHaveAttribute('rel', 'noopener');
     expect(termsLink.querySelector('.es-ui-icon-mask--external-link')).toBeNull();

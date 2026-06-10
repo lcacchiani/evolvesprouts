@@ -8,6 +8,7 @@ from typing import Any
 import psycopg
 from sqlalchemy.engine import make_url
 
+from app.db.connection import ensure_database_url_sslmode
 from app.utils.logging import get_logger
 from app.utils.retry import run_with_retry
 
@@ -52,10 +53,11 @@ def _escape_config(value: str) -> str:
 
 def _psycopg_connect(database_url: str) -> psycopg.Connection:
     """Connect using keyword args to avoid DSN parsing issues."""
+    database_url = ensure_database_url_sslmode(database_url)
     try:
         url = make_url(database_url)
     except Exception:
-        url = make_url(f"postgresql://{database_url}")
+        url = make_url(ensure_database_url_sslmode(f"postgresql://{database_url}"))
 
     connect_kwargs: dict[str, Any] = {
         "user": url.username,

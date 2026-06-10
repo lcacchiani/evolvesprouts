@@ -32,7 +32,7 @@ describe('AboutUsIntro', () => {
       'es-highlight-word',
     );
     const ctaLink = screen.getByRole('link', { name: content.ctaLabel });
-    expect(ctaLink).toHaveAttribute('href', content.ctaHref);
+    expect(ctaLink).toHaveAttribute('href', '/en/about-us');
     expect(ctaLink.className).toContain('es-btn--primary');
     expect(ctaLink.className).toContain('es-btn--outline');
     expect(ctaLink.className).toContain('mt-auto');
