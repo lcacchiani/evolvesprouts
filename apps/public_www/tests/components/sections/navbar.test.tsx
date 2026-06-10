@@ -110,7 +110,7 @@ describe('Navbar desktop submenu accessibility', () => {
     expect(desktopBookNowLink).toBeInTheDocument();
     expect(desktopBookNowLink).toHaveAttribute(
       'href',
-      '/en/book-a-free-call#intro-call-booking',
+      '/en/book-a-free-call/#intro-call-booking',
     );
     expect(desktopBookNowLink).not.toHaveAttribute('data-scroll');
 

@@ -1,8 +1,13 @@
 import { render, screen } from '@testing-library/react';
+import { usePathname } from 'next/navigation';
 import { type AnchorHTMLAttributes, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SmartLink } from '@/components/shared/smart-link';
+
+vi.mock('next/navigation', () => ({
+  usePathname: vi.fn(() => null),
+}));
 
 vi.mock('next/link', () => ({
   default: ({
@@ -32,6 +37,7 @@ vi.mock('next/link', () => ({
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
+  vi.mocked(usePathname).mockReturnValue(null);
 });
 
 describe('SmartLink', () => {
@@ -67,7 +73,7 @@ describe('SmartLink', () => {
     render(<SmartLink href='/about-us'>About us</SmartLink>);
 
     const link = screen.getByRole('link', { name: 'About us' });
-    expect(link).toHaveAttribute('href', '/about-us');
+    expect(link).toHaveAttribute('href', '/en/about-us/');
     expect(link).toHaveAttribute('data-mocked-next-link', 'true');
     expect(link).toHaveAttribute('data-prefetch', 'false');
     expect(link).toHaveAttribute('data-scroll', 'false');
@@ -78,9 +84,27 @@ describe('SmartLink', () => {
     render(<SmartLink href='/about-us#team'>About team</SmartLink>);
 
     const link = screen.getByRole('link', { name: 'About team' });
-    expect(link).toHaveAttribute('href', '/about-us#team');
+    expect(link).toHaveAttribute('href', '/en/about-us/#team');
     expect(link).toHaveAttribute('data-mocked-next-link', 'true');
     expect(link).not.toHaveAttribute('data-scroll');
+  });
+
+  it('preserves the active locale from the current pathname for internal links', () => {
+    vi.mocked(usePathname).mockReturnValue('/zh-CN/about-us/');
+
+    render(<SmartLink href='/services/consultations'>Consultations</SmartLink>);
+
+    const link = screen.getByRole('link', { name: 'Consultations' });
+    expect(link).toHaveAttribute('href', '/zh-CN/services/consultations/');
+  });
+
+  it('re-localizes already-localized internal hrefs to the active locale', () => {
+    vi.mocked(usePathname).mockReturnValue('/zh-HK/events/');
+
+    render(<SmartLink href='/en/contact-us'>Contact</SmartLink>);
+
+    const link = screen.getByRole('link', { name: 'Contact' });
+    expect(link).toHaveAttribute('href', '/zh-HK/contact-us/');
   });
 
   it('allows explicit internal new-tab override', () => {
@@ -91,7 +115,7 @@ describe('SmartLink', () => {
     );
 
     const link = screen.getByRole('link', { name: 'Terms' });
-    expect(link).toHaveAttribute('href', '/terms');
+    expect(link).toHaveAttribute('href', '/en/terms/');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener');
   });

@@ -59,7 +59,7 @@ describe('ButtonPrimitive', () => {
     );
 
     const link = screen.getByRole('link', { name: 'About us' });
-    expect(link).toHaveAttribute('href', '/about-us');
+    expect(link).toHaveAttribute('href', '/en/about-us/');
     expect(link).toHaveAttribute('data-mocked-next-link', 'true');
     expect(link).toHaveAttribute('data-prefetch', 'false');
     expect(link).toHaveAttribute('data-scroll', 'false');
@@ -75,7 +75,7 @@ describe('ButtonPrimitive', () => {
     );
 
     const link = screen.getByRole('link', { name: 'About team' });
-    expect(link).toHaveAttribute('href', '/about-us#team');
+    expect(link).toHaveAttribute('href', '/en/about-us/#team');
     expect(link).not.toHaveAttribute('data-scroll');
   });
 

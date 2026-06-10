@@ -194,19 +194,19 @@ describe('Footer external links', () => {
     const linkedInLinks = screen.getAllByRole('link', { name: 'LinkedIn' });
     expect(linkedInLinks.length).toBeGreaterThan(0);
     for (const link of linkedInLinks) {
-      expect(link).toHaveAttribute('href', '/contact-us');
+      expect(link).toHaveAttribute('href', '/en/contact-us/');
     }
 
     const instagramLinks = screen.getAllByRole('link', { name: 'Instagram' });
     expect(instagramLinks.length).toBeGreaterThan(0);
     for (const link of instagramLinks) {
-      expect(link).toHaveAttribute('href', '/contact-us');
+      expect(link).toHaveAttribute('href', '/en/contact-us/');
     }
 
     const whatsappLinks = screen.getAllByRole('link', { name: 'WhatsApp' });
     expect(whatsappLinks.length).toBeGreaterThan(0);
     for (const link of whatsappLinks) {
-      expect(link).toHaveAttribute('href', '/contact-us');
+      expect(link).toHaveAttribute('href', '/en/contact-us/');
     }
   });
 });

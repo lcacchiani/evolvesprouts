@@ -95,7 +95,7 @@ describe('ServiceCard description visibility transition', () => {
     expect(card).not.toBeNull();
     expect(description).not.toBeNull();
     expect(card?.className).toContain('group');
-    expect(serviceLink).toHaveAttribute('href', BASE_PROPS.href);
+    expect(serviceLink).toHaveAttribute('href', `/en${BASE_PROPS.href}`);
     expect(pulseRing).not.toBeNull();
     expect(
       hasClassToken((pulseRing as HTMLElement).className, 'es-service-arrow-ring-target--brand'),
@@ -255,6 +255,6 @@ describe('ServiceCard description visibility transition', () => {
 
     fireEvent.click(serviceLink);
     expect(card).toHaveAttribute('aria-expanded', 'false');
-    expect(serviceLink).toHaveAttribute('href', BASE_PROPS.href);
+    expect(serviceLink).toHaveAttribute('href', `/en${BASE_PROPS.href}`);
   });
 });
