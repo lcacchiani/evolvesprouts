@@ -315,6 +315,8 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 - Storage Encryption: Enabled (if `applyImmutableSettings=true`)
 - CloudWatch Logs: `postgresql` export enabled
 - Monitoring: Enhanced monitoring (60s interval)
+- Automated Backups: 14-day retention (default), tags copied to snapshots
+- Deletion Protection: Enabled when `CDK_DEPLOYMENT_STAGE=production`
 
 ### RDS Proxy
 
@@ -334,7 +336,7 @@ Cognito operations are proxied through `AwsApiProxyFunction` instead.
 
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
-| User Pool | `EvolvesproutsUserPool` | `evolvesprouts-user-pool` | Email sign-in, auto-verify enabled; custom attrs `last_auth_time`, legacy `feedback_stars` |
+| User Pool | `EvolvesproutsUserPool` | `evolvesprouts-user-pool` | Email sign-in, auto-verify enabled; custom attrs `last_auth_time`, legacy `feedback_stars`; `RETAIN` removal policy in production |
 | User Pool Domain | `EvolvesproutsUserPoolDomain` | `{CognitoDomainPrefix}.auth.{region}.amazoncognito.com` | Domain prefix from parameter |
 | User Pool Client | `EvolvesproutsUserPoolClient` | Auto-generated | OAuth client (no secret) |
 | User Pool Group | `AdminGroup` | `admin` | Admin group |
@@ -432,6 +434,7 @@ For each function above, the following resources are created:
 | `ImportLegacyVenuesFunction` | Read admin DB secret, connect to RDS Proxy as `evolvesprouts_admin`, S3 read on `ImportDumpBucket` only |
 | `HealthCheckFunction` | Read DB secret, connect to RDS Proxy as `evolvesprouts_app` |
 | `AuthCreateChallengeFunction` | SES `SendEmail`, `SendRawEmail` for the configured email address |
+| `AuthPostAuthFunction` | Cognito `AdminUpdateUserAttributes` scoped to the user pool ARN (attached as a standalone policy to avoid a CloudFormation cycle with the trigger registration) |
 | `AdminBootstrapFunction` | Cognito `AdminCreateUser`, `AdminUpdateUserAttributes`, `AdminSetUserPassword`, `AdminAddUserToGroup`, CloudFormation invoke permission |
 | `ApiKeyRotationFunction` | API Gateway key management, Secrets Manager read/write |
 | `MediaRequestProcessor` | Read DB secret, connect to RDS Proxy as `evolvesprouts_admin`, SES send email + **SendTemplatedEmail** (internal + `AuthEmailFromAddress` identities), read Mailchimp secret and `PublicWwwConfigSecret` (KMS decrypt with the shared Secrets Manager CMK), invoke `AwsApiProxyFunction`; `ASSET_SHARE_LINK_BASE_URL`, `ASSET_SHARE_LINK_DEFAULT_ALLOWED_DOMAINS`, `MAILCHIMP_MEDIA_DOWNLOAD_MERGE_TAG` for Mailchimp download URL merge field; optional `MAILCHIMP_FREE_RESOURCE_JOURNEY_ID` / `MAILCHIMP_FREE_RESOURCE_JOURNEY_STEP_ID` for free-resource Customer Journey trigger; `MAILCHIMP_REQUIRE_MARKETING_CONSENT` + welcome journey env vars (see `aws-messaging.md`); `PUBLIC_WWW_CONFIG_SECRET_ARN` is shared with the admin Lambda and supplies `BASE_URL` and optional social URLs / `BUSINESS_PHONE_NUMBER` for the media download email shell; `SALES_RECAP_DISPLAY_TIMEZONE` from `SalesRecapDisplayTimezone` (optional; app default if empty) |
@@ -564,7 +567,7 @@ not per-request `Origin` echoing.
 | Resource Type | Logical ID | Physical Name/ID | Notes |
 |--------------|------------|------------------|-------|
 | API Key | `PublicWwwApiKey` | Auto-generated | Value from `PublicApiKeyValue` parameter |
-| Usage Plan | `PublicWwwUsagePlan` | `evolvesprouts-public-www-plan` | Linked to API key and `prod` stage |
+| Usage Plan | `PublicWwwUsagePlan` | `evolvesprouts-public-www-plan` | Linked to API key and `prod` stage; throttled (50 rps, 100 burst) with 250k/day quota |
 
 ### API Gateway IAM Roles
 

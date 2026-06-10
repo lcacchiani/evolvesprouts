@@ -444,6 +444,8 @@ export class ApiStack extends cdk.Stack {
       dbProxyEndpoint: existingDbProxyEndpoint,
       manageSecurityGroupRules: manageDbSecurityGroupRules,
       applyImmutableSettings: !skipImmutableDbUpdates,
+      // Keep non-production stacks tearable; protect production data.
+      deletionProtection: deploymentStage === "production",
     });
 
     database.allowFrom(lambdaSecurityGroup, "Lambda access to RDS Proxy");
@@ -1089,7 +1091,12 @@ export class ApiStack extends cdk.Stack {
         feedback_stars: new cognito.StringAttribute({ mutable: true }),
         last_auth_time: new cognito.StringAttribute({ mutable: true }),
       },
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      // RELIABILITY: retain the production user pool so a stack delete or
+      // resource replacement cannot destroy user accounts.
+      removalPolicy:
+        deploymentStage === "production"
+          ? cdk.RemovalPolicy.RETAIN
+          : cdk.RemovalPolicy.DESTROY,
     });
     const adminGroupName = "admin";
     const userPoolGroups = [
@@ -2427,12 +2434,22 @@ export class ApiStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
       noVpc: true,
     });
-    postAuthFunction.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["cognito-idp:AdminUpdateUserAttributes"],
-        resources: ["*"],
-      })
-    );
+    // SECURITY: scope to the user pool ARN instead of "*". The statement is
+    // attached via a standalone policy (not the role's default policy) because
+    // the function's implicit dependency on its default policy would otherwise
+    // create a CloudFormation cycle with the user pool trigger registration.
+    if (!postAuthFunction.role) {
+      throw new Error("AuthPostAuthFunction must have an execution role");
+    }
+    new iam.Policy(this, "AuthPostAuthCognitoPolicy", {
+      roles: [postAuthFunction.role],
+      statements: [
+        new iam.PolicyStatement({
+          actions: ["cognito-idp:AdminUpdateUserAttributes"],
+          resources: [userPool.userPoolArn],
+        }),
+      ],
+    });
 
     // Register Cognito triggers
     userPool.addTrigger(
@@ -2819,8 +2836,20 @@ export class ApiStack extends cdk.Stack {
     const publicWwwApiKey = new apigateway.ApiKey(this, "PublicWwwApiKey", {
       value: publicApiKeyValue.valueAsString,
     });
+    // SECURITY: Throttle and cap the shared public website key so abuse of the
+    // browser-visible key cannot generate unbounded backend load or cost.
+    // Limits are generous for legitimate site traffic (all public www/training
+    // requests share this key via the CloudFront proxies).
     const publicWwwUsagePlan = api.addUsagePlan("PublicWwwUsagePlan", {
       name: name("public-www-plan"),
+      throttle: {
+        rateLimit: 50,
+        burstLimit: 100,
+      },
+      quota: {
+        limit: 250000,
+        period: apigateway.Period.DAY,
+      },
     });
     publicWwwUsagePlan.addApiKey(publicWwwApiKey);
     publicWwwUsagePlan.addApiStage({ stage: api.deploymentStage });

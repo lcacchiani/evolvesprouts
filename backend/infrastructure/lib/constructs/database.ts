@@ -62,6 +62,10 @@ export interface DatabaseConstructProps {
   manageSecurityGroupRules?: boolean;
   /** Apply immutable DB settings like encryption and IAM auth. */
   applyImmutableSettings?: boolean;
+  /** Automated backup retention in days (default 14). */
+  backupRetentionDays?: number;
+  /** Enable cluster deletion protection (default true). */
+  deletionProtection?: boolean;
 }
 
 /**
@@ -391,6 +395,13 @@ export class DatabaseConstruct extends Construct {
         // after cluster creation, and setting to undefined on subsequent
         // deployments would cause CloudFormation to attempt replacement.
         storageEncrypted: true,
+        // RELIABILITY: automated backups and deletion protection guard
+        // against accidental data loss from stack operations.
+        backup: {
+          retention: cdk.Duration.days(props.backupRetentionDays ?? 14),
+        },
+        copyTagsToSnapshot: true,
+        deletionProtection: props.deletionProtection ?? true,
         serverlessV2MinCapacity: props.minCapacity ?? 0.5,
         serverlessV2MaxCapacity: props.maxCapacity ?? 2,
         writer: writerInstance,
