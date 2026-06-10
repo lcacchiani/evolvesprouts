@@ -67,7 +67,9 @@ repos:
     hooks:
       - id: flutter-analyze
         name: Flutter Analyze
-        entry: bash -c 'cd apps/evolvesprouts_app && flutter analyze --no-fatal-infos || true'
+        # Fails on analyzer errors when Flutter is installed; skips cleanly on
+        # machines without Flutter (CI lint-dart job enforces analyze anyway).
+        entry: bash -c 'if command -v flutter >/dev/null 2>&1; then cd apps/evolvesprouts_app && flutter analyze --no-fatal-infos; else echo "flutter not installed; skipping (enforced by CI lint-dart job)"; fi'
         language: system
         files: ^apps/evolvesprouts_app/.*\.dart$
         pass_filenames: false
