@@ -250,7 +250,10 @@ Requirements:
 - Requests should prefer same-origin `/www` proxy routing.
 - Public write endpoints (for example reservation submissions) must validate
   `X-Turnstile-Token` server-side against Cloudflare Turnstile.
-- API-side rate limiting and monitoring must be enabled.
+- API-side rate limiting and monitoring must be enabled. The shared public
+  usage plan (`PublicWwwUsagePlan` in
+  `backend/infrastructure/lib/api-stack.ts`) enforces request throttling and a
+  daily quota on the browser-visible key.
 - Any key rotation must be coordinated with frontend runtime configuration.
 
 ### Public WWW same-origin proxy allowlist
@@ -306,6 +309,31 @@ Training poll persistence uses `PUT /www/v1/polls/{poll_slug}/answers` (prefix +
 `/answers` suffix rule in `WWW_PROXY_ALLOWLIST_FUNCTION`; not a fixed path per poll).
 Live poll aggregates use `GET /www/v1/polls/{poll_slug}/questions/{question_id}/results`
 (prefix + `/questions/` + `/results` suffix rule; not a fixed path per poll).
+
+### Training poll facilitator controls (accepted risk)
+
+The training site facilitator flow (`/polls/{slug}/controls/` in
+`apps/training`, backed by `PUT /www/v1/polls/{poll_slug}/control`) uses the
+same browser-visible public API key as participant poll answers, and the
+controls page itself is unauthenticated.
+
+This is an **accepted risk** by product decision (2026-06): polls are
+low-sensitivity workshop tooling, facilitator URLs are shared only with
+workshop staff, and the blast radius of misuse is limited to toggling which
+poll question is open and viewing aggregate workshop answers.
+
+Existing mitigations:
+
+- CloudFront default-deny `/www/*` allowlist restricts reachable methods and
+  paths.
+- Backend validation enforces UUID `sessionId`, slug patterns, and field
+  length caps.
+- The shared public usage plan applies request throttling and a daily quota.
+
+Revisit this decision if polls start collecting sensitive participant data or
+facilitator controls gain broader capabilities; the planned hardening would
+split participant and facilitator API keys and gate the controls page behind
+authentication.
 
 ### Third-party invoice parser egress controls
 
