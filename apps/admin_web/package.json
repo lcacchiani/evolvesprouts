@@ -57,6 +57,7 @@
       "minimatch": "5.1.8"
     },
     "flatted": "^3.4.0",
+    "js-cookie": "^3.0.7",
     "openapi-typescript": {
       "typescript": "$typescript"
     }
