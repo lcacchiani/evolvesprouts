@@ -82,12 +82,14 @@ their primary responsibilities.
   `GET /v1/admin/contacts/tags` for tag pickers (active tags only),
   `GET /v1/admin/contacts/search` for contact picker search,
   `GET|POST /v1/admin/contacts/{id}/notes` and `PATCH|DELETE /v1/admin/contacts/{id}/notes/{noteId}`
-  for standalone CRM notes on a contact (not tied to a sales lead), and `DELETE /v1/admin/contacts/{id}`
+  for standalone CRM notes on a contact (not tied to a sales lead), `GET /v1/admin/contacts/{id}/services`
+  for read-only purchased-service labels on a contact, and `DELETE /v1/admin/contacts/{id}`
   for hard-deleting a contact after clearing blocking CRM rows),
   `/v1/admin/families/picker`, `/v1/admin/families/*` (`GET /v1/admin/families` optional `query`
   matches family name and linked member contacts' names or email; `PATCH /v1/admin/families/{id}` with
   `relationship_type` updates that field on the family and on every member contact; including `DELETE /v1/admin/families/{id}`
-  for hard-deleting a family after clearing blocking CRM rows; `POST /v1/admin/families/{id}/members`
+  for hard-deleting a family after clearing blocking CRM rows; `GET /v1/admin/families/{id}/services`
+  for read-only purchased-service labels on a family (including member contacts); `POST /v1/admin/families/{id}/members`
   derives each member's role from the linked contact's `contact_type`; `PATCH /v1/admin/families/{id}/members/{memberId}`
   updates membership fields such as primary contact),
   `/v1/admin/organizations/picker` (optional `relationship_type` query mirrors organisation list
@@ -97,7 +99,8 @@ their primary responsibilities.
   partners with `GET /v1/admin/organizations?relationship_type=partner`; Finance lists vendors with
   `GET /v1/admin/organizations?relationship_type=vendor` (optional `sort=name` for case-insensitive
   alphabetical order by trimmed name); includes `DELETE /v1/admin/organizations/{id}`
-  for non-vendor orgs; `POST /v1/admin/organizations/{id}/members` derives each member's role from the
+  for non-vendor orgs; `GET /v1/admin/organizations/{id}/services` for read-only purchased-service
+  labels on an organisation (including member contacts); `POST /v1/admin/organizations/{id}/members` derives each member's role from the
   linked contact's `contact_type`; `PATCH /v1/admin/organizations/{id}/members/{memberId}` updates
   membership fields such as primary contact; partner rows accept optional `legal_name` for AR
   invoice Bill To entity lines—resolved as `legal_name` or `name` at issue time; pickers and

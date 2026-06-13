@@ -18,6 +18,7 @@ type ApiOrganizationResponse = ApiSchemas['AdminOrganizationResponse'];
 type ApiTagList = ApiSchemas['EntityTagListResponse'];
 type ApiEntityPickerList = ApiSchemas['EntityPickerListResponse'];
 type ApiNoteList = ApiSchemas['AdminNoteListResponse'];
+type ApiEntityServicesList = ApiSchemas['EntityServicesResponse'];
 
 export type AdminContactRow = ApiSchemas['AdminContact'];
 export type AdminFamilyRow = ApiSchemas['AdminFamily'];
@@ -208,6 +209,60 @@ export async function listAdminContactNotes(
   });
   const root = unwrapPayload(payload);
   return Array.isArray(root.items) ? root.items.map((n) => parseNote(n)) : [];
+}
+
+export async function listAdminContactServices(
+  contactId: string,
+  signal?: AbortSignal
+): Promise<string[]> {
+  const payload = await adminApiRequest<ApiEntityServicesList>({
+    endpointPath: `/v1/admin/contacts/${contactId}/services`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  if (!Array.isArray(root.items)) {
+    return [];
+  }
+  return root.items
+    .map((item) => (typeof item?.label === 'string' ? item.label : null))
+    .filter((label): label is string => label !== null);
+}
+
+export async function listAdminFamilyServices(
+  familyId: string,
+  signal?: AbortSignal
+): Promise<string[]> {
+  const payload = await adminApiRequest<ApiEntityServicesList>({
+    endpointPath: `/v1/admin/families/${familyId}/services`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  if (!Array.isArray(root.items)) {
+    return [];
+  }
+  return root.items
+    .map((item) => (typeof item?.label === 'string' ? item.label : null))
+    .filter((label): label is string => label !== null);
+}
+
+export async function listAdminOrganizationServices(
+  organizationId: string,
+  signal?: AbortSignal
+): Promise<string[]> {
+  const payload = await adminApiRequest<ApiEntityServicesList>({
+    endpointPath: `/v1/admin/organizations/${organizationId}/services`,
+    method: 'GET',
+    signal,
+  });
+  const root = unwrapPayload(payload);
+  if (!Array.isArray(root.items)) {
+    return [];
+  }
+  return root.items
+    .map((item) => (typeof item?.label === 'string' ? item.label : null))
+    .filter((label): label is string => label !== null);
 }
 
 export async function createAdminContactNote(
