@@ -338,6 +338,22 @@ export function PartnersPanel({
               </p>
             ) : null}
           </div>
+          <div className='lg:col-span-1'>
+            <Label htmlFor='svc-partner-type'>Organisation type</Label>
+            <Select
+              id='svc-partner-type'
+              value={organizationType}
+              onChange={(e) =>
+                setOrganizationType(e.target.value as ApiSchemas['EntityOrganizationType'])
+              }
+            >
+              {ORG_TYPES.map((v) => (
+                <option key={v} value={v}>
+                  {formatEnumLabel(v)}
+                </option>
+              ))}
+            </Select>
+          </div>
           <div className='lg:col-span-2'>
             <Label htmlFor='svc-partner-legal-name'>Legal name</Label>
             <Input
@@ -356,22 +372,6 @@ export function PartnersPanel({
               onChange={(e) => setWebsite(e.target.value)}
               autoComplete='off'
             />
-          </div>
-          <div className='lg:col-span-1'>
-            <Label htmlFor='svc-partner-type'>Organisation type</Label>
-            <Select
-              id='svc-partner-type'
-              value={organizationType}
-              onChange={(e) =>
-                setOrganizationType(e.target.value as ApiSchemas['EntityOrganizationType'])
-              }
-            >
-              {ORG_TYPES.map((v) => (
-                <option key={v} value={v}>
-                  {formatEnumLabel(v)}
-                </option>
-              ))}
-            </Select>
           </div>
           <div className='lg:col-span-1'>
             {editorMode === 'edit' ? (
