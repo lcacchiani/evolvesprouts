@@ -111,8 +111,16 @@ export function OrganizationsPanel({
   const [optimisticLocationSummary, setOptimisticLocationSummary] =
     useState<InlineLocationEmbeddedSummary | null>(null);
   const [tagIds, setTagIds] = useState<string[]>([]);
-  const [serviceLabels, setServiceLabels] = useState<string[]>([]);
+  const [serviceLabelsState, setServiceLabelsState] = useState<{
+    entityId: string;
+    labels: string[];
+  } | null>(null);
   const [active, setActive] = useState(true);
+
+  const serviceLabels =
+    editorMode === 'edit' && selectedId && serviceLabelsState?.entityId === selectedId
+      ? serviceLabelsState.labels
+      : [];
 
   const [memberContactId, setMemberContactId] = useState('');
 
@@ -194,23 +202,20 @@ export function OrganizationsPanel({
 
   useEffect(() => {
     if (editorMode !== 'edit' || !selectedId) {
-      queueMicrotask(() => {
-        setServiceLabels([]);
-      });
       return;
     }
+    const entityId = selectedId;
     const controller = new AbortController();
     let cancelled = false;
-    setServiceLabels([]);
     void (async () => {
       try {
-        const labels = await listAdminOrganizationServices(selectedId, controller.signal);
+        const labels = await listAdminOrganizationServices(entityId, controller.signal);
         if (!cancelled) {
-          setServiceLabels(labels);
+          setServiceLabelsState({ entityId, labels });
         }
       } catch {
         if (!cancelled) {
-          setServiceLabels([]);
+          setServiceLabelsState({ entityId, labels: [] });
         }
       }
     })();
