@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminEntityOrganizations } from '@/hooks/use-admin-entity-organizations';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
@@ -8,6 +8,7 @@ import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
+import { EntityServicesSection } from '@/components/admin/contacts/entity-services-section';
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import { contactEligibleForEntityMembership } from '@/lib/entity-contact-eligibility';
 import type { EntityTagRef } from '@/lib/entity-api';
+import { listAdminOrganizationServices } from '@/lib/entity-api';
 import { formatEnumLabel, formatFamilyOrOrganizationPartyLabel } from '@/lib/format';
 import type { EntityListFilters } from '@/types/entity-list';
 import {
@@ -109,7 +111,16 @@ export function OrganizationsPanel({
   const [optimisticLocationSummary, setOptimisticLocationSummary] =
     useState<InlineLocationEmbeddedSummary | null>(null);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const [serviceLabelsState, setServiceLabelsState] = useState<{
+    entityId: string;
+    labels: string[];
+  } | null>(null);
   const [active, setActive] = useState(true);
+
+  const serviceLabels =
+    editorMode === 'edit' && selectedId && serviceLabelsState?.entityId === selectedId
+      ? serviceLabelsState.labels
+      : [];
 
   const [memberContactId, setMemberContactId] = useState('');
 
@@ -188,6 +199,31 @@ export function OrganizationsPanel({
       return contactEligibleForEntityMembership(row, selectedId, 'organization');
     });
   }, [contactOptions, contactsForMembership, selectedId]);
+
+  useEffect(() => {
+    if (editorMode !== 'edit' || !selectedId) {
+      return;
+    }
+    const entityId = selectedId;
+    const controller = new AbortController();
+    let cancelled = false;
+    void (async () => {
+      try {
+        const labels = await listAdminOrganizationServices(entityId, controller.signal);
+        if (!cancelled) {
+          setServiceLabelsState({ entityId, labels });
+        }
+      } catch {
+        if (!cancelled) {
+          setServiceLabelsState({ entityId, labels: [] });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [selectedId, editorMode]);
 
   const primaryMemberLabel = useCallback((members: ApiSchemas['AdminOrganizationMember'][]) => {
     const primary = members.find((m) => m.is_primary_contact);
@@ -476,6 +512,7 @@ export function OrganizationsPanel({
                 variant='collapsible'
               />
             </div>
+            <EntityServicesSection id='crm-org-services' labels={serviceLabels} />
           </div>
           {editorMode === 'edit' && selected ? (
             <div className='lg:col-span-4'>

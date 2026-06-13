@@ -10,6 +10,7 @@ import { InlineLocationEditor } from '@/components/admin/locations/inline-locati
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
 import { ContactNotesModal } from '@/components/admin/contacts/contact-notes-modal';
 import { MailchimpSyncCard } from '@/components/admin/contacts/mailchimp-sync-card';
+import { EntityServicesSection } from '@/components/admin/contacts/entity-services-section';
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { ArchiveIcon, DeleteIcon, NoteIcon, RestoreIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   type EntityPickerListItem,
   getAdminContact,
+  listAdminContactServices,
   listEntityFamilyPicker,
   listEntityOrganizationPicker,
   searchEntityContactsForPicker,
@@ -242,7 +244,16 @@ export function ContactsPanel({
   const [familySelectId, setFamilySelectId] = useState('');
   const [organizationSelectId, setOrganizationSelectId] = useState('');
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const [serviceLabelsState, setServiceLabelsState] = useState<{
+    entityId: string;
+    labels: string[];
+  } | null>(null);
   const [active, setActive] = useState(true);
+
+  const serviceLabels =
+    editorMode === 'edit' && selectedId && serviceLabelsState?.entityId === selectedId
+      ? serviceLabelsState.labels
+      : [];
 
   const {
     status: locationSaveStatus,
@@ -396,6 +407,31 @@ export function ContactsPanel({
       cancelled = true;
     };
   }, [referralContactId, source]);
+
+  useEffect(() => {
+    if (editorMode !== 'edit' || !selectedId) {
+      return;
+    }
+    const entityId = selectedId;
+    const controller = new AbortController();
+    let cancelled = false;
+    void (async () => {
+      try {
+        const labels = await listAdminContactServices(entityId, controller.signal);
+        if (!cancelled) {
+          setServiceLabelsState({ entityId, labels });
+        }
+      } catch {
+        if (!cancelled) {
+          setServiceLabelsState({ entityId, labels: [] });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [selectedId, editorMode]);
 
   async function resetCreateForm() {
     if (editorMode === 'create' && pendingLocationId) {
@@ -888,6 +924,8 @@ export function ContactsPanel({
             disabled={isSaving}
             variant='collapsible'
           />
+
+          <EntityServicesSection id='crm-contact-services' labels={serviceLabels} />
 
           {editorMode === 'edit' && selected ? (
             <div className='text-sm text-slate-600'>

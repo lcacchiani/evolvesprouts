@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminEntityFamilies } from '@/hooks/use-admin-entity-families';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
@@ -8,6 +8,7 @@ import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
+import { EntityServicesSection } from '@/components/admin/contacts/entity-services-section';
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
 import type { EntityTagRef } from '@/lib/entity-api';
+import { listAdminFamilyServices } from '@/lib/entity-api';
 import { contactEligibleForEntityMembership } from '@/lib/entity-contact-eligibility';
 import { formatEnumLabel, formatFamilyOrOrganizationPartyLabel } from '@/lib/format';
 import type { EntityListFilters } from '@/types/entity-list';
@@ -97,7 +99,16 @@ export function FamiliesPanel({
   const [optimisticLocationSummary, setOptimisticLocationSummary] =
     useState<InlineLocationEmbeddedSummary | null>(null);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const [serviceLabelsState, setServiceLabelsState] = useState<{
+    entityId: string;
+    labels: string[];
+  } | null>(null);
   const [active, setActive] = useState(true);
+
+  const serviceLabels =
+    editorMode === 'edit' && selectedId && serviceLabelsState?.entityId === selectedId
+      ? serviceLabelsState.labels
+      : [];
 
   const [memberContactId, setMemberContactId] = useState('');
 
@@ -175,6 +186,31 @@ export function FamiliesPanel({
       return contactEligibleForEntityMembership(row, selectedId, 'family');
     });
   }, [contactOptions, contactsForMembership, selectedId]);
+
+  useEffect(() => {
+    if (editorMode !== 'edit' || !selectedId) {
+      return;
+    }
+    const entityId = selectedId;
+    const controller = new AbortController();
+    let cancelled = false;
+    void (async () => {
+      try {
+        const labels = await listAdminFamilyServices(entityId, controller.signal);
+        if (!cancelled) {
+          setServiceLabelsState({ entityId, labels });
+        }
+      } catch {
+        if (!cancelled) {
+          setServiceLabelsState({ entityId, labels: [] });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [selectedId, editorMode]);
 
   const primaryMemberLabel = useCallback((members: ApiSchemas['AdminFamilyMember'][]) => {
     const primary = members.find((m) => m.is_primary_contact);
@@ -413,7 +449,7 @@ export function FamiliesPanel({
               />
             </AdminCollapsibleSection>
           </div>
-          <div className='lg:col-span-4'>
+          <div className='lg:col-span-4 space-y-4'>
             <EntityTagPicker
               id='crm-family-tags'
               label='Tags'
@@ -423,6 +459,7 @@ export function FamiliesPanel({
               disabled={isSaving}
               variant='collapsible'
             />
+            <EntityServicesSection id='crm-family-services' labels={serviceLabels} />
           </div>
           {editorMode === 'edit' && selected ? (
             <div className='lg:col-span-4'>

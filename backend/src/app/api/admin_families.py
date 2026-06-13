@@ -10,6 +10,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.api.admin_entities_deletes import delete_admin_entity_family
+from app.api.admin_entity_services import list_family_services
 from app.api.admin_entities_helpers import (
     assert_contact_can_join_family,
     request_id,
@@ -82,6 +83,11 @@ def handle_admin_families_request(
             return delete_admin_entity_family(
                 event, family_id=family_id, actor_sub=identity.user_sub
             )
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 4 and parts[3] == "services":
+        if method == "GET":
+            return list_family_services(event, family_id=family_id)
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 4 and parts[3] == "members":

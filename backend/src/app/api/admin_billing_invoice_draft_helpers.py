@@ -129,6 +129,9 @@ def _build_enrollment_merge_line_description(enrollment: Enrollment) -> str:
     return out[:500]
 
 
+build_enrollment_invoice_line_description = _build_enrollment_merge_line_description
+
+
 _MAX_GEO_AREA_WALK = 32
 
 

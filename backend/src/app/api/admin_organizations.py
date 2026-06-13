@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.admin_entities_deletes import delete_admin_entity_organization
+from app.api.admin_entity_services import list_organization_services
 from app.api.admin_entities_helpers import (
     ORGANIZATION_RELATIONSHIP_TYPES,
     assert_contact_can_join_organization,
@@ -97,6 +98,11 @@ def handle_admin_organizations_request(
                 organization_id=organization_id,
                 actor_sub=identity.user_sub,
             )
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 4 and parts[3] == "services":
+        if method == "GET":
+            return list_organization_services(event, organization_id=organization_id)
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 4 and parts[3] == "members":

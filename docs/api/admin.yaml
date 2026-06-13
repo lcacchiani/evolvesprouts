@@ -45,14 +45,17 @@ info:
     - `GET|PATCH|DELETE /v1/admin/contacts/{id}`
     - `GET|POST /v1/admin/contacts/{id}/notes`
     - `PATCH|DELETE /v1/admin/contacts/{id}/notes/{noteId}`
+    - `GET /v1/admin/contacts/{id}/services`
     - `GET /v1/admin/families/picker`
     - `GET|POST /v1/admin/families`
     - `GET|PATCH|DELETE /v1/admin/families/{id}`
+    - `GET /v1/admin/families/{id}/services`
     - `POST /v1/admin/families/{id}/members`
     - `PATCH|DELETE /v1/admin/families/{id}/members/{memberId}`
     - `GET /v1/admin/organizations/picker`
     - `GET|POST /v1/admin/organizations`
     - `GET|PATCH|DELETE /v1/admin/organizations/{id}`
+    - `GET /v1/admin/organizations/{id}/services`
     - `POST /v1/admin/organizations/{id}/members`
     - `PATCH /v1/admin/organizations/{id}/members/{memberId}`
     - `DELETE /v1/admin/organizations/{id}/members/{memberId}`
@@ -2549,6 +2552,30 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/admin/contacts/{id}/services:
+    parameters:
+      - $ref: "#/components/parameters/AdminContactId"
+    get:
+      summary: List purchased services for a contact
+      description: |
+        Returns invoice-style labels for non-cancelled enrollments attributed to the
+        contact. Labels are deduplicated and sorted alphabetically.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Service label list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityServicesResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /v1/admin/contacts/{id}/notes/{noteId}:
     parameters:
       - $ref: "#/components/parameters/AdminContactId"
@@ -2740,6 +2767,30 @@ paths:
       responses:
         "204":
           description: Family deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/families/{id}/services:
+    parameters:
+      - $ref: "#/components/parameters/AdminFamilyId"
+    get:
+      summary: List purchased services for a family
+      description: |
+        Returns invoice-style labels for non-cancelled enrollments attributed to the
+        family or to any member contact. Labels are deduplicated and sorted alphabetically.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Service label list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityServicesResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -3001,6 +3052,30 @@ paths:
       responses:
         "204":
           description: Organization deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/admin/organizations/{id}/services:
+    parameters:
+      - $ref: "#/components/parameters/AdminOrganizationId"
+    get:
+      summary: List purchased services for an organization
+      description: |
+        Returns invoice-style labels for non-cancelled enrollments attributed to the
+        organization or to any member contact. Labels are deduplicated and sorted alphabetically.
+      security:
+        - AdminBearerAuth: []
+      responses:
+        "200":
+          description: Service label list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityServicesResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -4909,6 +4984,22 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Note"
+    EntityServiceItem:
+      type: object
+      required:
+        - label
+      properties:
+        label:
+          type: string
+    EntityServicesResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityServiceItem"
     CreateNoteRequest:
       type: object
       required:

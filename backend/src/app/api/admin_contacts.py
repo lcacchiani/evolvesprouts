@@ -14,6 +14,7 @@ from app.api.admin_contact_notes import (
     list_contact_notes,
     update_contact_note,
 )
+from app.api.admin_entity_services import list_contact_services
 from app.api.admin_contacts_mailchimp_sync import (
     get_mailchimp_sync_summary,
     run_mailchimp_orphan_cleanup,
@@ -131,6 +132,11 @@ def handle_admin_contacts_request(
             return create_contact_note(
                 event, contact_id=contact_id, actor_sub=identity.user_sub
             )
+        return json_response(405, {"error": "Method not allowed"}, event=event)
+
+    if len(parts) == 4 and parts[3] == "services":
+        if method == "GET":
+            return list_contact_services(event, contact_id=contact_id)
         return json_response(405, {"error": "Method not allowed"}, event=event)
 
     if len(parts) == 5 and parts[3] == "notes":
