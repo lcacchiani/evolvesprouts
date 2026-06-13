@@ -217,6 +217,7 @@ def serialize_organization_summary(org: Organization) -> dict[str, Any]:
         "organization_type": org.organization_type.value,
         "relationship_type": org.relationship_type.value,
         "partner_key": org.partner_key,
+        "legal_name": org.legal_name,
         "website": org.website,
         "location_id": str(org.location_id) if org.location_id else None,
         "location_summary": serialize_location_venue(org.location)

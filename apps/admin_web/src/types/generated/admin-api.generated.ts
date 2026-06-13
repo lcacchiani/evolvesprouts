@@ -8123,6 +8123,8 @@ export interface components {
             relationship_type: components["schemas"]["EntityRelationshipType"];
             /** @description Optional URL-safe partner key for partner organisations only (lowercase letters, digits, single hyphens between segments). Null when not a partner or unset. Uniqueness is enforced case-insensitively among partner rows. */
             partner_key?: string | null;
+            /** @description Optional legal entity name for partner organisations only. Used on AR invoice Bill To lines (with fallback to ``name``). Null when not a partner or unset. */
+            legal_name?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
@@ -8152,6 +8154,8 @@ export interface components {
             relationship_type?: components["schemas"]["EntityOrganizationRelationshipType"];
             /** @description Optional partner-only key. Omit or null to clear. Must be null when relationship_type is not partner. */
             partner_key?: string | null;
+            /** @description Optional partner-only legal entity name for invoice Bill To display. Omit or null to clear. Must be null when relationship_type is not partner. */
+            legal_name?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;
@@ -8165,6 +8169,8 @@ export interface components {
             relationship_type?: components["schemas"]["EntityOrganizationRelationshipType"];
             /** @description Optional partner-only key. Omit or null to clear. Must be null when relationship_type is not partner. */
             partner_key?: string | null;
+            /** @description Optional partner-only legal entity name for invoice Bill To display. Omit or null to clear. Must be null when relationship_type is not partner. */
+            legal_name?: string | null;
             website?: string | null;
             /** Format: uuid */
             location_id?: string | null;

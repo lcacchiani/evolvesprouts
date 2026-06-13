@@ -9147,6 +9147,13 @@ components:
             Optional URL-safe partner key for partner organisations only (lowercase
             letters, digits, single hyphens between segments). Null when not a partner
             or unset. Uniqueness is enforced case-insensitively among partner rows.
+        legal_name:
+          type: string
+          nullable: true
+          maxLength: 255
+          description: >
+            Optional legal entity name for partner organisations only. Used on AR invoice
+            Bill To lines (with fallback to ``name``). Null when not a partner or unset.
         website:
           type: string
           nullable: true
@@ -9226,6 +9233,13 @@ components:
           description: >
             Optional partner-only key. Omit or null to clear. Must be null when
             relationship_type is not partner.
+        legal_name:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: >
+            Optional partner-only legal entity name for invoice Bill To display. Omit or
+            null to clear. Must be null when relationship_type is not partner.
         website:
           type: string
           maxLength: 500
@@ -9261,6 +9275,13 @@ components:
           description: >
             Optional partner-only key. Omit or null to clear. Must be null when
             relationship_type is not partner.
+        legal_name:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: >
+            Optional partner-only legal entity name for invoice Bill To display. Omit or
+            null to clear. Must be null when relationship_type is not partner.
         website:
           type: string
           maxLength: 500

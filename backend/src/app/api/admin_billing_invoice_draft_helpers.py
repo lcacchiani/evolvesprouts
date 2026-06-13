@@ -16,7 +16,7 @@ from app.api.admin_billing_common import (
 )
 from app.db.models import Contact, Enrollment, Family, Organization
 from app.db.models.customer_invoice import CustomerInvoice
-from app.db.models.enums import BillingBillToKind
+from app.db.models.enums import BillingBillToKind, RelationshipType
 from app.db.models.family import FamilyMember
 from app.db.models.geographic_area import GeographicArea
 from app.db.models.location import Location
@@ -295,7 +295,10 @@ def _resolve_bill_to_party_from_invoice_fks(
             .limit(1)
         )
         primary = session.execute(stmt).scalar_one_or_none()
-        entity_nm = (org.name or "").strip()
+        if org.relationship_type == RelationshipType.PARTNER:
+            entity_nm = ((org.legal_name or org.name) or "").strip()
+        else:
+            entity_nm = (org.name or "").strip()
         primary_nm = (contact_display_name(primary) or "").strip()
         if entity_nm and primary_nm:
             inv.bill_to_display_name = f"{entity_nm}\n{primary_nm}"

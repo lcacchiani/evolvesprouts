@@ -105,8 +105,10 @@ describe('PartnersPanel', () => {
     render(<PartnersPanel partners={partners} {...panelShell} />);
 
     expect(screen.getByLabelText('Partner key')).toBeInTheDocument();
+    expect(screen.getByLabelText('Legal name')).toBeInTheDocument();
     await user.type(screen.getByLabelText('Name'), 'Gamma');
     await user.type(screen.getByLabelText('Partner key'), 'gamma-slug');
+    await user.type(screen.getByLabelText('Legal name'), 'Gamma Learning Limited');
     await user.click(screen.getByRole('button', { name: 'Create partner' }));
 
     expect(createPartner).toHaveBeenCalledWith(
@@ -114,6 +116,7 @@ describe('PartnersPanel', () => {
         name: 'Gamma',
         relationship_type: 'partner',
         partner_key: 'gamma-slug',
+        legal_name: 'Gamma Learning Limited',
       })
     );
   });
@@ -135,6 +138,7 @@ describe('PartnersPanel', () => {
       organization_type: 'company' as const,
       relationship_type: 'partner' as const,
       partner_key: null,
+      legal_name: null,
       website: null,
       location_id: null,
       location_summary: null,
@@ -173,6 +177,7 @@ describe('PartnersPanel', () => {
       organization_type: 'school',
       relationship_type: 'partner',
       partner_key: 'row-slug',
+      legal_name: 'Row Partner Legal Ltd',
       website: 'https://example.com',
       location_id: null,
       location_summary: null,
@@ -191,8 +196,11 @@ describe('PartnersPanel', () => {
     render(<PartnersPanel partners={partners} {...panelShell} />);
 
     await user.click(screen.getByText('Row Partner'));
+    expect(screen.getByLabelText('Legal name')).toHaveValue('Row Partner Legal Ltd');
     await user.clear(screen.getByLabelText('Name'));
     await user.type(screen.getByLabelText('Name'), 'Row Partner Renamed');
+    await user.clear(screen.getByLabelText('Legal name'));
+    await user.type(screen.getByLabelText('Legal name'), 'Row Partner Legal Renamed');
     await user.click(screen.getByRole('button', { name: 'Update partner' }));
 
     expect(updatePartner).toHaveBeenCalledWith(
@@ -201,6 +209,7 @@ describe('PartnersPanel', () => {
         name: 'Row Partner Renamed',
         relationship_type: 'partner',
         partner_key: 'row-slug',
+        legal_name: 'Row Partner Legal Renamed',
       })
     );
   });
@@ -223,6 +232,7 @@ describe('PartnersPanel', () => {
       organization_type: 'company',
       relationship_type: 'partner',
       partner_key: null,
+      legal_name: null,
       website: null,
       location_id: locId,
       location_summary: null,
@@ -294,6 +304,7 @@ describe('PartnersPanel', () => {
       organization_type: 'company',
       relationship_type: 'partner',
       partner_key: 'del',
+      legal_name: null,
       website: null,
       location_id: null,
       location_summary: null,

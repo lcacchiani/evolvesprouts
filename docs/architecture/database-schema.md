@@ -484,6 +484,10 @@ maps legacy `note.id` to the **first** inserted row’s UUID.
   `relationship_type` is `partner`; uniqueness is enforced case-insensitively
   among partner rows with a non-null key (partial unique index
   `organizations_partner_key_unique_idx`).
+- `organizations.legal_name` is an optional legal entity name for partner rows
+  only; admin APIs reject non-null values when `relationship_type` is not
+  `partner`. AR invoice Bill To resolution uses `legal_name` with fallback to
+  `name` for partner organisations at issue time.
 - `organizations.location_id` optionally links an organization to a canonical
   row in `locations` for address management.
 - `organization_members` links contacts to organizations with role/title and an optional
