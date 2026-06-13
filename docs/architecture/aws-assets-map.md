@@ -168,6 +168,7 @@ automatic annual rotation enabled and a human-readable alias.
 | KMS Key | `SqsEncryptionKey` | `alias/evolvesprouts-sqs-encryption-key` | SQS queue encryption (media and expense parser queues in the messaging nested stack) |
 | KMS Key | `ApiLogEncryptionKey` | `alias/evolvesprouts-api-log-encryption-key` | API Gateway CloudWatch access log encryption |
 | KMS Key | `SecretsEncryptionKey` | `alias/evolvesprouts-secrets-encryption-key` | Secrets Manager encryption (API key rotation secret) |
+| KMS Key | `PollResponsesEncryptionKey` | `alias/evolvesprouts-poll-responses-encryption-key` | DynamoDB `evolvesprouts-poll-responses` table encryption |
 
 **Conditional key** (in `DatabaseConstruct`, created only when managing DB
 credentials):

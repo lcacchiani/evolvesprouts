@@ -106,11 +106,41 @@ function assertStageHasCheckovCkv120Suppression(template: Template): void {
   }
 }
 
+function assertPollResponsesTableUsesCustomerManagedKms(template: Template): void {
+  const tables = template.findResources("AWS::DynamoDB::Table");
+  const pollTable = Object.entries(tables).find(([logicalId]) =>
+    logicalId.includes("PollResponsesTable"),
+  );
+  if (!pollTable) {
+    throw new Error("Expected PollResponsesTable AWS::DynamoDB::Table resource");
+  }
+  const [logicalId, resource] = pollTable;
+  const sse = (resource.Properties ?? {}).SSESpecification as
+    | Record<string, unknown>
+    | undefined;
+  if (!sse || sse.SSEEnabled !== true) {
+    throw new Error(
+      `PollResponsesTable ${logicalId}: expected SSESpecification.SSEEnabled=true`,
+    );
+  }
+  if (sse.SSEType !== "KMS") {
+    throw new Error(
+      `PollResponsesTable ${logicalId}: expected SSESpecification.SSEType=KMS; got ${String(sse.SSEType)}`,
+    );
+  }
+  if (typeof sse.KMSMasterKeyId !== "object" && typeof sse.KMSMasterKeyId !== "string") {
+    throw new Error(
+      `PollResponsesTable ${logicalId}: expected SSESpecification.KMSMasterKeyId for customer-managed CMK`,
+    );
+  }
+}
+
 function main(): void {
   const template = synthApiTemplate();
   assertStageHasNoApiGatewayCacheCluster(template);
   assertGatewayResponsesHaveNoBodyTemplates(template);
   assertStageHasCheckovCkv120Suppression(template);
+  assertPollResponsesTableUsesCustomerManagedKms(template);
   // eslint-disable-next-line no-console
   console.log("api-stack API Gateway stage cache assertions passed.");
 }
