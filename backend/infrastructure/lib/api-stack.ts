@@ -1705,12 +1705,24 @@ export class ApiStack extends cdk.Stack {
       )
     );
 
+    // SECURITY: Use customer-managed KMS key for DynamoDB (Checkov CKV_AWS_119)
+    const pollResponsesEncryptionKey = new kms.Key(
+      this,
+      "PollResponsesEncryptionKey",
+      {
+        enableKeyRotation: true,
+        alias: name("poll-responses-encryption-key"),
+        description: "KMS key for DynamoDB poll-responses table encryption",
+      }
+    );
+
     const pollResponsesTable = new dynamodb.Table(this, "PollResponsesTable", {
       tableName: name("poll-responses"),
       partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+      encryptionKey: pollResponsesEncryptionKey,
       pointInTimeRecoverySpecification: {
         pointInTimeRecoveryEnabled: true,
       },
