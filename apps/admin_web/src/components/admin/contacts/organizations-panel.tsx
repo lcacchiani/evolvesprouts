@@ -201,6 +201,7 @@ export function OrganizationsPanel({
     }
     const controller = new AbortController();
     let cancelled = false;
+    setServiceLabels([]);
     void (async () => {
       try {
         const labels = await listAdminOrganizationServices(selectedId, controller.signal);

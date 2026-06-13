@@ -6,13 +6,28 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.dialects import postgresql
 
-from app.api import admin_contacts, admin_entity_services, admin_families, admin_organizations
+from app.api import (
+    admin_contacts,
+    admin_entity_services,
+    admin_families,
+    admin_organizations,
+)
 from app.api.admin_billing_invoice_draft_helpers import (
     build_enrollment_invoice_line_description,
 )
 from app.db.models.enums import EnrollmentStatus, ServiceType
 from app.exceptions import NotFoundError
+
+
+def _compiled_sql(stmt: Any) -> str:
+    return str(
+        stmt.compile(
+            dialect=postgresql.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    )
 
 
 def _make_enrollment(
@@ -66,6 +81,7 @@ class _FakeExecuteResult:
 class _FakeSession:
     def __init__(self, rows: list[Any]) -> None:
         self._rows = rows
+        self.statements: list[Any] = []
 
     def __enter__(self) -> "_FakeSession":
         return self
@@ -73,17 +89,23 @@ class _FakeSession:
     def __exit__(self, *_args: Any) -> None:
         return None
 
-    def execute(self, _stmt: Any) -> _FakeExecuteResult:
+    def execute(self, stmt: Any) -> _FakeExecuteResult:
+        self.statements.append(stmt)
         return _FakeExecuteResult(self._rows)
 
 
-def _patch_session(monkeypatch: pytest.MonkeyPatch, rows: list[Any]) -> None:
+def _patch_session(
+    monkeypatch: pytest.MonkeyPatch,
+    rows: list[Any],
+) -> _FakeSession:
+    session = _FakeSession(rows)
     monkeypatch.setattr(
         admin_entity_services,
         "Session",
-        lambda *_a, **_k: _FakeSession(rows),
+        lambda *_a, **_k: session,
     )
     monkeypatch.setattr(admin_entity_services, "get_engine", lambda: object())
+    return session
 
 
 def test_list_contact_services_returns_labels(
@@ -112,6 +134,35 @@ def test_list_contact_services_returns_labels(
     assert resp["statusCode"] == 200
     body = json.loads(resp["body"])
     assert body == {"items": [{"label": expected}]}
+
+
+def test_list_contact_services_query_filters_by_contact_and_non_cancelled(
+    monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
+) -> None:
+    contact_id = uuid4()
+
+    class _FakeContactRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_id_for_admin(self, _cid: Any) -> object:
+            return object()
+
+    session = _patch_session(monkeypatch, [])
+    monkeypatch.setattr(admin_entity_services, "ContactRepository", _FakeContactRepo)
+
+    admin_entity_services.list_contact_services(
+        api_gateway_event(method="GET", path=f"/v1/admin/contacts/{contact_id}/services"),
+        contact_id=contact_id,
+    )
+
+    assert len(session.statements) == 1
+    sql = _compiled_sql(session.statements[0])
+    assert "enrollments.contact_id" in sql
+    assert str(contact_id) in sql
+    assert "enrollments.status" in sql
+    assert "cancelled" in sql.lower()
 
 
 def test_list_contact_services_excludes_cancelled(
@@ -159,6 +210,36 @@ def test_list_contact_services_unknown_contact_404(
             api_gateway_event(method="GET", path=f"/v1/admin/contacts/{contact_id}/services"),
             contact_id=contact_id,
         )
+
+
+def test_list_family_services_query_includes_family_and_member_contacts(
+    monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
+) -> None:
+    family_id = uuid4()
+
+    class _FakeFamilyRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_by_id_for_admin(self, _fid: Any) -> object:
+            return object()
+
+    session = _patch_session(monkeypatch, [])
+    monkeypatch.setattr(admin_entity_services, "FamilyRepository", _FakeFamilyRepo)
+
+    admin_entity_services.list_family_services(
+        api_gateway_event(method="GET", path=f"/v1/admin/families/{family_id}/services"),
+        family_id=family_id,
+    )
+
+    assert len(session.statements) == 1
+    sql = _compiled_sql(session.statements[0])
+    assert "enrollments.family_id" in sql
+    assert str(family_id) in sql
+    assert "family_members" in sql
+    assert "enrollments.contact_id" in sql
+    assert "cancelled" in sql.lower()
 
 
 def test_list_family_services_includes_member_enrollments_and_dedupes(
@@ -211,6 +292,39 @@ def test_list_family_services_unknown_family_404(
             api_gateway_event(method="GET", path=f"/v1/admin/families/{family_id}/services"),
             family_id=family_id,
         )
+
+
+def test_list_organization_services_query_includes_org_and_member_contacts(
+    monkeypatch: pytest.MonkeyPatch,
+    api_gateway_event: Any,
+) -> None:
+    organization_id = uuid4()
+
+    class _FakeOrgRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        def get_non_vendor_organization_by_id(self, _oid: Any) -> object:
+            return object()
+
+    session = _patch_session(monkeypatch, [])
+    monkeypatch.setattr(admin_entity_services, "OrganizationRepository", _FakeOrgRepo)
+
+    admin_entity_services.list_organization_services(
+        api_gateway_event(
+            method="GET",
+            path=f"/v1/admin/organizations/{organization_id}/services",
+        ),
+        organization_id=organization_id,
+    )
+
+    assert len(session.statements) == 1
+    sql = _compiled_sql(session.statements[0])
+    assert "enrollments.organization_id" in sql
+    assert str(organization_id) in sql
+    assert "organization_members" in sql
+    assert "enrollments.contact_id" in sql
+    assert "cancelled" in sql.lower()
 
 
 def test_list_organization_services_includes_member_enrollments(

@@ -409,6 +409,7 @@ export function ContactsPanel({
     }
     const controller = new AbortController();
     let cancelled = false;
+    setServiceLabels([]);
     void (async () => {
       try {
         const labels = await listAdminContactServices(selectedId, controller.signal);

@@ -188,6 +188,7 @@ export function FamiliesPanel({
     }
     const controller = new AbortController();
     let cancelled = false;
+    setServiceLabels([]);
     void (async () => {
       try {
         const labels = await listAdminFamilyServices(selectedId, controller.signal);
@@ -443,7 +444,7 @@ export function FamiliesPanel({
               />
             </AdminCollapsibleSection>
           </div>
-          <div className='lg:col-span-4'>
+          <div className='lg:col-span-4 space-y-4'>
             <EntityTagPicker
               id='crm-family-tags'
               label='Tags'
@@ -453,8 +454,6 @@ export function FamiliesPanel({
               disabled={isSaving}
               variant='collapsible'
             />
-          </div>
-          <div className='lg:col-span-4'>
             <EntityServicesSection id='crm-family-services' labels={serviceLabels} />
           </div>
           {editorMode === 'edit' && selected ? (
