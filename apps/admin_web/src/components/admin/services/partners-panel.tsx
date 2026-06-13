@@ -89,6 +89,7 @@ export function PartnersPanel({
   const [organizationType, setOrganizationType] =
     useState<ApiSchemas['EntityOrganizationType']>('company');
   const [partnerKey, setPartnerKey] = useState('');
+  const [legalName, setLegalName] = useState('');
   const [website, setWebsite] = useState('');
   const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
   const [optimisticLocationSummary, setOptimisticLocationSummary] =
@@ -187,6 +188,7 @@ export function PartnersPanel({
     setName('');
     setOrganizationType('company');
     setPartnerKey('');
+    setLegalName('');
     setWebsite('');
     setPendingLocationId(null);
     setOptimisticLocationSummary(null);
@@ -204,6 +206,7 @@ export function PartnersPanel({
           organization_type: organizationType,
           relationship_type: 'partner',
           partner_key: partnerKey.trim() || null,
+          legal_name: legalName.trim() || null,
           website: website.trim() || null,
           location_id: loc,
           tag_ids: tagIds,
@@ -219,6 +222,7 @@ export function PartnersPanel({
         organization_type: organizationType,
         relationship_type: 'partner',
         partner_key: partnerKey.trim() || null,
+        legal_name: legalName.trim() || null,
         website: website.trim() || null,
         location_id: loc,
         active,
@@ -265,6 +269,7 @@ export function PartnersPanel({
     setName(row.name);
     setOrganizationType(row.organization_type);
     setPartnerKey(row.partner_key ?? '');
+    setLegalName(row.legal_name ?? '');
     setWebsite(row.website ?? '');
     setPendingLocationId(row.location_id ?? null);
     setOptimisticLocationSummary(null);
@@ -332,6 +337,16 @@ export function PartnersPanel({
                 hyphen).
               </p>
             ) : null}
+          </div>
+          <div className='lg:col-span-2'>
+            <Label htmlFor='svc-partner-legal-name'>Legal name</Label>
+            <Input
+              id='svc-partner-legal-name'
+              value={legalName}
+              onChange={(e) => setLegalName(e.target.value)}
+              autoComplete='off'
+              placeholder='Registered legal entity name (optional)'
+            />
           </div>
           <div className='lg:col-span-2'>
             <Label htmlFor='svc-partner-web'>Website</Label>

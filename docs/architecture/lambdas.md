@@ -99,7 +99,9 @@ their primary responsibilities.
   alphabetical order by trimmed name); includes `DELETE /v1/admin/organizations/{id}`
   for non-vendor orgs; `POST /v1/admin/organizations/{id}/members` derives each member's role from the
   linked contact's `contact_type`; `PATCH /v1/admin/organizations/{id}/members/{memberId}` updates
-  membership fields such as primary contact),
+  membership fields such as primary contact; partner rows accept optional `legal_name` for AR
+  invoice Bill To entity lines—resolved as `legal_name` or `name` at issue time; pickers and
+  structured bill-to snapshots keep the trade `name` by design),
   `/v1/admin/forms` (lists form slugs with answer counts from DynamoDB
   `evolvesprouts-poll-responses`), `/v1/admin/forms/{form_slug}/answers`
   (`GET` lists all stored answer rows; `DELETE` clears all rows for the form),

@@ -160,6 +160,35 @@ def _apply_organization_partner_key_from_body(
     org.partner_key = partner_key
 
 
+def _apply_organization_legal_name_from_body(
+    org: Organization,
+    body: Mapping[str, Any],
+    *,
+    relationship_type: RelationshipType | None = None,
+) -> None:
+    """Set legal_name from request body; only partner orgs may have a legal name."""
+    if "legal_name" not in body:
+        return
+    legal_name = validate_string_length(
+        body.get("legal_name"),
+        "legal_name",
+        max_length=255,
+        required=False,
+    )
+    effective = (
+        relationship_type if relationship_type is not None else org.relationship_type
+    )
+    if effective != RelationshipType.PARTNER:
+        if legal_name is not None:
+            raise ValidationError(
+                "legal_name is only allowed when relationship_type is partner",
+                field="legal_name",
+            )
+        org.legal_name = None
+        return
+    org.legal_name = legal_name
+
+
 def _parse_organization_list_order(raw: str | None) -> OrganizationListOrder:
     """Parse optional ``sort`` query for ``GET /v1/admin/organizations``."""
     if raw is None or str(raw).strip() == "":
@@ -316,6 +345,9 @@ def _create_organization(event: Mapping[str, Any], *, actor_sub: str) -> dict[st
         _apply_organization_partner_key_from_body(
             org, body, relationship_type=relationship_type
         )
+        _apply_organization_legal_name_from_body(
+            org, body, relationship_type=relationship_type
+        )
         created = repository.create(org)
         if tag_ids:
             replace_organization_tags(
@@ -384,6 +416,7 @@ def _update_organization(
             )
             if org.relationship_type != RelationshipType.PARTNER:
                 org.partner_key = None
+                org.legal_name = None
         if "website" in body:
             org.website = validate_string_length(
                 body.get("website"),
@@ -405,6 +438,7 @@ def _update_organization(
             replace_organization_tags(session, organization_id=org.id, tag_ids=tag_ids)
 
         _apply_organization_partner_key_from_body(org, body)
+        _apply_organization_legal_name_from_body(org, body)
 
         repository.update(org)
         try:

@@ -916,6 +916,30 @@ def test_bank_block_omitted_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "Bank:" not in text
 
 
+def test_organization_bill_to_two_line_display_renders(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Organization Bill To with entity and contact on separate lines renders in PDF."""
+    _base_invoice_env(monkeypatch)
+    inv = SimpleNamespace(
+        invoice_number="N1",
+        currency="HKD",
+        subtotal=Decimal("1"),
+        tax_total=Decimal("0"),
+        total=Decimal("1"),
+        bill_to_display_name="Acme Learning Limited\nJordan Lee",
+        bill_to_email="jordan@example.com",
+        bill_to_kind=BillingBillToKind.ORGANIZATION,
+        issued_at=datetime(2026, 1, 1, tzinfo=UTC),
+        invoice_date=date(2026, 1, 1),
+        due_date=date(2026, 1, 8),
+        status=BillingInvoiceStatus.ISSUED,
+    )
+    text = _pdf_text(render_invoice_pdf(invoice=inv, lines=[_inv_line()], preview=False))
+    assert "Acme Learning Limited" in text
+    assert "Jordan Lee" in text
+
+
 def test_bill_to_email_shown_or_omitted(monkeypatch: pytest.MonkeyPatch) -> None:
     _base_invoice_env(monkeypatch)
     inv = SimpleNamespace(

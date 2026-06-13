@@ -145,3 +145,6 @@ WHERE lower(s.service_key) = 'intro-call'
   );
   END IF;
 END $$;
+
+-- organizations.legal_name (migration 0071_partner_legal_name): no seed inserts into
+-- organizations; partner legal names are admin-created at runtime.
