@@ -3499,6 +3499,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/contacts/{id}/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM contact identifier. */
+                id: components["parameters"]["AdminContactId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List purchased services for a contact
+         * @description Returns invoice-style labels for non-cancelled enrollments attributed to the
+         *     contact. Labels are deduplicated and sorted alphabetically.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM contact identifier. */
+                    id: components["parameters"]["AdminContactId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service label list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EntityServicesResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/contacts/{id}/notes/{noteId}": {
         parameters: {
             query?: never;
@@ -3801,6 +3850,55 @@ export interface paths {
                 404: components["responses"]["NotFound"];
             };
         };
+        trace?: never;
+    };
+    "/v1/admin/families/{id}/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM family identifier. */
+                id: components["parameters"]["AdminFamilyId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List purchased services for a family
+         * @description Returns invoice-style labels for non-cancelled enrollments attributed to the
+         *     family or to any member contact. Labels are deduplicated and sorted alphabetically.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM family identifier. */
+                    id: components["parameters"]["AdminFamilyId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service label list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EntityServicesResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/admin/families/{id}/members": {
@@ -4174,6 +4272,55 @@ export interface paths {
                 404: components["responses"]["NotFound"];
             };
         };
+        trace?: never;
+    };
+    "/v1/admin/organizations/{id}/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description CRM organization identifier. */
+                id: components["parameters"]["AdminOrganizationId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List purchased services for an organization
+         * @description Returns invoice-style labels for non-cancelled enrollments attributed to the
+         *     organization or to any member contact. Labels are deduplicated and sorted alphabetically.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CRM organization identifier. */
+                    id: components["parameters"]["AdminOrganizationId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service label list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EntityServicesResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/admin/organizations/{id}/members": {
@@ -6252,6 +6399,12 @@ export interface components {
         };
         AdminNoteListResponse: {
             items: components["schemas"]["Note"][];
+        };
+        EntityServiceItem: {
+            label: string;
+        };
+        EntityServicesResponse: {
+            items: components["schemas"]["EntityServiceItem"][];
         };
         CreateNoteRequest: {
             content: string;

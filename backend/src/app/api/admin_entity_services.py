@@ -20,7 +20,11 @@ from app.db.models import (
     OrganizationMember,
     ServiceInstance,
 )
-from app.db.repositories import ContactRepository, FamilyRepository, OrganizationRepository
+from app.db.repositories import (
+    ContactRepository,
+    FamilyRepository,
+    OrganizationRepository,
+)
 from app.exceptions import NotFoundError
 from app.utils import json_response
 
