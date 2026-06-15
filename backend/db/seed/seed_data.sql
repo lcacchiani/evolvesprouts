@@ -46,31 +46,6 @@ WHERE lower(trim(coalesce(s.service_key, ''))) = 'my-best-auntie'
     OR lower(coalesce(s.title, '')) LIKE '%my best auntie%'
   );
 
--- Legacy safeguard only (superseded by Alembic migration ``0063_tier_per_service``, which
--- splits consultation tiers into ``family-consultation-essentials`` / ``family-consultation-deep-dive``).
-UPDATE services s
-SET service_key = 'family-consultation'
-FROM (
-  SELECT id
-  FROM services
-  WHERE service_key IS NULL
-    AND service_type = 'consultation'
-) pick
-WHERE s.id = pick.id
-  AND (
-    SELECT count(*)::int
-    FROM services
-    WHERE service_key IS NULL
-      AND service_type = 'consultation'
-  ) = 1;
-
--- Align legacy consultation service key with public_www `family-consultations.json` (`service_key`).
--- Superseded by migration ``0063_tier_per_service`` for tier-per-service catalog rows.
-UPDATE services
-SET service_key = 'family-consultation'
-WHERE service_type = 'consultation'
-  AND lower(trim(coalesce(service_key, ''))) = 'consultations';
-
 -- ───────────────────────────────────────────────────────────────────────
 -- DEPENDENCY: requires migration `0059_intro_call_service_type`, which
 -- adds the `intro_call` value to the `service_type` enum.
