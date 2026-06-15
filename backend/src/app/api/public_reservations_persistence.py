@@ -12,9 +12,6 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.api.public_discount_validate import (
-    _is_usable_now as discount_code_is_usable_now,
-)
 from app.api.public_reservations_validation import (
     _ALLOWED_LOCALES,
     _MAX_FPS_DATA_URL_BYTES,
@@ -22,15 +19,11 @@ from app.api.public_reservations_validation import (
     _MAX_ISO_FIELD,
 )
 from app.services.intro_call_slots import is_intro_call_slot_available
-from app.db.models import Enrollment, InstanceSessionSlot, Service, ServiceInstance
+from app.db.models import InstanceSessionSlot, Service, ServiceInstance
 from app.db.models.enums import (
-    BillingBillToKind,
-    DiscountType,
     EventbriteSyncStatus,
     InstanceStatus,
 )
-from app.db.models.family import FamilyMember
-from app.db.models.organization import OrganizationMember
 from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.exceptions import ConflictError, ValidationError
 from app.utils.logging import get_logger, mask_email
@@ -323,122 +316,6 @@ def _persist_session_slots_for_booking_instance(
             exclude_intro_booking_interval=(s0, s1),
         ):
             raise ConflictError("slot_unavailable")
-
-
-def _apply_enrollment_bill_to(
-    enrollment: Enrollment,
-    *,
-    contact_id: UUID,
-    bill: Mapping[str, Any],
-) -> None:
-    kind: BillingBillToKind = bill["bill_to_kind"]
-    enrollment.bill_to_kind = kind
-    if kind == BillingBillToKind.CONTACT:
-        enrollment.bill_to_contact_id = bill.get("bill_to_contact_id") or contact_id
-        enrollment.bill_to_family_id = None
-        enrollment.bill_to_organization_id = None
-    elif kind == BillingBillToKind.FAMILY:
-        fid = bill.get("bill_to_family_id")
-        if fid is None:
-            raise ValidationError(
-                "billToFamilyId is required when billToKind is family",
-                field="billToFamilyId",
-            )
-        enrollment.bill_to_family_id = fid
-        enrollment.bill_to_contact_id = None
-        enrollment.bill_to_organization_id = None
-    else:
-        oid = bill.get("bill_to_organization_id")
-        if oid is None:
-            raise ValidationError(
-                "billToOrganizationId is required when billToKind is organization",
-                field="billToOrganizationId",
-            )
-        enrollment.bill_to_organization_id = oid
-        enrollment.bill_to_contact_id = None
-        enrollment.bill_to_family_id = None
-
-
-def _validate_public_bill_to_membership(
-    session: Session, bill: Mapping[str, Any], *, contact_id: UUID
-) -> None:
-    """Ensure bill-to family/org exists and the contact is a member."""
-    kind = bill["bill_to_kind"]
-    if kind == BillingBillToKind.FAMILY:
-        fid = bill.get("bill_to_family_id")
-        if fid is None:
-            return
-        fam_row = session.execute(
-            select(FamilyMember.id).where(
-                FamilyMember.family_id == fid,
-                FamilyMember.contact_id == contact_id,
-            )
-        ).first()
-        if fam_row is None:
-            raise ValidationError(
-                "Contact is not a member of this family",
-                field="billToFamilyId",
-            )
-    elif kind == BillingBillToKind.ORGANIZATION:
-        oid = bill.get("bill_to_organization_id")
-        if oid is None:
-            return
-        org_row = session.execute(
-            select(OrganizationMember.id).where(
-                OrganizationMember.organization_id == oid,
-                OrganizationMember.contact_id == contact_id,
-            )
-        ).first()
-        if org_row is None:
-            raise ValidationError(
-                "Contact is not a member of this organization",
-                field="billToOrganizationId",
-            )
-
-
-def _validate_discount_code_redemption_scope(
-    session: Session,
-    payload: Mapping[str, Any],
-    *,
-    resolved_service: Service,
-    resolved_instance: ServiceInstance | None,
-) -> None:
-    """Ensure discount code scope matches the reservation context."""
-    from app.api import public_reservations as pr
-
-    code = payload.get("discount_code")
-    if not code:
-        return
-
-    repository = pr.DiscountCodeRepository(session)
-    row = repository.get_by_code(str(code))
-    if row is None or not discount_code_is_usable_now(row):
-        raise ValidationError("Invalid discount code", field="discountCode")
-
-    if row.discount_type == DiscountType.REFERRAL:
-        raise ValidationError("Invalid discount code", field="discountCode")
-
-    if row.instance_id is not None:
-        if resolved_instance is None:
-            raise ValidationError(
-                "Discount code is not valid for this booking",
-                field="discountCode",
-            )
-        if row.instance_id != resolved_instance.id:
-            raise ValidationError(
-                "Discount code is not valid for this booking",
-                field="discountCode",
-            )
-        return
-
-    if row.service_id is None:
-        return
-
-    if row.service_id != resolved_service.id:
-        raise ValidationError(
-            "Discount code is not valid for this booking",
-            field="discountCode",
-        )
 
 
 def _prepare_consultation_booking_slots(

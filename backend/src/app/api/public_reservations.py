@@ -24,16 +24,18 @@ from app.api.public_reservations_intro_call import (
     _resolve_booking_identity,
     _resolve_consultation_or_intro_service,
 )
+from app.api.public_reservations_billing import (
+    _apply_enrollment_bill_to,
+    _validate_discount_code_redemption_scope,
+    _validate_public_bill_to_membership,
+)
 from app.api.public_reservations_persistence import (
     _PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
-    _apply_enrollment_bill_to,
     _build_reservation_lead_metadata,
     _create_booking_instance_for_service,
     _generate_booking_instance_slug,
     _persist_session_slots_for_booking_instance,
     _prepare_consultation_booking_slots,
-    _validate_discount_code_redemption_scope,
-    _validate_public_bill_to_membership,
 )
 from app.api.public_reservations_post_success import _run_reservation_post_success_hooks
 from app.api.public_reservations_stripe import _validate_payment_confirmation
