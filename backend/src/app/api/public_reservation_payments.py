@@ -13,6 +13,10 @@ from collections.abc import Mapping
 from urllib.parse import urlencode
 
 from app.api.admin_request import parse_body
+from app.api.text_fields import (
+    optional_text as _optional_text,
+    require_text as _require_text,
+)
 from app.api.validators import validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
@@ -194,27 +198,6 @@ def _validate_payment_payload(body: Mapping[str, Any]) -> dict[str, Any]:
         "cohort_id": cohort_id,
         "price": price,
     }
-
-
-def _require_text(value: Any, field_name: str, max_length: int) -> str:
-    normalized = validate_string_length(
-        value,
-        field_name=field_name,
-        max_length=max_length,
-        required=True,
-    )
-    if normalized is None:
-        raise ValidationError(f"{field_name} is required", field=field_name)
-    return normalized
-
-
-def _optional_text(value: Any, field_name: str, max_length: int) -> str | None:
-    return validate_string_length(
-        value,
-        field_name=field_name,
-        max_length=max_length,
-        required=False,
-    )
 
 
 def _parse_total_amount(value: Any) -> Decimal:
