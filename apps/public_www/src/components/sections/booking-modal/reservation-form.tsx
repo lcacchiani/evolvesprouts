@@ -30,7 +30,7 @@ import {
   isStripeUnavailable,
   useStripePaymentIntent,
 } from '@/components/sections/booking-modal/use-stripe-payment-intent';
-import { useReservationSubmit } from '@/components/sections/booking-modal/use-reservation-submit';
+import { createReservationSubmitHandler } from '@/components/sections/booking-modal/create-reservation-submit-handler';
 import type {
   BookingThankYouRecapLabelTemplates,
   BookingTopicsFieldConfig,
@@ -216,7 +216,6 @@ export function BookingReservationForm({
       return;
     }
     prevPaymentContextRef.current = { totalAmount, selectedPaymentMethod };
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- invalidate FPS QR when price or method changes
     setFpsQrImageDataUrl('');
   }, [totalAmount, selectedPaymentMethod]);
 
@@ -226,7 +225,6 @@ export function BookingReservationForm({
       return;
     }
     lastAppliedTopicsPrefillRef.current = next;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- apply referral/topics prefill when prop changes
     setInterestedTopics(next);
   }, [topicsPrefill]);
 
@@ -320,7 +318,7 @@ export function BookingReservationForm({
       (isStripePaymentIntentLoading || !isStripeReady)) ||
     isSubmitting;
 
-  const { handleSubmit } = useReservationSubmit(
+  const { handleSubmit } = createReservationSubmitHandler(
     {
       fullName,
       email,
@@ -362,7 +360,6 @@ export function BookingReservationForm({
       serviceKey,
       serviceTypeLabelKey,
       sessionSlots,
-      stripePaymentFieldsRef,
       thankYouRecapLabels,
       topicsFieldConfig,
       totalAmount,
@@ -397,6 +394,9 @@ export function BookingReservationForm({
       setSubmissionError,
       withSubmitting,
     },
+    // Ref is read only inside handleSubmit on user action, not during handler creation.
+    // eslint-disable-next-line react-hooks/refs -- factory stores ref for submit-time Stripe confirmation
+    stripePaymentFieldsRef,
   );
 
   return (
