@@ -16,8 +16,12 @@ Downgrade is intentionally non-destructive (same as 0043).
 
 from __future__ import annotations
 
+import logging
+
 import sqlalchemy as sa
 from alembic import op
+
+logger = logging.getLogger(__name__)
 
 revision = "0048_inst_slug_backfill_consult"
 down_revision = "0047_orgs_slug_to_partner_key"
@@ -144,7 +148,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    print(
+    logger.warning(
         "0048_inst_slug_backfill_consult: downgrade is a no-op; "
         "backfilled slugs are not safely reversible"
     )

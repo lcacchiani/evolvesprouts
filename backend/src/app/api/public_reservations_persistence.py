@@ -1,0 +1,400 @@
+"""Database persistence helpers for public reservation submissions."""
+
+from __future__ import annotations
+
+import secrets
+from collections.abc import Mapping
+from datetime import UTC, datetime
+from typing import Any
+from uuid import UUID
+
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.api.public_reservations_validation import (
+    _ALLOWED_LOCALES,
+    _MAX_FPS_DATA_URL_BYTES,
+    _MAX_INSTANCE_SLUG_LENGTH,
+    _MAX_ISO_FIELD,
+)
+from app.services.intro_call_slots import is_intro_call_slot_available
+from app.db.models import InstanceSessionSlot, Service, ServiceInstance
+from app.db.models.enums import (
+    EventbriteSyncStatus,
+    InstanceStatus,
+)
+from app.db.repositories.service_instance import ServiceInstanceRepository
+from app.exceptions import ConflictError, ValidationError
+from app.utils.logging import get_logger, mask_email
+from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
+
+logger = get_logger(__name__)
+
+_PUBLIC_RESERVATION_ENROLLMENT_ACTOR = "public-reservation"
+
+
+def _parse_iso_datetime_utc(value: str | None) -> datetime | None:
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    if raw.endswith("Z"):
+        raw = raw[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
+
+
+def _normalize_locale_field(value: Any) -> str:
+    if not isinstance(value, str):
+        return "en"
+    s = value.strip()
+    return s if s in _ALLOWED_LOCALES else "en"
+
+
+def _parse_bool_opt(value: Any, *, default: bool) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "1", "yes"}:
+            return True
+        if lowered in {"false", "0", "no"}:
+            return False
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return default
+
+
+def _parse_session_slots(raw: Any) -> list[dict[str, str]] | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, list):
+        raise ValidationError("sessionSlots must be an array", field="sessionSlots")
+    out: list[dict[str, str]] = []
+    for idx, item in enumerate(raw):
+        if not isinstance(item, Mapping):
+            raise ValidationError(
+                "sessionSlots items must be objects",
+                field="sessionSlots",
+            )
+        start = item.get("startIso")
+        if not isinstance(start, str) or not start.strip():
+            raise ValidationError(
+                f"sessionSlots[{idx}].startIso is required",
+                field="sessionSlots",
+            )
+        start_norm = start.strip()
+        if len(start_norm) > _MAX_ISO_FIELD:
+            raise ValidationError(
+                f"sessionSlots[{idx}].startIso is too long",
+                field="sessionSlots",
+            )
+        row: dict[str, str] = {"start_iso": start_norm}
+        end_raw = item.get("endIso")
+        if end_raw is not None:
+            if not isinstance(end_raw, str):
+                raise ValidationError(
+                    f"sessionSlots[{idx}].endIso must be a string",
+                    field="sessionSlots",
+                )
+            end_norm = end_raw.strip()
+            if len(end_norm) > _MAX_ISO_FIELD:
+                raise ValidationError(
+                    f"sessionSlots[{idx}].endIso is too long",
+                    field="sessionSlots",
+                )
+            if end_norm:
+                row["end_iso"] = end_norm
+        out.append(row)
+    return out or None
+
+
+def _optional_fps_qr_data_url(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValidationError(
+            "fpsQrImageDataUrl must be a string", field="fpsQrImageDataUrl"
+        )
+    s = value.strip()
+    if not s:
+        return None
+    if len(s.encode("utf-8")) > _MAX_FPS_DATA_URL_BYTES:
+        raise ValidationError(
+            "fpsQrImageDataUrl exceeds maximum size",
+            field="fpsQrImageDataUrl",
+        )
+    return s
+
+
+def _generate_booking_instance_slug(*, service_key: str, now_utc: datetime) -> str:
+    slug_part = service_key.strip().lower()
+    suffix = secrets.token_hex(4)
+    raw = f"{slug_part}-{now_utc:%Y%m%d%H%M%S}-{suffix}"
+    if len(raw) > _MAX_INSTANCE_SLUG_LENGTH:
+        raw = raw[:_MAX_INSTANCE_SLUG_LENGTH]
+    if not PUBLIC_INSTANCE_SLUG_PATTERN.fullmatch(raw):
+        raise ValidationError(
+            "Unable to allocate a valid booking instance slug",
+            field="serviceInstanceSlug",
+            status_code=500,
+        )
+    return raw
+
+
+def _create_booking_instance_for_service(
+    session: Session,
+    instance_repo: ServiceInstanceRepository,
+    service: Service,
+    payload: Mapping[str, Any],
+    *,
+    now_utc: datetime,
+) -> ServiceInstance:
+    locked = session.execute(
+        select(Service).where(Service.id == service.id).with_for_update()
+    ).scalar_one_or_none()
+    if locked is None:
+        raise ValidationError(
+            "serviceKey does not match a published service",
+            field="serviceKey",
+            status_code=400,
+        )
+    service_key_str = (locked.service_key or "").strip().lower()
+    if not service_key_str:
+        raise ValidationError(
+            "serviceKey does not match a published service",
+            field="serviceKey",
+            status_code=400,
+        )
+    attendee = str(payload.get("attendee_name") or "").strip()
+    title_base = f"{locked.title} – {attendee}" if attendee else locked.title
+    last_exc: IntegrityError | None = None
+    for _attempt in range(3):
+        slug = _generate_booking_instance_slug(
+            service_key=service_key_str,
+            now_utc=now_utc,
+        )
+        booking = ServiceInstance(
+            service_id=locked.id,
+            title=title_base,
+            slug=slug,
+            description=None,
+            cover_image_s3_key=None,
+            status=InstanceStatus.OPEN,
+            delivery_mode=locked.delivery_mode,
+            location_id=locked.location_id,
+            max_capacity=1,
+            waitlist_enabled=False,
+            instructor_id=None,
+            cohort=None,
+            notes=None,
+            created_by=_PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
+            external_url=None,
+            eventbrite_sync_status=EventbriteSyncStatus.SKIPPED,
+        )
+        try:
+            with session.begin_nested():
+                return instance_repo.create_instance(
+                    booking, type_details=None, session_slots=None
+                )
+        except IntegrityError as exc:
+            last_exc = exc
+            continue
+    raise ValidationError(
+        "Unable to allocate booking instance",
+        field="serviceInstanceSlug",
+        status_code=500,
+    ) from last_exc
+
+
+def _consultation_booking_slot_rows(
+    payload: Mapping[str, Any],
+) -> list[tuple[datetime, datetime, int]]:
+    raw_start = payload.get("primary_session_start_iso")
+    raw_end = payload.get("primary_session_end_iso")
+    if not raw_start or not raw_end:
+        raise ValidationError(
+            "primarySessionStartIso and primarySessionEndIso are required for "
+            "consultation bookings",
+            field="primarySessionStartIso",
+        )
+    ps = _parse_iso_datetime_utc(str(raw_start))
+    pe = _parse_iso_datetime_utc(str(raw_end))
+    if ps is None or pe is None:
+        raise ValidationError(
+            "Invalid consultation session ISO timestamps",
+            field="primarySessionStartIso",
+        )
+    if pe <= ps:
+        raise ValidationError(
+            "Consultation primary session must end after it starts",
+            field="primarySessionEndIso",
+        )
+    primary_duration = pe - ps
+    rows: list[tuple[datetime, datetime, int]] = [(ps, pe, 0)]
+    seen: set[datetime] = {ps}
+    extras = payload.get("session_slots") or []
+    for idx, row in enumerate(extras):
+        start_s = row.get("start_iso")
+        end_s = row.get("end_iso")
+        if not isinstance(start_s, str) or not start_s.strip():
+            continue
+        ss = _parse_iso_datetime_utc(start_s.strip())
+        if ss is None:
+            raise ValidationError(
+                "Invalid consultation session slot timestamps",
+                field="sessionSlots",
+            )
+        if isinstance(end_s, str) and end_s.strip():
+            es = _parse_iso_datetime_utc(end_s.strip())
+            if es is None:
+                raise ValidationError(
+                    "Invalid consultation session slot timestamps",
+                    field="sessionSlots",
+                )
+        else:
+            es = ss + primary_duration
+        if es <= ss:
+            raise ValidationError(
+                "Each session slot must end after its start time",
+                field="sessionSlots",
+            )
+        if ss in seen:
+            continue
+        seen.add(ss)
+        rows.append((ss, es, idx + 1))
+    return rows
+
+
+def _persist_session_slots_for_booking_instance(
+    session: Session,
+    *,
+    booking_instance_id: UUID,
+    purpose_service_id: UUID,
+    slots: list[tuple[datetime, datetime, int]],
+    reservation_payload: Mapping[str, Any],
+    now_utc: datetime,
+    is_intro_booking: bool,
+) -> None:
+    for start_u, end_u, sort_order in slots:
+        session.add(
+            InstanceSessionSlot(
+                instance_id=booking_instance_id,
+                purpose_service_id=purpose_service_id,
+                location_id=None,
+                starts_at=start_u,
+                ends_at=end_u,
+                sort_order=sort_order,
+            )
+        )
+    try:
+        session.flush()
+    except IntegrityError as exc:
+        logger.info(
+            "booking_purpose_service_slot_unique_violation",
+            extra={
+                "attendee_email": mask_email(
+                    str(reservation_payload.get("attendee_email"))
+                ),
+            },
+        )
+        raise ConflictError("slot_unavailable") from exc
+    if is_intro_booking and slots:
+        s0, s1 = slots[0][0], slots[0][1]
+        if not is_intro_call_slot_available(
+            session,
+            start_utc=s0,
+            end_utc=s1,
+            now=now_utc,
+            exclude_intro_booking_interval=(s0, s1),
+        ):
+            raise ConflictError("slot_unavailable")
+
+
+def _prepare_consultation_booking_slots(
+    session: Session,
+    reservation_payload: Mapping[str, Any],
+) -> list[tuple[datetime, datetime, int]]:
+    """Validate consultation booking slots and return persisted slot rows."""
+    from app.api.public_reservations_intro_call import (
+        _assert_consultation_start_grid_aligned,
+    )
+    from app.services.calendar_blockers import (
+        consultation_booking_purpose,
+        raise_if_consultation_reservation_blocked,
+        validate_session_slot_chronology,
+    )
+
+    start_iso = reservation_payload.get("primary_session_start_iso")
+    if not start_iso:
+        raise ValidationError(
+            "primarySessionStartIso is required for consultation bookings",
+            field="primarySessionStartIso",
+        )
+    slot_err = validate_session_slot_chronology(
+        reservation_payload.get("session_slots")
+    )
+    if slot_err == "session_slot_end_before_start":
+        raise ValidationError(
+            "Each session slot must end after its start time",
+            field="sessionSlots",
+        )
+    if slot_err == "invalid_session_slot_iso":
+        raise ValidationError(
+            "Invalid session slot date format",
+            field="sessionSlots",
+        )
+    _assert_consultation_start_grid_aligned(reservation_payload)
+    raise_if_consultation_reservation_blocked(
+        session=session,
+        purpose=consultation_booking_purpose(),
+        primary_start_iso=str(start_iso),
+        session_slots=reservation_payload.get("session_slots"),
+    )
+    return _consultation_booking_slot_rows(reservation_payload)
+
+
+def _build_reservation_lead_metadata(
+    reservation_payload: Mapping[str, Any],
+    *,
+    booking_instance_slug_for_lead: str | None,
+    dc_text: Any,
+    dc_row: Any,
+) -> dict[str, object]:
+    """Build SalesLead event metadata from a validated reservation payload."""
+    lead_metadata: dict[str, object] = {
+        "payment_method": reservation_payload["payment_method"],
+        "title": reservation_payload["title"],
+        "locale": reservation_payload["locale"],
+    }
+    if reservation_payload.get("service_key"):
+        lead_metadata["service_key"] = reservation_payload["service_key"]
+    if reservation_payload.get("service_type"):
+        lead_metadata["service_type"] = reservation_payload["service_type"]
+    if reservation_payload.get("service_instance_slug"):
+        lead_metadata["service_instance_slug"] = reservation_payload[
+            "service_instance_slug"
+        ]
+    if booking_instance_slug_for_lead:
+        lead_metadata["booking_instance_slug"] = booking_instance_slug_for_lead
+    if reservation_payload.get("service_instance_cohort"):
+        lead_metadata["service_instance_cohort"] = reservation_payload[
+            "service_instance_cohort"
+        ]
+    if reservation_payload.get("booking_system"):
+        lead_metadata["booking_system"] = reservation_payload["booking_system"]
+    if dc_text and str(dc_text).strip():
+        lead_metadata["discount_code"] = str(dc_text).strip()
+        if dc_row is not None:
+            lead_metadata["discount_code_id"] = str(dc_row.id)
+    ma_meta = reservation_payload.get("marketing_attribution")
+    if isinstance(ma_meta, dict) and ma_meta:
+        lead_metadata["marketing_attribution"] = ma_meta
+    return lead_metadata

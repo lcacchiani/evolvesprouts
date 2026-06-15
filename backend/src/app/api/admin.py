@@ -32,9 +32,9 @@ from app.api.admin_families import handle_admin_families_request
 from app.api.admin_families_picker import handle_admin_families_picker_request
 from app.api.admin_organizations import handle_admin_organizations_request
 from app.api.admin_organizations_picker import handle_admin_organizations_picker_request
-from app.api.public_media import handle_media_request
+from app.api.assets.public_media_assets import handle_media_request
 from app.api.public_mailchimp_webhook import handle_mailchimp_webhook
-from app.api.public_free_assets import handle_public_free_assets_list_request
+from app.api.assets.public_free_assets import handle_public_free_assets_list_request
 from app.api.public_discount_validate import handle_public_discount_validate
 from app.api.admin_audit_logs import handle_admin_audit_logs_request
 from app.api.admin_calendar_manual_blocks import (

@@ -396,7 +396,7 @@ Each Lambda function created by `PythonLambda` construct includes:
 
 | Function Logical ID | Handler | Memory | Timeout | VPC | Notes |
 |---------------------|---------|--------|---------|-----|-------|
-| `AdminBootstrapFunction` | `lambda/admin_bootstrap/handler.lambda_handler` | 256 MB | 30s | Yes | Custom resource handler |
+| `AdminBootstrapFunction` | `lambda/admin_bootstrap/handler.lambda_handler` | 256 MB | 30s | No | Custom resource handler (Cognito only) |
 | `AwsApiProxyFunction` | `lambda/aws_proxy/handler.lambda_handler` | 256 MB | 90s | No | AWS/HTTP proxy for in-VPC Lambdas |
 | `ApiKeyRotationFunction` | `lambda/api_key_rotation/handler.lambda_handler` | 256 MB | 60s | Yes | Scheduled API key rotation |
 | `MediaRequestProcessor` | `lambda/media_processor/handler.lambda_handler` | 512 MB | 30s | Yes | SQS-triggered media processor (nested stack `evolvesprouts-Messaging`) |

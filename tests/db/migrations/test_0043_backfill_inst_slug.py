@@ -355,6 +355,11 @@ def test_0043_backfill_service_instance_slugs() -> None:
     assert after_cycle == snapshots
 
     proc_down = _run_alembic("downgrade", "0042_slug_nulls_nd")
-    combined = f"{proc_down.stdout}\n{proc_down.stderr}".lower()
     assert proc_down.returncode == 0
-    assert "0043_backfill_inst_slug: downgrade is a no-op" in combined
+    with psycopg.connect(conn_url) as conn:
+        cur = conn.execute(
+            "SELECT id, slug FROM service_instances WHERE id = ANY(%s)",
+            (ids,),
+        )
+        after_downgrade = {row[0]: row[1] for row in cur.fetchall()}
+    assert after_downgrade == snapshots

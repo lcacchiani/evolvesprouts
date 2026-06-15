@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from app.api.public_media import handle_media_request
+from app.api.assets.public_media_assets import handle_media_request
 
 
 def test_media_request_rejects_non_post(api_gateway_event: Any) -> None:
@@ -39,7 +39,7 @@ def test_media_request_rejects_failed_turnstile(
         headers={"X-Turnstile-Token": "test-token"},
     )
     monkeypatch.setattr(
-        "app.api.public_media.verify_turnstile_token",
+        "app.api.assets.public_media_assets.verify_turnstile_token",
         lambda *_args, **_kwargs: False,
     )
 
@@ -61,7 +61,7 @@ def test_media_request_returns_500_without_topic(
     )
     monkeypatch.delenv("MEDIA_REQUEST_TOPIC_ARN", raising=False)
     monkeypatch.setattr(
-        "app.api.public_media.verify_turnstile_token",
+        "app.api.assets.public_media_assets.verify_turnstile_token",
         lambda *_args, **_kwargs: True,
     )
 
@@ -102,11 +102,11 @@ def test_media_request_publishes_to_sns(
     monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
     monkeypatch.setenv("MEDIA_REQUEST_TOPIC_ARN", "arn:aws:sns:ap-southeast-1:123:topic")
     monkeypatch.setattr(
-        "app.api.public_media.verify_turnstile_token",
+        "app.api.assets.public_media_assets.verify_turnstile_token",
         lambda *_args, **_kwargs: True,
     )
     monkeypatch.setattr(
-        "app.api.public_media.get_sns_client",
+        "app.api.assets.public_media_assets.get_sns_client",
         lambda: fake_sns_client,
     )
 

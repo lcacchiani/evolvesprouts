@@ -106,6 +106,20 @@ groups **`admin`**, **`manager`**, or **`instructor`**. Users who complete socia
 or passwordless sign-in without any of these groups must not see the admin
 dashboard; the client shows an access-denied state and sign out instead.
 
+### JWT audience / client verification
+
+Cognito ID tokens carry the app client id in the `aud` claim; access tokens use
+`client_id`. After signature and issuer checks, `decode_and_verify_token` in
+`backend/src/app/auth/jwt_validator.py` requires the claim to appear in the
+comma-separated allowlist env var `COGNITO_ALLOWED_CLIENT_IDS`. An empty or
+missing allowlist fails closed (tokens are rejected). Wire the same allowlist on
+admin API Lambdas and Cognito request authorizers via CDK. Production deploys
+use a single Cognito app client (`EvolvesproutsUserPoolClient` in
+`backend/infrastructure/lib/api-stack.ts`).
+The infra test `backend/infrastructure/test/api-stack.test.ts` enforces this
+single-client invariant: it fails if more than one app client is synthesized or
+if any Lambda's `COGNITO_ALLOWED_CLIENT_IDS` references a different client.
+
 ### OTP/Code Generation
 
 **Always use cryptographically secure random for security tokens.**

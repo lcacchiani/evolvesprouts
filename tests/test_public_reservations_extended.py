@@ -1540,7 +1540,7 @@ def test_handle_public_reservation_consultation_booking_accepts_extra_slot_start
         lambda *_a, **_k: None,
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.raise_if_consultation_reservation_blocked",
+        "app.services.calendar_blockers.raise_if_consultation_reservation_blocked",
         lambda *_a, **_k: None,
     )
     monkeypatch.setattr(
