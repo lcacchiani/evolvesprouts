@@ -4473,6 +4473,10 @@ export interface paths {
                 query?: {
                     /** @description `1` (legacy) or `2` (default). */
                     exportVersion?: "1" | "2";
+                    /** @description Maximum payment rows per page (default 1000, max 5000). */
+                    limit?: number;
+                    /** @description Opaque pagination cursor from a prior export response `next_cursor`. */
+                    cursor?: string;
                 };
                 header?: never;
                 path?: never;
@@ -4488,6 +4492,8 @@ export interface paths {
                     content: {
                         "application/json": {
                             csv: string;
+                            /** @description Present when more payment rows are available. */
+                            next_cursor?: string | null;
                         };
                     };
                 };
