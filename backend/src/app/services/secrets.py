@@ -11,6 +11,7 @@ from typing import Any
 from app.services.aws_clients import get_secretsmanager_client
 
 _CACHE_TTL_SECONDS = 300
+SECRETS_CACHE_TTL_SECONDS = _CACHE_TTL_SECONDS
 
 
 @dataclass(frozen=True)

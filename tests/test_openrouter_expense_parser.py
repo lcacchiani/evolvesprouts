@@ -1513,3 +1513,32 @@ def test_parse_invoice_makes_a_single_chat_completion_call(monkeypatch: Any) -> 
     assert "response_format" not in sent_payload, "JSON mode is intentionally off"
     assert sent_payload["plugins"][0]["pdf"]["engine"] == "mistral-ocr"
     assert result["vendor_name"] == "Single Shop"
+
+
+def test_get_api_key_refetches_after_ttl(monkeypatch: Any) -> None:
+    _set_common_env(monkeypatch)
+    call_count = {"n": 0}
+
+    class _FakeSecretsClient:
+        def get_secret_value(self, SecretId: str) -> dict[str, str]:
+            call_count["n"] += 1
+            return {
+                "SecretString": json.dumps(
+                    {"openrouter_api_key": f"key-{call_count['n']}"}
+                )
+            }
+
+    monkeypatch.setattr(
+        parser,
+        "get_secretsmanager_client",
+        lambda: _FakeSecretsClient(),
+    )
+    monkeypatch.setattr(parser, "SECRETS_CACHE_TTL_SECONDS", 300)
+
+    times = iter([100.0, 100.0, 500.0])
+    monkeypatch.setattr(parser.time, "monotonic", lambda: next(times))
+
+    assert parser._get_api_key() == "key-1"
+    assert parser._get_api_key() == "key-1"
+    assert parser._get_api_key() == "key-2"
+    assert call_count["n"] == 2

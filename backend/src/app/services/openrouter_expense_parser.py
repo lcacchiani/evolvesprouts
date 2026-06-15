@@ -12,12 +12,13 @@ from typing import Any
 from collections.abc import Mapping, Sequence
 
 from app.services.aws_clients import get_s3_client, get_secretsmanager_client
+from app.services.secrets import SECRETS_CACHE_TTL_SECONDS
 from app.services.aws_proxy import http_invoke
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-_api_key_cache: str | None = None
+_api_key_cache: tuple[str, float] | None = None
 _PDF_PLUGIN_ID = "file-parser"
 _DEFAULT_PDF_ENGINE = "mistral-ocr"
 
@@ -827,8 +828,11 @@ def _normalize_result(parsed: dict[str, Any]) -> dict[str, Any]:
 
 def _get_api_key() -> str:
     global _api_key_cache
+    now = time.monotonic()
     if _api_key_cache is not None:
-        return _api_key_cache
+        cached_value, loaded_at = _api_key_cache
+        if now - loaded_at <= SECRETS_CACHE_TTL_SECONDS:
+            return cached_value
     secret_arn = _require_env("OPENROUTER_API_KEY_SECRET_ARN")
     response = get_secretsmanager_client().get_secret_value(SecretId=secret_arn)
     secret_string = response.get("SecretString")
@@ -836,8 +840,9 @@ def _get_api_key() -> str:
         secret_string = base64.b64decode(response["SecretBinary"]).decode("utf-8")
     if not secret_string:
         raise RuntimeError("OpenRouter API key secret is empty")
-    _api_key_cache = _extract_key(secret_string)
-    return _api_key_cache
+    key = _extract_key(secret_string)
+    _api_key_cache = (key, now)
+    return key
 
 
 def _extract_key(secret_string: str) -> str:
