@@ -18,7 +18,7 @@ export const MANUAL_PAYMENT_FORM_ID = 'client-billing-manual-payment-form';
 export const NO_ENROLLMENT_OPTION_VALUE = '__none__';
 export const INVOICE_LIST_SEARCH_DEBOUNCE_MS = 350;
 
-type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
+export type CustomerInvoiceLineRow = NonNullable<CustomerInvoiceDetail['lines']>[number];
 
 export function isManualInboundPaymentEditable(
   payment: CustomerPaymentSummary | CustomerPaymentDetail | null | undefined

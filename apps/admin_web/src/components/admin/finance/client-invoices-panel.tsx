@@ -106,6 +106,7 @@ import {
   normalizeInvoiceRecipientList,
   parseAmountInput,
   REFUND_FORM_ID,
+  type CustomerInvoiceLineRow,
 } from '@/components/admin/finance/client-invoices-utils';
 export { NO_ENROLLMENT_OPTION_VALUE };
 

@@ -8,9 +8,10 @@ import type { InstanceFormState } from './instance-form-fields';
 import type { TrainingFormState } from './training-form-fields';
 
 import { getAdminDefaultCurrencyCode } from '@/lib/config';
-import { normalizeEventCategoryFromApi, mapSessionSlotsFromApiToForm } from '@/lib/format';
+import { mapSessionSlotsFromApiToForm } from '@/lib/format';
 import {
   isConsultationLikeServiceType,
+  normalizeEventCategoryFromApi,
   type EventCategory,
   type EventTicketTier,
   type PartnerOrgRef,

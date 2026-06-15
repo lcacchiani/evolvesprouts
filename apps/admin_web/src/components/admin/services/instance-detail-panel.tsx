@@ -43,6 +43,7 @@ import {
 import type { components } from '@/types/generated/admin-api.generated';
 import {
   isConsultationLikeServiceType,
+  type EventTicketTier,
   type LocationSummary,
   type ServiceInstance,
   type ServiceSummary,

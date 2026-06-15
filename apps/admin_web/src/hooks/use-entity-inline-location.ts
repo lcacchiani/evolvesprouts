@@ -70,7 +70,7 @@ export function useEntityInlineLocation({
         id: summary.id,
         name: summary.name ?? null,
         address: summary.address ?? null,
-        areaName: summary.area_name,
+        areaName: summary.area_name ?? 'Unknown area',
         areaId: summary.area_id,
         lat: summary.lat ?? null,
         lng: summary.lng ?? null,
