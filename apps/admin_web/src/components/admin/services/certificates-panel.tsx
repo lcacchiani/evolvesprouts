@@ -91,6 +91,7 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
   } = certificates;
 
   const instanceOptions = useServiceInstanceOptions();
+  const { instances, isLoading: instancesLoading, loadForService } = instanceOptions;
   const [confirmDialogProps, requestConfirm] = useConfirmDialog();
 
   const [contactId, setContactId] = useState('');
@@ -110,8 +111,8 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
   const previewAbortRef = useRef<AbortController | null>(null);
 
   const selectedInstance = useMemo(
-    () => instanceOptions.instances.find((i) => i.id === instanceId) ?? null,
-    [instanceOptions.instances, instanceId],
+    () => instances.find((i) => i.id === instanceId) ?? null,
+    [instances, instanceId],
   );
 
   const activePartners = useMemo(
@@ -147,11 +148,11 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
       setContactId('');
       setCompletedEnrollments([]);
       setEnrollmentsError('');
-      instanceOptions.loadForService(null);
+      loadForService(null);
       return;
     }
-    void instanceOptions.loadForService(serviceId);
-  }, [serviceId, instanceOptions]);
+    void loadForService(serviceId);
+  }, [serviceId, loadForService]);
 
   useEffect(() => {
     const sid = serviceId.trim();
@@ -403,10 +404,10 @@ export function CertificatesPanel({ certificates, serviceOptions }: Certificates
               id='cert-instance-id'
               value={instanceId}
               onChange={(e) => setInstanceId(e.target.value)}
-              disabled={!serviceId || instanceOptions.isLoading}
+              disabled={!serviceId || instancesLoading}
             >
               <option value=''>Select instance</option>
-              {instanceOptions.instances.map((inst) => (
+              {instances.map((inst) => (
                 <option key={inst.id} value={inst.id}>
                   {formatDiscountCodeInstanceOptionLabel(inst)}
                 </option>

@@ -18,8 +18,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 const adminGtmContainerId = process.env.NEXT_PUBLIC_ADMIN_GTM_CONTAINER_ID?.trim() ?? '';

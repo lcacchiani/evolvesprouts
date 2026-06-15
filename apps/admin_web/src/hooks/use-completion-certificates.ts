@@ -34,7 +34,7 @@ export const DEFAULT_COMPLETION_CERTIFICATE_FILTERS: CompletionCertificateFilter
 
 export function useCompletionCertificates() {
   const fetcher = useCallback(
-    (params: CompletionCertificateFilters & { cursor: string | null; limit: number }) => {
+    (params: CompletionCertificateFilters & { cursor: string | null; limit: number; signal: AbortSignal }) => {
       const apiParams: CompletionCertificateListParams = { limit: params.limit };
       if (params.contactId.trim()) {
         apiParams.contactId = params.contactId.trim();
@@ -51,7 +51,7 @@ export function useCompletionCertificates() {
       if (params.cursor) {
         apiParams.cursor = params.cursor;
       }
-      return listCompletionCertificates(apiParams);
+      return listCompletionCertificates(apiParams, params.signal);
     },
     [],
   );

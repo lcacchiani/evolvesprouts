@@ -12,8 +12,8 @@ const DEBOUNCE_KEYS: (keyof LeadListFilters)[] = ['search'];
 
 export function useLeadList() {
   const fetcher = useCallback(
-    (params: LeadListFilters & { cursor: string | null; limit: number }) =>
-      listLeads(params),
+    (params: LeadListFilters & { cursor: string | null; limit: number; signal: AbortSignal }) =>
+      listLeads(params, params.signal),
     []
   );
 

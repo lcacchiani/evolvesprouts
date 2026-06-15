@@ -18,14 +18,17 @@ type ApiSchemas = components['schemas'];
 
 export function useAdminEntityContacts() {
   const fetcher = useCallback(
-    (params: EntityListFilters & { cursor: string | null; limit: number }) =>
-      listAdminContacts({
-        query: params.query,
-        active: params.active || undefined,
-        contact_type: params.contact_type || undefined,
-        cursor: params.cursor,
-        limit: params.limit,
-      }),
+    (params: EntityListFilters & { cursor: string | null; limit: number; signal: AbortSignal }) =>
+      listAdminContacts(
+        {
+          query: params.query,
+          active: params.active || undefined,
+          contact_type: params.contact_type || undefined,
+          cursor: params.cursor,
+          limit: params.limit,
+        },
+        params.signal
+      ),
     []
   );
 

@@ -14,8 +14,14 @@ export interface PaginatedResponse<TItem> {
   totalCount?: number;
 }
 
+export type PaginatedFetcherParams<TFilters extends object> = TFilters & {
+  cursor: string | null;
+  limit: number;
+  signal: AbortSignal;
+};
+
 export interface UsePaginatedListOptions<TItem, TFilters extends object> {
-  fetcher: (params: TFilters & { cursor: string | null; limit: number }) => Promise<PaginatedResponse<TItem>>;
+  fetcher: (params: PaginatedFetcherParams<TFilters>) => Promise<PaginatedResponse<TItem>>;
   defaultFilters: TFilters;
   limit?: number;
   errorPrefix?: string;
@@ -40,6 +46,12 @@ export interface UsePaginatedListReturn<TItem, TFilters extends object> {
   totalCount: number | null;
 }
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException
+    ? error.name === 'AbortError'
+    : error instanceof Error && error.name === 'AbortError';
+}
+
 export function usePaginatedList<TItem, TFilters extends object>({
   fetcher,
   defaultFilters,
@@ -53,6 +65,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
   const [filters, setFilters] = useState<TFilters>(defaultFilters);
   const filtersRef = useRef<TFilters>(defaultFilters);
   const latestRequestIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const [items, setItems] = useState<TItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -65,8 +78,18 @@ export function usePaginatedList<TItem, TFilters extends object>({
     filtersRef.current = filters;
   }, [filters]);
 
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   const refetch = useCallback(
     async (nextFilters?: Partial<TFilters>) => {
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       const requestId = latestRequestIdRef.current + 1;
       latestRequestIdRef.current = requestId;
       const effectiveFilters = { ...filtersRef.current, ...(nextFilters ?? {}) };
@@ -78,6 +101,7 @@ export function usePaginatedList<TItem, TFilters extends object>({
           ...effectiveFilters,
           cursor: null,
           limit: pageSize,
+          signal: controller.signal,
         });
         if (latestRequestIdRef.current !== requestId) {
           return;
@@ -86,6 +110,9 @@ export function usePaginatedList<TItem, TFilters extends object>({
         setNextCursor(response.nextCursor);
         setTotalCount(response.totalCount === undefined ? null : response.totalCount);
       } catch (err) {
+        if (isAbortError(err)) {
+          return;
+        }
         if (latestRequestIdRef.current !== requestId) {
           return;
         }
@@ -103,6 +130,14 @@ export function usePaginatedList<TItem, TFilters extends object>({
     if (!nextCursor) {
       return;
     }
+
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const requestId = latestRequestIdRef.current + 1;
+    latestRequestIdRef.current = requestId;
+
     setIsLoadingMore(true);
     setError('');
     try {
@@ -110,14 +145,26 @@ export function usePaginatedList<TItem, TFilters extends object>({
         ...filtersRef.current,
         cursor: nextCursor,
         limit: pageSize,
+        signal: controller.signal,
       });
+      if (latestRequestIdRef.current !== requestId) {
+        return;
+      }
       setItems((current) => [...current, ...response.items]);
       setNextCursor(response.nextCursor);
       setTotalCount(response.totalCount === undefined ? null : response.totalCount);
     } catch (err) {
+      if (isAbortError(err)) {
+        return;
+      }
+      if (latestRequestIdRef.current !== requestId) {
+        return;
+      }
       setError(toErrorMessage(err, `${errorPrefix} more.`));
     } finally {
-      setIsLoadingMore(false);
+      if (latestRequestIdRef.current === requestId) {
+        setIsLoadingMore(false);
+      }
     }
   }, [nextCursor, fetcher, pageSize, errorPrefix]);
 

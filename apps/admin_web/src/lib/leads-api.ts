@@ -174,11 +174,13 @@ function buildLeadListQuery(params: LeadListParams): string {
 }
 
 export async function listLeads(
-  params: LeadListParams
+  params: LeadListParams,
+  signal?: AbortSignal
 ): Promise<{ items: LeadSummary[]; nextCursor: string | null; totalCount: number }> {
   const payload = await adminApiRequest<ApiLeadListResponse>({
     endpointPath: `/v1/admin/leads${buildLeadListQuery(params)}`,
     method: 'GET',
+    signal,
   });
   const root = unwrapPayload(payload);
   return {
