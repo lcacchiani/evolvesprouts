@@ -129,6 +129,17 @@ jobs:
           python-version: "3.12"
           cache: pip
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22.21.1"
+          cache: npm
+          cache-dependency-path: backend/infrastructure/package-lock.json
+
+      - name: Install CDK dependencies for pre-commit
+        working-directory: backend/infrastructure
+        run: npm ci
+
       - name: Install pre-commit
         run: |
           python -m pip install --upgrade pip
