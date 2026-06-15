@@ -17,7 +17,6 @@ from app.api.text_fields import (
     optional_text as _optional_text,
     require_text as _require_text,
 )
-from app.api.validators import validate_string_length
 from app.exceptions import ValidationError
 from app.services.aws_proxy import AwsProxyError, http_invoke
 from app.services.stripe_payment_context import resolve_public_www_stripe_secret_key

@@ -66,15 +66,15 @@ def test_run_reservation_post_success_hooks_sets_pending_without_stripe(
 
     monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
     monkeypatch.setattr(
-        "app.api.public_reservations.send_booking_confirmation_email",
+        "app.api.public_reservations_post_success.send_booking_confirmation_email",
         _fake_send,
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.maybe_subscribe_booking_marketing",
+        "app.api.public_reservations_post_success.maybe_subscribe_booking_marketing",
         MagicMock(),
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.send_sales_form_recap_email",
+        "app.api.public_reservations_post_success.send_sales_form_recap_email",
         MagicMock(),
     )
 
@@ -109,15 +109,15 @@ def test_run_reservation_post_success_hooks_free_sets_is_free(
 
     monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
     monkeypatch.setattr(
-        "app.api.public_reservations.send_booking_confirmation_email",
+        "app.api.public_reservations_post_success.send_booking_confirmation_email",
         _fake_send,
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.maybe_subscribe_booking_marketing",
+        "app.api.public_reservations_post_success.maybe_subscribe_booking_marketing",
         MagicMock(),
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.send_sales_form_recap_email",
+        "app.api.public_reservations_post_success.send_sales_form_recap_email",
         MagicMock(),
     )
 
@@ -153,15 +153,15 @@ def test_run_reservation_post_success_hooks_stripe_zero_total_not_is_free(
 
     monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
     monkeypatch.setattr(
-        "app.api.public_reservations.send_booking_confirmation_email",
+        "app.api.public_reservations_post_success.send_booking_confirmation_email",
         _fake_send,
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.maybe_subscribe_booking_marketing",
+        "app.api.public_reservations_post_success.maybe_subscribe_booking_marketing",
         MagicMock(),
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.send_sales_form_recap_email",
+        "app.api.public_reservations_post_success.send_sales_form_recap_email",
         MagicMock(),
     )
 
@@ -196,15 +196,15 @@ def test_run_reservation_post_success_hooks_accepts_null_service_tier(
 
     monkeypatch.setenv("CONFIRMATION_EMAIL_FROM_ADDRESS", "hello@example.com")
     monkeypatch.setattr(
-        "app.api.public_reservations.send_booking_confirmation_email",
+        "app.api.public_reservations_post_success.send_booking_confirmation_email",
         _fake_send,
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.maybe_subscribe_booking_marketing",
+        "app.api.public_reservations_post_success.maybe_subscribe_booking_marketing",
         MagicMock(),
     )
     monkeypatch.setattr(
-        "app.api.public_reservations.send_sales_form_recap_email",
+        "app.api.public_reservations_post_success.send_sales_form_recap_email",
         MagicMock(),
     )
 

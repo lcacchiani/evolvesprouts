@@ -376,7 +376,7 @@ def _export_csv(
                 ]
             )
 
-    next_cursor: str | None = None
+    next_cursor = None
     if has_more and payments_page:
         last_payment = payments_page[-1]
         next_cursor = _encode_export_cursor(last_payment.created_at, last_payment.id)

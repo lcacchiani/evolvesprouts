@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-import jwt
 import pytest
 
 from app.auth import jwt_validator

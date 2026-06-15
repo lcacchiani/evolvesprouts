@@ -27,6 +27,7 @@ from app.services.intro_call_slots import (
     enumerate_intro_call_candidate_slots,
     intro_call_cooldown_blocks_from_last_booked_at,
     intro_call_window,
+    is_intro_call_slot_available,
     recent_intro_call_enrollment_last_booked_at,
     resolve_intro_call_wall_timezone,
 )
@@ -130,9 +131,7 @@ def _enforce_intro_call_invariants(
             "Selected time is outside office hours",
             field="primarySessionStartIso",
         )
-    from app.api import public_reservations as pr
-
-    if not pr.is_intro_call_slot_available(
+    if not is_intro_call_slot_available(
         session, start_utc=start_u, end_utc=end_u, now=now_u
     ):
         raise ConflictError("slot_unavailable")

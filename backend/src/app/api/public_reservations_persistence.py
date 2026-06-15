@@ -20,9 +20,8 @@ from app.api.public_reservations_validation import (
     _MAX_FPS_DATA_URL_BYTES,
     _MAX_INSTANCE_SLUG_LENGTH,
     _MAX_ISO_FIELD,
-    _MAX_SERVICE_KEY_LENGTH,
-    _SERVICE_KEY_PATTERN,
 )
+from app.services.intro_call_slots import is_intro_call_slot_available
 from app.db.models import Enrollment, InstanceSessionSlot, Service, ServiceInstance
 from app.db.models.enums import (
     BillingBillToKind,
@@ -315,10 +314,8 @@ def _persist_session_slots_for_booking_instance(
         )
         raise ConflictError("slot_unavailable") from exc
     if is_intro_booking and slots:
-        from app.api import public_reservations as pr
-
         s0, s1 = slots[0][0], slots[0][1]
-        if not pr.is_intro_call_slot_available(
+        if not is_intro_call_slot_available(
             session,
             start_utc=s0,
             end_utc=s1,

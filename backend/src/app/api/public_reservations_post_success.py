@@ -5,7 +5,16 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from app.api.public_form_hooks import normalize_body_locale
+from app.api.public_form_hooks import (
+    mailchimp_booking_tag_from_payload,
+    maybe_subscribe_booking_marketing,
+    normalize_body_locale,
+    send_booking_confirmation_email,
+)
+from app.services.public_form_internal_notifications import (
+    build_reservation_recap_lines,
+    send_sales_form_recap_email,
+)
 from app.utils.fps_qr_png import optional_fps_qr_data_url_from_payload
 from app.utils.logging import get_logger, mask_email
 
@@ -41,7 +50,6 @@ def _session_slots_for_email(
 
 def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
     """Transactional email, Mailchimp, and sales recap (best-effort)."""
-    from app.api import public_reservations as pr
 
     email = str(payload.get("attendee_email") or "").strip()
     full_name = str(payload.get("attendee_name") or "").strip()
@@ -74,7 +82,7 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
 
     if email and full_name:
         try:
-            pr.send_booking_confirmation_email(
+            send_booking_confirmation_email(
                 to_email=email,
                 full_name=full_name,
                 title=title,
@@ -108,8 +116,8 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
             )
 
     try:
-        booking_tag = pr.mailchimp_booking_tag_from_payload(payload)
-        pr.maybe_subscribe_booking_marketing(
+        booking_tag = mailchimp_booking_tag_from_payload(payload)
+        maybe_subscribe_booking_marketing(
             marketing_opt_in=payload.get("marketing_opt_in"),
             email=email,
             full_name=full_name,
@@ -131,9 +139,9 @@ def _run_reservation_post_success_hooks(payload: Mapping[str, Any]) -> None:
         str(payload.get("phone_national_number") or "") or None,
     )
 
-    pr.send_sales_form_recap_email(
+    send_sales_form_recap_email(
         form_title="Reservation",
-        body_lines=pr.build_reservation_recap_lines(payload=recap_payload),
+        body_lines=build_reservation_recap_lines(payload=recap_payload),
         required=False,
         retry_transient_failures=True,
     )
