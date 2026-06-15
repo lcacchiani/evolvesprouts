@@ -25,13 +25,16 @@ type ApiSchemas = components['schemas'];
 
 export function useAdminEntityOrganizations() {
   const fetcher = useCallback(
-    (params: EntityListFilters & { cursor: string | null; limit: number }) =>
-      listAdminOrganizations({
-        query: params.query,
-        active: params.active || undefined,
-        cursor: params.cursor,
-        limit: params.limit,
-      }),
+    (params: EntityListFilters & { cursor: string | null; limit: number; signal: AbortSignal }) =>
+      listAdminOrganizations(
+        {
+          query: params.query,
+          active: params.active || undefined,
+          cursor: params.cursor,
+          limit: params.limit,
+        },
+        params.signal
+      ),
     []
   );
 

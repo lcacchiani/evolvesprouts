@@ -1,6 +1,8 @@
 'use client';
 
-import type { AdminUser, LeadSummary } from '@/types/leads';
+import { memo } from 'react';
+
+import type { LeadSummary } from '@/types/leads';
 
 import { ArrowRightIcon } from '@/components/icons/action-icons';
 import { AdminDataTableCell } from '@/components/ui/admin-data-table';
@@ -11,24 +13,16 @@ import { getStageBadgeClass } from './stage-utils';
 
 export interface LeadsTableRowProps {
   lead: LeadSummary;
-  users: AdminUser[];
+  assigneeLabel: string;
   isSelected: boolean;
   isChecked: boolean;
   onSelect: (leadId: string) => void;
   onCheck: (leadId: string, checked: boolean) => void;
 }
 
-function resolveAssigneeLabel(assignedTo: string | null, users: AdminUser[]): string {
-  if (!assignedTo) {
-    return 'Unassigned';
-  }
-  const user = users.find((entry) => entry.sub === assignedTo);
-  return user?.name || user?.email || assignedTo;
-}
-
-export function LeadsTableRow({
+export const LeadsTableRow = memo(function LeadsTableRow({
   lead,
-  users,
+  assigneeLabel,
   isSelected,
   isChecked,
   onSelect,
@@ -36,7 +30,6 @@ export function LeadsTableRow({
 }: LeadsTableRowProps) {
   return (
     <tr
-      key={lead.id}
       className={`cursor-pointer ${isSelected ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
       onClick={() => onSelect(lead.id)}
     >
@@ -61,9 +54,7 @@ export function LeadsTableRow({
           {formatEnumLabel(lead.funnelStage)}
         </span>
       </AdminDataTableCell>
-      <AdminDataTableCell className='text-sm text-slate-700'>
-        {resolveAssigneeLabel(lead.assignedTo, users)}
-      </AdminDataTableCell>
+      <AdminDataTableCell className='text-sm text-slate-700'>{assigneeLabel}</AdminDataTableCell>
       <AdminDataTableCell className='text-sm text-slate-700'>{formatDate(lead.createdAt)}</AdminDataTableCell>
       <AdminDataTableCell className='text-sm text-slate-700'>
         <span className={lead.daysInStage > 7 ? 'font-semibold text-amber-700' : ''}>
@@ -84,4 +75,4 @@ export function LeadsTableRow({
       </AdminDataTableCell>
     </tr>
   );
-}
+});

@@ -55,14 +55,18 @@ export function useExpenses() {
       parseStatus,
       cursor,
       limit,
-    }: Filters & { cursor: string | null; limit: number }) => {
-      const response = await listAdminExpenses({
-        query,
-        status,
-        parseStatus,
-        cursor,
-        limit,
-      });
+      signal,
+    }: Filters & { cursor: string | null; limit: number; signal: AbortSignal }) => {
+      const response = await listAdminExpenses(
+        {
+          query,
+          status,
+          parseStatus,
+          cursor,
+          limit,
+        },
+        signal
+      );
       return {
         items: response.items,
         nextCursor: response.nextCursor,

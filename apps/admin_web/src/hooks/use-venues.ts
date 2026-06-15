@@ -57,14 +57,17 @@ export function useVenues(options: { onMutationSuccess?: () => void | Promise<vo
   }, []);
 
   const fetcher = useCallback(
-    (params: VenueFilters & { cursor: string | null; limit: number }) =>
-      listLocations({
-        cursor: params.cursor,
-        limit: params.limit,
-        areaId: params.areaId || undefined,
-        search: params.search,
-        excludeAddresses: true,
-      }),
+    (params: VenueFilters & { cursor: string | null; limit: number; signal: AbortSignal }) =>
+      listLocations(
+        {
+          cursor: params.cursor,
+          limit: params.limit,
+          areaId: params.areaId || undefined,
+          search: params.search,
+          excludeAddresses: true,
+        },
+        params.signal
+      ),
     []
   );
 

@@ -272,7 +272,8 @@ export async function listAdminBulkExpenseImportJobs(input: {
 }
 
 export async function listAdminExpenses(
-  input: ListAdminExpensesInput = {}
+  input: ListAdminExpensesInput = {},
+  signal?: AbortSignal
 ): Promise<PaginatedExpenseList> {
   const params = new URLSearchParams();
   if (input.query?.trim()) {
@@ -295,6 +296,7 @@ export async function listAdminExpenses(
   const payload = await adminApiRequest<ApiExpenseListPayload>({
     endpointPath,
     method: 'GET',
+    signal,
   });
   const root = unwrapPayload(payload);
   return {

@@ -59,6 +59,20 @@ export function LeadsTable({
 }: LeadsTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const assigneeLabelBySub = useMemo(() => {
+    const labels = new Map<string, string>();
+    for (const user of users) {
+      labels.set(user.sub, user.name || user.email || user.sub);
+    }
+    return labels;
+  }, [users]);
+
+  const resolveAssigneeLabel = (assignedTo: string | null): string => {
+    if (!assignedTo) {
+      return 'Unassigned';
+    }
+    return assigneeLabelBySub.get(assignedTo) ?? assignedTo;
+  };
 
   const handleCheck = (leadId: string, checked: boolean) => {
     setSelectedIds((current) =>
@@ -135,7 +149,7 @@ export function LeadsTable({
               <LeadsTableRow
                 key={lead.id}
                 lead={lead}
-                users={users}
+                assigneeLabel={resolveAssigneeLabel(lead.assignedTo)}
                 isSelected={selectedLeadId === lead.id}
                 isChecked={selectedSet.has(lead.id)}
                 onSelect={onSelectLead}

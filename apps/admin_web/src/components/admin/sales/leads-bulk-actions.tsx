@@ -22,6 +22,7 @@ export function LeadsBulkActions({
   onBulkAssign,
   onBulkStageChange,
 }: LeadsBulkActionsProps) {
+  const [pendingAssignee, setPendingAssignee] = useState<string | null | undefined>(undefined);
   const [pendingStage, setPendingStage] = useState<FunnelStage | ''>('');
   const [lostReason, setLostReason] = useState('');
 
@@ -29,11 +30,25 @@ export function LeadsBulkActions({
     return null;
   }
 
+  const pendingAssigneeValue =
+    pendingAssignee === undefined ? '' : pendingAssignee === null ? '__none__' : pendingAssignee;
+
   return (
     <div className='flex flex-col gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 md:flex-row md:items-center md:justify-between'>
       <p className='text-sm text-slate-700'>{selectedCount} lead(s) selected</p>
       <div className='grid grid-cols-1 gap-2 md:grid-cols-3'>
-        <Select onChange={(event) => onBulkAssign(event.target.value || null)} defaultValue=''>
+        <Select
+          aria-label='Bulk assign assignee'
+          value={pendingAssigneeValue}
+          onChange={(event) => {
+            const value = event.target.value;
+            if (!value) {
+              setPendingAssignee(undefined);
+              return;
+            }
+            setPendingAssignee(value === '__none__' ? null : value);
+          }}
+        >
           <option value=''>Assign to...</option>
           <option value='__none__'>Unassign</option>
           {users.map((user) => (
@@ -43,6 +58,7 @@ export function LeadsBulkActions({
           ))}
         </Select>
         <Select
+          aria-label='Bulk set stage'
           value={pendingStage}
           onChange={(event) => {
             const stage = event.target.value as FunnelStage | '';
@@ -65,10 +81,38 @@ export function LeadsBulkActions({
             </option>
           ))}
         </Select>
-        <Button type='button' variant='outline' onClick={() => onBulkAssign(null)}>
+        <Button
+          type='button'
+          variant='outline'
+          onClick={() => {
+            setPendingAssignee(null);
+          }}
+        >
           Clear assignee
         </Button>
       </div>
+      {pendingAssignee !== undefined ? (
+        <div className='mt-2 flex flex-wrap gap-2'>
+          <Button
+            type='button'
+            onClick={() => {
+              onBulkAssign(pendingAssignee);
+              setPendingAssignee(undefined);
+            }}
+          >
+            Confirm assign
+          </Button>
+          <Button
+            type='button'
+            variant='ghost'
+            onClick={() => {
+              setPendingAssignee(undefined);
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      ) : null}
       {pendingStage === 'lost' ? (
         <div className='mt-2 space-y-2'>
           <Textarea

@@ -24,7 +24,12 @@ export function useInstanceList(
   const filterServiceId = globalOptions?.filterServiceId?.trim() ?? '';
   const filterServiceType = globalOptions?.filterServiceType?.trim() ?? '';
   const fetcher = useCallback(
-    async ({ status, cursor, limit }: InstanceListFilters & { cursor: string | null; limit: number }) => {
+    async ({
+      status,
+      cursor,
+      limit,
+      signal,
+    }: InstanceListFilters & { cursor: string | null; limit: number; signal: AbortSignal }) => {
       const useGlobalList = !serviceId && shouldListAll;
       if (!serviceId && !useGlobalList) {
         return {
@@ -34,18 +39,25 @@ export function useInstanceList(
         };
       }
       return useGlobalList
-        ? listAllInstances({
-            status: status || undefined,
-            cursor,
-            limit,
-            serviceType: filterServiceType || undefined,
-            serviceId: filterServiceId || undefined,
-          })
-        : listInstances(serviceId as string, {
-            status: status || undefined,
-            cursor,
-            limit,
-          });
+        ? listAllInstances(
+            {
+              status: status || undefined,
+              cursor,
+              limit,
+              serviceType: filterServiceType || undefined,
+              serviceId: filterServiceId || undefined,
+            },
+            signal
+          )
+        : listInstances(
+            serviceId as string,
+            {
+              status: status || undefined,
+              cursor,
+              limit,
+            },
+            signal
+          );
     },
     [serviceId, shouldListAll, filterServiceId, filterServiceType]
   );

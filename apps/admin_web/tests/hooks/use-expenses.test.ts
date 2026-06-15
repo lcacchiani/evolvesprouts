@@ -140,21 +140,26 @@ describe('useExpenses', () => {
     expect(secondCallArgs).toBeDefined();
     expect(secondCallArgs?.fetcher).toBe(firstCallArgs?.fetcher);
 
+    const controller = new AbortController();
     await firstCallArgs!.fetcher({
       query: '',
       status: '',
       parseStatus: '',
       cursor: null,
       limit: 50,
+      signal: controller.signal,
     });
 
-    expect(mockedListAdminExpenses).toHaveBeenCalledWith({
-      query: '',
-      status: '',
-      parseStatus: '',
-      cursor: null,
-      limit: 50,
-    });
+    expect(mockedListAdminExpenses).toHaveBeenCalledWith(
+      {
+        query: '',
+        status: '',
+        parseStatus: '',
+        cursor: null,
+        limit: 50,
+      },
+      controller.signal
+    );
   });
 
   it('selects and clears expense', () => {

@@ -23,13 +23,16 @@ const PARTNER_RELATIONSHIP: readonly ApiSchemas['EntityOrganizationRelationshipT
 
 export function usePartners() {
   const fetcher = useCallback(
-    (params: PartnerFilters & { cursor: string | null; limit: number }) =>
-      listAdminPartners({
-        query: params.query,
-        active: params.active || undefined,
-        cursor: params.cursor,
-        limit: params.limit,
-      }),
+    (params: PartnerFilters & { cursor: string | null; limit: number; signal: AbortSignal }) =>
+      listAdminPartners(
+        {
+          query: params.query,
+          active: params.active || undefined,
+          cursor: params.cursor,
+          limit: params.limit,
+        },
+        params.signal
+      ),
     []
   );
 

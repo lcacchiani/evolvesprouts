@@ -22,8 +22,8 @@ const DEBOUNCE_KEYS: (keyof DiscountCodeFilters)[] = ['search'];
 
 export function useDiscountCodes() {
   const fetcher = useCallback(
-    (params: DiscountCodeFilters & { cursor: string | null; limit: number }) =>
-      listDiscountCodes(params),
+    (params: DiscountCodeFilters & { cursor: string | null; limit: number; signal: AbortSignal }) =>
+      listDiscountCodes(params, params.signal),
     []
   );
 

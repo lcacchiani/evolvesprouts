@@ -8,7 +8,7 @@ import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
-import { ContactNotesModal } from '@/components/admin/contacts/contact-notes-modal';
+import { ContactNotesPanel } from '@/components/admin/contacts/contact-notes-panel';
 import { MailchimpSyncCard } from '@/components/admin/contacts/mailchimp-sync-card';
 import { EntityServicesSection } from '@/components/admin/contacts/entity-services-section';
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
@@ -615,13 +615,6 @@ export function ContactsPanel({
     <div className='space-y-6'>
       <ConfirmDialog {...confirmDialogProps} />
       <ConfirmDialog {...pendingLocationLeaveDialogProps} />
-      <ContactNotesModal
-        open={notesTarget !== null}
-        contact={notesTarget}
-        adminUsers={adminUsers}
-        onClose={() => setNotesTarget(null)}
-        onStandaloneNoteCountChange={onPatchStandaloneNoteCount}
-      />
       <MailchimpSyncCard />
       <AdminEditorCard
         title='Contact'
@@ -935,6 +928,15 @@ export function ContactsPanel({
         </div>
       </AdminEditorCard>
 
+      {notesTarget ? (
+        <ContactNotesPanel
+          contact={notesTarget}
+          adminUsers={adminUsers}
+          onClose={() => setNotesTarget(null)}
+          onStandaloneNoteCountChange={onPatchStandaloneNoteCount}
+        />
+      ) : null}
+
       <PaginatedTableCard
         title='Contacts'
         isLoading={isLoading}
@@ -1042,7 +1044,7 @@ export function ContactsPanel({
                         className='relative h-8 min-w-8 overflow-visible px-0'
                         onClick={(e) => {
                           e.stopPropagation();
-                          setNotesTarget(row);
+                          setNotesTarget((current) => (current?.id === row.id ? null : row));
                         }}
                         disabled={isSaving}
                         aria-label='Contact notes'

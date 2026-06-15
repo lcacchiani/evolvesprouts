@@ -12,8 +12,8 @@ const DEBOUNCE_KEYS: (keyof ServiceListFilters)[] = ['search'];
 
 export function useServiceList() {
   const fetcher = useCallback(
-    (params: ServiceListFilters & { cursor: string | null; limit: number }) =>
-      listServices(params),
+    (params: ServiceListFilters & { cursor: string | null; limit: number; signal: AbortSignal }) =>
+      listServices(params, params.signal),
     []
   );
 

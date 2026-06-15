@@ -14,7 +14,8 @@ type ApiSchemas = components['schemas'];
 
 export function useVendors() {
   const fetcher = useCallback(
-    (params: VendorFilters & { cursor: string | null; limit: number }) => listAdminVendors(params),
+    (params: VendorFilters & { cursor: string | null; limit: number; signal: AbortSignal }) =>
+      listAdminVendors(params, params.signal),
     []
   );
 
