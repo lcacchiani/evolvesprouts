@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { type AnchorHTMLAttributes, type ComponentProps, type ReactNode } from 'react';
+import React, { type AnchorHTMLAttributes, type ComponentProps, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { generateFpsQrImageDataUrl } from '@/lib/fps-qr-code';
 
@@ -79,6 +79,21 @@ vi.mock('next/link', () => ({
 
 vi.mock('@stripe/stripe-js', () => ({
   loadStripe: vi.fn(() => Promise.resolve({})),
+}));
+
+vi.mock('next/dynamic', () => ({
+  default: (loader: () => Promise<React.ComponentType<Record<string, unknown>>>) => {
+    const LazyStripePaymentSection = React.lazy(async () => ({
+      default: await loader(),
+    }));
+    return function DynamicStripePaymentSection(props: Record<string, unknown>) {
+      return (
+        <React.Suspense fallback={null}>
+          <LazyStripePaymentSection {...props} />
+        </React.Suspense>
+      );
+    };
+  },
 }));
 
 vi.mock('@stripe/react-stripe-js', () => ({
@@ -1479,6 +1494,16 @@ describe('my-best-auntie booking modals footer content', () => {
         name: new RegExp(bookingModalContent.termsLinkLabel),
       }),
     );
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-stripe-payment-element')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', {
+          name: bookingModalContent.submitStripeLabel,
+        }),
+      ).not.toBeDisabled();
+    });
     fireEvent.click(
       screen.getByRole('button', {
         name: bookingModalContent.submitStripeLabel,

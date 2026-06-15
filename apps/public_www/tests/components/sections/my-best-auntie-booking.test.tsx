@@ -189,7 +189,26 @@ describe('MyBestAuntieBooking section', () => {
       '/en/services/my-best-auntie-training-course?booking_system=my-best-auntie-booking#my-best-auntie-booking',
     );
 
-    render(
+    const { rerender } = render(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        initialCohorts={initialMbaCohorts}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
+
+    rerender(
+      <MyBestAuntieBooking
+        locale='en'
+        content={bookingContent}
+        initialCohorts={initialMbaCohorts}
+        modalContent={myBestAuntieModalContent}
+        bookingModalContent={bookingModalContent}
+      />,
+    );
+    rerender(
       <MyBestAuntieBooking
         locale='en'
         content={bookingContent}

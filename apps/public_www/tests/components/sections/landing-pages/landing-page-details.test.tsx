@@ -9,7 +9,12 @@ import { buildLandingPageSharedCtaPropsFromCalendar } from '@/lib/landing-page-c
 
 describe('LandingPageDetails section', () => {
   it('renders section shell identifiers and workshop details items', () => {
-    render(<LandingPageDetails content={easterWorkshopContent.en.details} />);
+    render(
+      <LandingPageDetails
+        content={easterWorkshopContent.en.details}
+        commonAccessibility={enContent.common.accessibility}
+      />,
+    );
 
     const section = document.getElementById('landing-page-details');
     expect(section).not.toBeNull();
@@ -60,6 +65,7 @@ describe('LandingPageDetails section', () => {
     render(
       <LandingPageDetails
         content={easterWorkshopContent.en.details}
+        commonAccessibility={enContent.common.accessibility}
         sectionClassName='es-section-bg-overlay es-book-a-free-call-good-to-know-section'
       />,
     );
@@ -93,7 +99,10 @@ describe('LandingPageDetails section', () => {
           hasRefreshError: false,
         }}
       >
-        <LandingPageDetails content={easterWorkshopContent.en.details} />
+        <LandingPageDetails
+          content={easterWorkshopContent.en.details}
+          commonAccessibility={enContent.common.accessibility}
+        />
       </LandingPageCalendarContext.Provider>,
     );
 

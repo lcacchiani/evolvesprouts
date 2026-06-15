@@ -34,7 +34,7 @@ export function HeroBanner({ content, ctaHref }: HeroBannerProps) {
     <SectionShell
       id='hero-banner'
       ariaLabel={copy.title}
-      dataFigmaNode='banner'
+      dataFigmaNode='hero-banner'
       className='relative w-full overflow-hidden es-hero-section'
     >
       <div

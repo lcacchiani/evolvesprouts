@@ -6,11 +6,12 @@ import {
   useMemo,
   useRef,
   useState,
-  type KeyboardEvent,
 } from 'react';
 
 import { BOOKING_SELECTOR_CARD_CLASSNAME } from '@/components/sections/shared/booking-selector-layout';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
+import { isMorningWallClockHour } from '@/components/sections/shared/slot-picker-helpers';
+import { useRovingTabindexKeyboardNav } from '@/components/sections/shared/use-roving-tabindex-keyboard-nav';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SectionSpinnerStatus } from '@/components/shared/section-spinner-status';
 import type {
@@ -96,7 +97,7 @@ function wallClockHourFromIso(iso: string): number {
 }
 
 function isMorningSlot(slot: IntroCallSlot): boolean {
-  return wallClockHourFromIso(slot.startIso) < 12;
+  return isMorningWallClockHour(wallClockHourFromIso(slot.startIso));
 }
 
 export function IntroCallSlotPicker({
@@ -115,8 +116,7 @@ export function IntroCallSlotPicker({
   const [selectedSlotIso, setSelectedSlotIso] = useState<string | null>(null);
   /** Mirrors ``selectedSlotIso`` so we can clear without impure setState side effects. */
   const selectedSlotIsoRef = useRef<string | null>(null);
-  const [rovingDayIndex, setRovingDayIndex] = useState(0);
-  const dayRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const dayRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const slotRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const lastReportedStatusRef = useRef<FetchStatus | null>(null);
 
@@ -250,11 +250,6 @@ export function IntroCallSlotPicker({
     return dayKeys[0] ?? null;
   }, [cursorDayYmd, dayKeys]);
 
-  const safeRovingDayIndex = useMemo(
-    () => Math.min(rovingDayIndex, Math.max(0, dayKeys.length - 1)),
-    [dayKeys.length, rovingDayIndex],
-  );
-
   const daySlots = useMemo(
     () => (resolvedDayYmd ? slotsByDay.get(resolvedDayYmd) ?? [] : []),
     [resolvedDayYmd, slotsByDay],
@@ -292,36 +287,38 @@ export function IntroCallSlotPicker({
     setSelectedSlotIso(null);
   }, [onSelect]);
 
-  const selectDay = useCallback(
-    (ymd: string, index: number) => {
+  const selectDayWithoutRoving = useCallback(
+    (ymd: string) => {
       if (ymd !== resolvedDayYmd) {
         clearTimeSelection();
       }
       setCursorDayYmd(ymd);
-      setRovingDayIndex(index);
     },
     [clearTimeSelection, resolvedDayYmd],
   );
 
-  const handleDayKeyDown = (event: KeyboardEvent, index: number) => {
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-      event.preventDefault();
-      const next = Math.min(index + 1, dayKeys.length - 1);
-      const ymd = dayKeys[next] ?? null;
+  const {
+    rovingIndex: safeRovingDayIndex,
+    setRovingIndex: setRovingDayIndex,
+    handleItemKeyDown: handleDayKeyDown,
+  } = useRovingTabindexKeyboardNav({
+    itemCount: dayKeys.length,
+    itemRefs: dayRefs,
+    onIndexChange: (next) => {
+      const ymd = dayKeys[next];
       if (ymd) {
-        selectDay(ymd, next);
+        selectDayWithoutRoving(ymd);
       }
-      dayRefs.current[next]?.focus();
-    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-      event.preventDefault();
-      const next = Math.max(index - 1, 0);
-      const ymd = dayKeys[next] ?? null;
-      if (ymd) {
-        selectDay(ymd, next);
-      }
-      dayRefs.current[next]?.focus();
-    }
-  };
+    },
+  });
+
+  const selectDay = useCallback(
+    (ymd: string, index: number) => {
+      selectDayWithoutRoving(ymd);
+      setRovingDayIndex(index);
+    },
+    [selectDayWithoutRoving, setRovingDayIndex],
+  );
 
   if (status === 'loading' || status === 'idle') {
     return (

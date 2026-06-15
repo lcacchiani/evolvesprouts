@@ -318,7 +318,7 @@ export function MyBestAuntieOutline({
     <SectionShell
       id='courses'
       ariaLabel={content.title}
-      dataFigmaNode='my-best-auntie-outline'
+      dataFigmaNode='courses'
       className='es-section-bg-overlay es-my-best-auntie-outline-section'
     >
       <SectionContainer>

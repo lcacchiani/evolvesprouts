@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/thank-you-recap-labels';
 import type { ReservationSummary } from '@/components/sections/booking-modal/types';
+import { useBookingThankYouView } from '@/components/sections/shared/use-booking-thank-you-view';
+import { trackBookingBeginCheckout } from '@/components/sections/shared/track-booking-begin-checkout';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { SectionContainer } from '@/components/sections/shared/section-container';
 import { SectionHeader } from '@/components/sections/shared/section-header';
@@ -21,7 +23,6 @@ import type {
 } from '@/content';
 import enContent from '@/content/en.json';
 import { formatContentTemplate } from '@/content/content-field-utils';
-import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
 import {
   CALENDAR_PUBLIC_CLIENT_FETCH_TIMEOUT_MS,
   fetchConsultationCalendarBlockersSlots,
@@ -34,8 +35,8 @@ import { mergeClassNames } from '@/lib/class-name-utils';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
 import { useHeightTransitionOnChange } from '@/lib/hooks/use-height-transition-on-change';
 import { useMatchMedia } from '@/lib/hooks/use-match-media';
-import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
+import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import type {
   ConsultationBookingPickerContent,
   ConsultationBookingModalSelectionInfo,
@@ -203,22 +204,11 @@ export function ConsultationsBooking({
     };
   }, [isBookingModalOpen]);
 
-  useEffect(() => {
-    if (!isThankYouOpen || !thankYouSummary) {
-      return;
-    }
-
-    trackAnalyticsEvent('booking_thank_you_view', {
-      sectionId: 'consultations-booking',
-      ctaLocation: 'thank_you_modal',
-      params: {
-        payment_method: thankYouSummary.paymentMethod,
-        total_amount: thankYouSummary.totalAmount,
-        service_tier: '',
-        cohort_date: thankYouSummary.dateStartTime?.split('T')[0] ?? '',
-      },
-    });
-  }, [isThankYouOpen, thankYouSummary]);
+  useBookingThankYouView({
+    isOpen: isThankYouOpen,
+    reservationSummary: thankYouSummary,
+    sectionId: 'consultations-booking',
+  });
 
   const reservationForModal: ConsultationsBookingReservationContent = useMemo(() => {
     return {
@@ -534,20 +524,12 @@ export function ConsultationsBooking({
                 const tier = selectedLevelId === 'deep-dive'
                   ? content.reservation.deepDive
                   : content.reservation.essentials;
-                trackAnalyticsEvent('booking_modal_open', {
+                trackBookingBeginCheckout({
                   sectionId: 'consultations-booking',
                   ctaLocation: 'booking_section',
-                  params: {
-                    service_tier: '',
-                    cohort_label: selectionLabels.levelLabel,
-                    cohort_date: tier.dateParts[0]?.startDateTime?.split('T')[0] ?? '',
-                  },
-                });
-                trackMetaPixelEvent('InitiateCheckout', {
-                  content_name: PIXEL_CONTENT_NAME.consultation_booking,
-                });
-                trackEcommerceEvent('begin_checkout', {
                   value: tier.priceHkd,
+                  cohortLabel: selectionLabels.levelLabel,
+                  cohortDate: tier.dateParts[0]?.startDateTime?.split('T')[0] ?? '',
                   items: [{
                     item_id: `consultation-${selectedLevelId}`,
                     item_name: content.reservation.modalTitle,
@@ -555,6 +537,9 @@ export function ConsultationsBooking({
                     price: tier.priceHkd,
                     quantity: 1,
                   }],
+                });
+                trackMetaPixelEvent('InitiateCheckout', {
+                  content_name: PIXEL_CONTENT_NAME.consultation_booking,
                 });
                 setIsBookingModalOpen(true);
                 setCalendarBlockersStatus('loading');

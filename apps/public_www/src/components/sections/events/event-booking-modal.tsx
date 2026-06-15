@@ -1,12 +1,9 @@
 'use client';
 
-import {
-  useId,
-  useMemo,
-  useRef,
-} from 'react';
+import { useMemo } from 'react';
 
 import { BookingFlowModalShell } from '@/components/sections/booking-modal/booking-flow-modal-shell';
+import { useBookingModalScaffold } from '@/components/sections/booking-modal/use-booking-modal-scaffold';
 import {
   type BookingEventDetailPart,
   BookingEventDetails,
@@ -28,8 +25,6 @@ import {
   type EventBookingModalPayload,
 } from '@/lib/events-data';
 import { formatPartDateTimeLabel } from '@/lib/format';
-import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
-import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
 
 interface EventBookingModalProps {
   locale?: Locale;
@@ -57,18 +52,12 @@ export function EventBookingModal({
   onSubmitReservation,
 }: EventBookingModalProps) {
   const topicsFieldConfig = topicsFieldConfigProp ?? bookingPayload.topicsFieldConfig;
-  const modalPanelRef = useRef<HTMLElement | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const dialogTitleId = useId();
-  const dialogDescriptionId = useId();
-
-  useModalLockBody({ onEscape: onClose });
-  useModalFocusManagement({
-    isActive: true,
-    containerRef: modalPanelRef,
-    initialFocusRef: closeButtonRef,
-    restoreFocus: true,
-  });
+  const {
+    modalPanelRef,
+    closeButtonRef,
+    dialogTitleId,
+    dialogDescriptionId,
+  } = useBookingModalScaffold(onClose);
 
   const activePartRows = useMemo<BookingEventDetailPart[]>(() => {
     return bookingPayload.dateParts.map((part) => {

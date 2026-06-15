@@ -462,6 +462,55 @@ function validateNoDisallowedSectionRootKeys(content, locale, errors) {
   }
 }
 
+const REQUIRED_NON_EMPTY_COPY_KEYS = [
+  'common.accessibility.carouselRoleDescription',
+  'common.shell.skipToMainContentLabel',
+  'common.shell.environmentBadgeLabel',
+  'common.shell.noscript.title',
+  'common.shell.noscript.description',
+  'common.shell.noscript.homeLabel',
+  'common.shell.noscript.contactLabel',
+  'resources.formFirstNameLabel',
+  'resources.formEmailLabel',
+  'resources.formFirstNameValidationMessage',
+  'resources.formEmailValidationMessage',
+  'resources.formSubmitLabel',
+  'resources.formSubmittingLabel',
+  'resources.formSuccessMessage',
+  'resources.formErrorMessage',
+  'resources.formMarketingOptInLabel',
+  'resources.formCaptchaRequiredError',
+  'resources.formCaptchaLoadError',
+  'resources.formCaptchaUnavailableError',
+  'resources.formCaptchaLabel',
+  'resources.mediaTitleLine1',
+  'resources.mediaTitleLine2',
+  'resources.ctaLabel',
+];
+
+function readStringAtPath(source, keyPath) {
+  const pathSegments = keyPath.split('.');
+  let currentValue = source;
+
+  for (const segment of pathSegments) {
+    if (!currentValue || typeof currentValue !== 'object' || Array.isArray(currentValue)) {
+      return undefined;
+    }
+    currentValue = currentValue[segment];
+  }
+
+  return typeof currentValue === 'string' ? currentValue : undefined;
+}
+
+function validateRequiredNonEmptyCopyKeys(localeContent, locale, errors) {
+  for (const keyPath of REQUIRED_NON_EMPTY_COPY_KEYS) {
+    const value = readStringAtPath(localeContent, keyPath);
+    if (!value || value.trim() === '') {
+      errors.push(`${locale}.${keyPath}: required non-empty string is missing`);
+    }
+  }
+}
+
 async function loadJson(filePath) {
   const raw = await readFile(filePath, 'utf8');
   return JSON.parse(raw);
@@ -490,6 +539,7 @@ async function main() {
     assertLocaleMetadata(localeContent, locale, errors);
     validateSemanticRules(localeContent, locale, errors, localeRoutePaths);
     validateNoDisallowedSectionRootKeys(localeContent, locale, errors);
+    validateRequiredNonEmptyCopyKeys(localeContent, locale, errors);
   }
 
   if (errors.length > 0) {
