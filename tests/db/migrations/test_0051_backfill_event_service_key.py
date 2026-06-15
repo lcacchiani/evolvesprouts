@@ -18,10 +18,6 @@ psycopg = pytest.importorskip(
 )
 
 
-def libpq_conn_url(url: str) -> str:
-    return url.replace("postgresql+psycopg://", "postgresql://", 1)
-
-
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
