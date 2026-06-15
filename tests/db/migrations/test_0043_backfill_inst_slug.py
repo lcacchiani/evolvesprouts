@@ -12,17 +12,11 @@ from uuid import UUID
 
 import pytest
 
-psycopg = pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
+from tests.helpers.db import database_url, libpq_conn_url
 
-
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
-
-
-def _libpq_conn_url(url: str) -> str:
-    """Strip SQLAlchemy driver so ``psycopg.connect`` uses a libpq-style URI."""
-    return url.replace("postgresql+psycopg://", "postgresql://", 1)
+psycopg = pytest.importorskip(
+    "psycopg", reason="psycopg required for DB integration test"
+)
 
 
 def _repo_root() -> Path:
@@ -35,7 +29,7 @@ def _alembic_ini() -> Path:
 
 def _run_alembic(*args: str) -> subprocess.CompletedProcess[str]:
     """CWD must be repo root: ``alembic.ini`` has ``script_location = backend/db/alembic``."""
-    env = {**os.environ, "DATABASE_URL": _database_url() or ""}
+    env = {**os.environ, "DATABASE_URL": database_url() or ""}
     cmd = [sys.executable, "-m", "alembic", "-c", str(_alembic_ini()), *args]
     proc = subprocess.run(
         cmd,
@@ -83,12 +77,12 @@ def _load_migration_upgrade_statements() -> list[str]:
     ]
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_0043_backfill_service_instance_slugs() -> None:
     """Backfill MBA, events, collision suffix, empty title fallback, no-slot date; skip consultation."""
-    url = _database_url()
+    url = database_url()
     assert url is not None
-    conn_url = _libpq_conn_url(url)
+    conn_url = libpq_conn_url(url)
     # Park the schema at 0042 regardless of current head. CI pre-applies
     # ``alembic upgrade head`` before pytest, so a plain ``upgrade 0042`` is a
     # no-op and a follow-up ``upgrade 0043`` also no-ops (already applied),
@@ -131,7 +125,9 @@ def test_0043_backfill_service_instance_slugs() -> None:
             "DELETE FROM training_instance_details WHERE instance_id::text LIKE '31111111%'"
         )
         conn.execute("DELETE FROM service_instances WHERE id::text LIKE '31111111%'")
-        conn.execute("DELETE FROM event_details WHERE service_id::text LIKE '21111111%'")
+        conn.execute(
+            "DELETE FROM event_details WHERE service_id::text LIKE '21111111%'"
+        )
         conn.execute(
             "DELETE FROM training_course_details WHERE service_id::text LIKE '21111111%'"
         )

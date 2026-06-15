@@ -88,7 +88,9 @@ def test_handle_public_events_rejects_non_get(api_gateway_event: Any) -> None:
     assert response["headers"]["Cache-Control"] == "no-store"
 
 
-def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event: Any) -> None:
+def test_handle_public_events_returns_items(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
     class _FakeSession:
         pass
 
@@ -133,7 +135,9 @@ def test_handle_public_events_returns_items(monkeypatch: Any, api_gateway_event:
                 ),
             ]
 
-        def get_enrollment_counts_for_instances(self, instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, instance_ids: list[Any]
+        ) -> dict[Any, int]:
             assert len(instance_ids) == 2
             return {iid: 1 for iid in instance_ids}
 
@@ -208,7 +212,9 @@ def test_handle_public_events_skips_instances_without_valid_slug(
                 )
             ]
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -241,7 +247,9 @@ def test_handle_public_events_includes_instance_when_slug_is_set(
         def __exit__(self, *_args: Any) -> bool:
             return False
 
-    row = _instance_row(status=public_events.InstanceStatus.OPEN, slug="spring-workshop-2026-04-20")
+    row = _instance_row(
+        status=public_events.InstanceStatus.OPEN, slug="spring-workshop-2026-04-20"
+    )
 
     class _FakeRepository:
         def __init__(self, _session: Any) -> None:
@@ -258,7 +266,9 @@ def test_handle_public_events_includes_instance_when_slug_is_set(
         ) -> list[Any]:
             return [row]
 
-        def get_enrollment_counts_for_instances(self, instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {instance_ids[0]: 0}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -310,7 +320,9 @@ def test_handle_public_events_slug_filter(
             captured["service_key"] = service_key
             return [_instance_row(status=public_events.InstanceStatus.OPEN)]
 
-        def get_enrollment_counts_for_instances(self, instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, instance_ids: list[Any]
+        ) -> dict[Any, int]:
             assert len(instance_ids) == 1
             return {instance_ids[0]: 0}
 
@@ -369,7 +381,9 @@ def test_handle_public_events_invalid_slug_ignored(
             captured["service_key"] = service_key
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -421,7 +435,9 @@ def test_handle_public_events_service_type_training_course(
             captured["service_key"] = service_key
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -474,7 +490,9 @@ def test_handle_public_events_invalid_service_type_defaults(
             captured["service_key"] = service_key
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -526,7 +544,9 @@ def test_handle_public_events_service_key_passthrough(
             captured["service_key"] = service_key
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -577,7 +597,9 @@ def test_handle_public_events_service_key_trims_and_lowercases(
             captured["service_key"] = service_key
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -628,7 +650,9 @@ def test_handle_public_events_service_key_invalid_ignored(
             captured["service_key"] = service_key
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -680,7 +704,9 @@ def test_handle_public_events_service_key_too_long_ignored(
             captured["service_key"] = service_key
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -731,7 +757,9 @@ def test_handle_public_events_service_key_blank_ignored(
             captured["service_key"] = service_key
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -789,7 +817,9 @@ def test_handle_public_events_service_key_unknown_returns_empty(
             assert service_key == "unknown-service"
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -844,7 +874,9 @@ def test_handle_public_events_combined_filters(
             captured["service_key"] = service_key
             return []
 
-        def get_enrollment_counts_for_instances(self, _instance_ids: list[Any]) -> dict[Any, int]:
+        def get_enrollment_counts_for_instances(
+            self, _instance_ids: list[Any]
+        ) -> dict[Any, int]:
             return {}
 
     monkeypatch.setattr(public_events, "Session", _SessionCtx)
@@ -892,4 +924,7 @@ def test_parse_service_key_blank_and_whitespace_only() -> None:
 
 
 def test_parse_service_key_valid_slug() -> None:
-    assert public_events._parse_service_key("my-best-auntie") == "my-best-auntie-training-course"
+    assert (
+        public_events._parse_service_key("my-best-auntie")
+        == "my-best-auntie-training-course"
+    )

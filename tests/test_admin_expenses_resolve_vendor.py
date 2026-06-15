@@ -12,7 +12,9 @@ from app.api.admin_expenses_common import resolve_vendor
 from app.exceptions import ValidationError
 
 
-def test_resolve_vendor_raises_when_id_not_a_vendor_org(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resolve_vendor_raises_when_id_not_a_vendor_org(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     mock_repo = MagicMock()
     mock_repo.get_vendor_by_id.return_value = None
     monkeypatch.setattr(

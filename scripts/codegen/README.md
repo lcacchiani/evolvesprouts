@@ -14,7 +14,9 @@ Example:
 ./scripts/codegen/openapi_codegen.sh \
   --spec docs/api/public.yaml \
   --generator typescript-fetch \
-  --output packages/api_client_ts
+  --output apps/public_www/src/types/generated
 ```
 
-You can use any generator supported by OpenAPI Generator.
+You can use any generator supported by OpenAPI Generator. For admin API types,
+see `apps/admin_web` (`npm run generate:admin-api-types`). For public API types,
+see `apps/public_www` (`npm run generate:public-api-types`).

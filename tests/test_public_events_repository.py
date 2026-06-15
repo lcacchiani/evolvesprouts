@@ -83,7 +83,9 @@ def test_list_public_offerings_service_key_filter() -> None:
     assert "services.status = 'published'" in sql
 
 
-def test_list_public_offerings_training_course_only_omits_finished_event_branch_sql() -> None:
+def test_list_public_offerings_training_course_only_omits_finished_event_branch_sql() -> (
+    None
+):
     mock_session = MagicMock()
     exec_result = MagicMock()
     exec_result.unique.return_value.scalars.return_value.all.return_value = []

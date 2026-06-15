@@ -69,7 +69,9 @@ def test_delete_draft_expense_removes_row_and_syncs_tags(
         "sync_expense_attachment_tags_for_assets",
         _sync,
     )
-    monkeypatch.setattr(admin_expenses, "set_audit_context", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        admin_expenses, "set_audit_context", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr(admin_expenses, "request_id", lambda _e: "req-1")
     monkeypatch.setattr(
         admin_expenses,
@@ -118,7 +120,9 @@ def test_delete_draft_expense_rejects_non_draft(
     monkeypatch.setattr(admin_expenses, "ExpenseRepository", _FakeRepo)
     monkeypatch.setattr(admin_expenses, "Session", lambda _engine: _FakeSessionCtx())
     monkeypatch.setattr(admin_expenses, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_expenses, "set_audit_context", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        admin_expenses, "set_audit_context", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr(admin_expenses, "request_id", lambda _e: "req-1")
     monkeypatch.setattr(
         admin_expenses,
@@ -175,7 +179,9 @@ def test_delete_draft_expense_rejects_when_amendments_exist(
     monkeypatch.setattr(admin_expenses, "ExpenseRepository", _FakeRepo)
     monkeypatch.setattr(admin_expenses, "Session", lambda _engine: _FakeSessionCtx())
     monkeypatch.setattr(admin_expenses, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_expenses, "set_audit_context", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        admin_expenses, "set_audit_context", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr(admin_expenses, "request_id", lambda _e: "req-1")
     monkeypatch.setattr(
         admin_expenses,

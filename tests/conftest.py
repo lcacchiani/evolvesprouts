@@ -8,8 +8,27 @@ from pathlib import Path
 
 import pytest
 
+_TESTS_DIR = Path(__file__).resolve().parent
+_REPO_ROOT = _TESTS_DIR.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from tests.helpers.db import database_url, libpq_conn_url
+
 # Add backend source to path for imports.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend" / "src"))
+sys.path.insert(0, str(_REPO_ROOT / "backend" / "src"))
+
+
+__all__ = ["database_url", "libpq_conn_url"]
+
+
+@pytest.fixture
+def test_database_url() -> str:
+    """Resolved ``TEST_DATABASE_URL`` or skip when unset."""
+    url = database_url()
+    if url is None:
+        pytest.skip("TEST_DATABASE_URL not set")
+    return url
 
 
 @pytest.fixture
@@ -74,9 +93,7 @@ def cloudfront_dummy_signer() -> Any:
             self.resource_url: str | None = None
             self.date_less_than: Any | None = None
 
-        def generate_presigned_url(
-            self, resource_url: str, date_less_than: Any
-        ) -> str:
+        def generate_presigned_url(self, resource_url: str, date_less_than: Any) -> str:
             self.resource_url = resource_url
             self.date_less_than = date_less_than
             return "https://signed.example.com/download"

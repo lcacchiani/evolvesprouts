@@ -55,10 +55,7 @@ def test_list_organizations_vendor_scope_matches_list_vendors_row_set() -> None:
     )
     assert [r.id for r in out] == [id_new, id_old]
 
-    assert (
-        repo.count_organizations(relationship_types=(RelationshipType.VENDOR,))
-        == 2
-    )
+    assert repo.count_organizations(relationship_types=(RelationshipType.VENDOR,)) == 2
 
 
 def test_get_organization_by_id_includes_vendor_rows() -> None:

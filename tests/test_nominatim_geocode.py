@@ -61,9 +61,7 @@ def test_geocode_strips_address_through_floor_segment(monkeypatch: Any) -> None:
 
     monkeypatch.setattr(nominatim_geocode, "http_invoke", capture_url)
 
-    addr = (
-        "507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan"
-    )
+    addr = "507, 5/F, Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan"
     nominatim_geocode.geocode_address_with_context(address=addr, country_iso_codes=None)
     q = parse_qs(urlparse(seen[0]).query).get("q", [""])[0]
     assert q == "Arion Commercial Centre, 2-12 Queen's Road West, Sheung Wan"

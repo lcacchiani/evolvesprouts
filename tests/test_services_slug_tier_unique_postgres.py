@@ -6,24 +6,17 @@ Validates the DDL pattern used in migration ``0042_slug_nulls_nd``.
 
 from __future__ import annotations
 
-import os
 
 import pytest
 
-psycopg = pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
+from tests.helpers.db import database_url, libpq_conn_url
+
+psycopg = pytest.importorskip(
+    "psycopg", reason="psycopg required for DB integration test"
+)
 
 
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
-
-
-def _libpq_conn_url(url: str) -> str:
-    """Strip SQLAlchemy driver so ``psycopg.connect`` uses a libpq-style URI."""
-    return url.replace("postgresql+psycopg://", "postgresql://", 1)
-
-
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_slug_tier_unique_index_treats_null_tier_as_single_bucket() -> None:
     """Two rows with same slug and NULL tier must violate NULLS NOT DISTINCT unique index."""
     ddl = (
@@ -36,9 +29,9 @@ def test_slug_tier_unique_index_treats_null_tier_as_single_bucket() -> None:
         "ON slug_tier_uq_probe (lower(slug), lower(service_tier)) "
         "NULLS NOT DISTINCT WHERE slug IS NOT NULL"
     )
-    url = _database_url()
+    url = database_url()
     assert url is not None
-    conn_url = _libpq_conn_url(url)
+    conn_url = libpq_conn_url(url)
 
     with psycopg.connect(conn_url) as conn:
         conn.execute(ddl)

@@ -1386,9 +1386,9 @@ def test_intro_call_new_enrollment_persists_slot_before_free_payment_record(
         ops = ops_holder["ops"]
         assert "add_intro_slot" in ops
         idx_add = ops.index("add_intro_slot")
-        assert any(i > idx_add and op == "flush" for i, op in enumerate(ops)), (
-            "expected flush after intro slot add before payment record"
-        )
+        assert any(
+            i > idx_add and op == "flush" for i, op in enumerate(ops)
+        ), "expected flush after intro slot add before payment record"
         return (None, None, False)
 
     monkeypatch.setattr(

@@ -181,6 +181,10 @@ def test_slug_collision_probes(monkeypatch: pytest.MonkeyPatch) -> None:
 
     ctx = replace(ImporterContext(), existing_import_keys=frozenset())
     importer.apply(session, rows, ctx, dry_run=False)
-    svc_objs = [c[0][0] for c in session.add.call_args_list if type(c[0][0]).__name__ == "Service"]
+    svc_objs = [
+        c[0][0]
+        for c in session.add.call_args_list
+        if type(c[0][0]).__name__ == "Service"
+    ]
     assert svc_objs[0].service_key == "sluggy"
     assert svc_objs[1].service_key == "sluggy-3"

@@ -189,7 +189,9 @@ def test_process_message_uses_keyword_session_for_contact_tag(
         ) -> Any:
             return existing_lead
 
-    def _fake_ensure_contact_tag(*, session: Any, contact_id: UUID, tag_name: str) -> None:
+    def _fake_ensure_contact_tag(
+        *, session: Any, contact_id: UUID, tag_name: str
+    ) -> None:
         ensure_tag_calls.append((session, contact_id, tag_name))
 
     monkeypatch.setattr(handler, "get_engine", lambda: object())

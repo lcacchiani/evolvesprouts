@@ -340,8 +340,10 @@ Existing mitigations:
 
 - CloudFront default-deny `/www/*` allowlist restricts reachable methods and
   paths.
-- Backend validation enforces UUID `sessionId`, slug patterns, and field
-  length caps.
+- Backend validation enforces UUID `sessionId`, slug patterns, field
+  length caps, facilitator-published option membership for select/multiselect
+  answers when `questionOptions` is present on control state, and per-session /
+  per-IP DynamoDB write counters (429 when exceeded).
 - The shared public usage plan applies request throttling and a daily quota.
 
 Revisit this decision if polls start collecting sensitive participant data or

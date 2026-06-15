@@ -104,7 +104,9 @@ def test_parse_partial_update_asset_payload_requires_updatable_field() -> None:
         "body": "{}",
         "isBase64Encoded": False,
     }
-    with pytest.raises(ValidationError, match="At least one updatable field is required"):
+    with pytest.raises(
+        ValidationError, match="At least one updatable field is required"
+    ):
         parse_partial_update_asset_payload(event)
 
 
@@ -157,7 +159,9 @@ def test_parse_admin_asset_list_filters_accepts_expense_attachment_tag() -> None
     assert query is None
 
 
-def test_parse_admin_asset_list_filters_accepts_any_tag_name_for_list_validation() -> None:
+def test_parse_admin_asset_list_filters_accepts_any_tag_name_for_list_validation() -> (
+    None
+):
     event = {
         "queryStringParameters": {"tag_name": "unknown"},
         "headers": {},
@@ -259,18 +263,31 @@ def test_parse_partial_update_accepts_client_tag_only() -> None:
     assert payload["client_tag"] == "client_document"
 
 
-def test_parse_optional_content_language_accepts_arbitrary_bcp47_for_public_query() -> None:
+def test_parse_optional_content_language_accepts_arbitrary_bcp47_for_public_query() -> (
+    None
+):
     assert parse_optional_content_language({"language": "fr"}, "language") == "fr"
 
 
 def test_parse_admin_asset_content_language_allowlists_admin_writes() -> None:
-    assert parse_admin_asset_content_language({"content_language": "en"}, "content_language") == "en"
     assert (
-        parse_admin_asset_content_language({"contentLanguage": "zh_HK"}, "contentLanguage")
+        parse_admin_asset_content_language(
+            {"content_language": "en"}, "content_language"
+        )
+        == "en"
+    )
+    assert (
+        parse_admin_asset_content_language(
+            {"contentLanguage": "zh_HK"}, "contentLanguage"
+        )
         == "zh-HK"
     )
-    with pytest.raises(ValidationError, match="content_language must be null or one of"):
-        parse_admin_asset_content_language({"content_language": "fr"}, "content_language")
+    with pytest.raises(
+        ValidationError, match="content_language must be null or one of"
+    ):
+        parse_admin_asset_content_language(
+            {"content_language": "fr"}, "content_language"
+        )
 
 
 def test_parse_create_asset_payload_rejects_disallowed_content_language() -> None:
@@ -286,7 +303,9 @@ def test_parse_create_asset_payload_rejects_disallowed_content_language() -> Non
         ),
         "isBase64Encoded": False,
     }
-    with pytest.raises(ValidationError, match="content_language must be null or one of"):
+    with pytest.raises(
+        ValidationError, match="content_language must be null or one of"
+    ):
         parse_create_asset_payload(event)
 
 
@@ -298,7 +317,9 @@ def test_asset_links_expense_attachment_detects_tag() -> None:
     )
     assert asset_links_expense_attachment(asset) is True
 
-    other = SimpleNamespace(asset_tags=[SimpleNamespace(tag=SimpleNamespace(name="client_document"))])
+    other = SimpleNamespace(
+        asset_tags=[SimpleNamespace(tag=SimpleNamespace(name="client_document"))]
+    )
     assert asset_links_expense_attachment(other) is False
 
 
@@ -322,12 +343,17 @@ def test_parse_init_asset_content_replace_payload_accepts_snake_and_camel() -> N
 
 
 def test_parse_init_asset_content_replace_payload_requires_file_name() -> None:
-    event = {"body": json.dumps({"content_type": "application/pdf"}), "isBase64Encoded": False}
+    event = {
+        "body": json.dumps({"content_type": "application/pdf"}),
+        "isBase64Encoded": False,
+    }
     with pytest.raises(ValidationError, match="file_name"):
         parse_init_asset_content_replace_payload(event)
 
 
-def test_parse_complete_asset_content_replace_payload_accepts_camel_case_aliases() -> None:
+def test_parse_complete_asset_content_replace_payload_accepts_camel_case_aliases() -> (
+    None
+):
     event = {
         "body": json.dumps(
             {
@@ -345,7 +371,9 @@ def test_parse_complete_asset_content_replace_payload_accepts_camel_case_aliases
     }
 
 
-def test_parse_complete_asset_content_replace_payload_rejects_empty_pending_after_strip() -> None:
+def test_parse_complete_asset_content_replace_payload_rejects_empty_pending_after_strip() -> (
+    None
+):
     event = {
         "body": json.dumps({"pending_s3_key": "   ", "file_name": "x.pdf"}),
         "isBase64Encoded": False,
@@ -379,7 +407,8 @@ def test_validate_pending_asset_content_s3_key_rejects_wrong_prefix() -> None:
     aid = uuid4()
     with pytest.raises(ValidationError):
         validate_pending_asset_content_s3_key(
-            asset_id=aid, pending_key=f"assets/{uuid4()}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-x.pdf"
+            asset_id=aid,
+            pending_key=f"assets/{uuid4()}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-x.pdf",
         )
 
 
@@ -393,4 +422,6 @@ def test_head_s3_object_calls_s3_client(monkeypatch: pytest.MonkeyPatch) -> None
 
     result = head_s3_object(s3_key="assets/a/b.pdf")
     assert result["ContentType"] == "application/pdf"
-    mock_client.head_object.assert_called_once_with(Bucket="bucket-1", Key="assets/a/b.pdf")
+    mock_client.head_object.assert_called_once_with(
+        Bucket="bucket-1", Key="assets/a/b.pdf"
+    )

@@ -51,7 +51,9 @@ def test_handle_admin_locations_dispatches_resource_patch(
     marker = {"statusCode": 200, "body": "{}"}
     captured: dict[str, Any] = {}
 
-    def _fake_update(_event: Any, _location_id: Any, *, partial: bool) -> dict[str, Any]:
+    def _fake_update(
+        _event: Any, _location_id: Any, *, partial: bool
+    ) -> dict[str, Any]:
         captured["partial"] = partial
         return marker
 
@@ -68,7 +70,9 @@ def test_handle_admin_locations_dispatches_resource_patch(
     assert captured["partial"] is True
 
 
-def test_handle_admin_locations_rejects_collection_patch(api_gateway_event: Any) -> None:
+def test_handle_admin_locations_rejects_collection_patch(
+    api_gateway_event: Any,
+) -> None:
     response = admin_locations.handle_admin_locations_request(
         api_gateway_event(method="PATCH", path="/v1/admin/locations"),
         "PATCH",
@@ -115,7 +119,9 @@ def test_parse_query_bool_defaults_and_accepts_aliases() -> None:
 
 def test_parse_query_bool_rejects_invalid() -> None:
     with pytest.raises(ValidationError) as exc:
-        admin_locations._parse_query_bool("maybe", field="exclude_addresses", default=False)
+        admin_locations._parse_query_bool(
+            "maybe", field="exclude_addresses", default=False
+        )
     assert exc.value.field == "exclude_addresses"
 
 

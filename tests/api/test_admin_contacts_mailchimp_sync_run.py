@@ -19,7 +19,9 @@ def production_mailchimp_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
 
 
-def _identity_event(api_gateway_event: Any, admin_identity: dict[str, str]) -> dict[str, Any]:
+def _identity_event(
+    api_gateway_event: Any, admin_identity: dict[str, str]
+) -> dict[str, Any]:
     return api_gateway_event(
         method="POST",
         path="/v1/admin/contacts/mailchimp-sync-run",
@@ -127,7 +129,11 @@ def test_sync_run_dry_run_skips_mailchimp(
             pass
 
         def list_for_mailchimp_sync(
-            self, *, limit: int, cursor: UUID | None, statuses: list[MailchimpSyncStatus]
+            self,
+            *,
+            limit: int,
+            cursor: UUID | None,
+            statuses: list[MailchimpSyncStatus],
         ) -> list[Any]:
             c = MagicMock()
             c.id = uuid4()
@@ -212,7 +218,11 @@ def test_sync_run_accepts_tag_name_with_dot_and_underscore(
             pass
 
         def list_for_mailchimp_sync(
-            self, *, limit: int, cursor: UUID | None, statuses: list[MailchimpSyncStatus]
+            self,
+            *,
+            limit: int,
+            cursor: UUID | None,
+            statuses: list[MailchimpSyncStatus],
         ) -> list[Any]:
             return []
 
@@ -260,7 +270,11 @@ def test_sync_run_errors_sample_includes_lead_email_masked(
             pass
 
         def list_for_mailchimp_sync(
-            self, *, limit: int, cursor: UUID | None, statuses: list[MailchimpSyncStatus]
+            self,
+            *,
+            limit: int,
+            cursor: UUID | None,
+            statuses: list[MailchimpSyncStatus],
         ) -> list[Any]:
             c = MagicMock()
             c.id = uuid4()

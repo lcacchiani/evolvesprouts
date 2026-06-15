@@ -1,5 +1,6 @@
 import type { FormQuestion, FormsCommonContent } from '@/content/form-types';
 import { isQuestionRequired } from '@/content/form-types';
+import { isValidEmail } from '@/lib/validation';
 
 export interface FormAnswerState {
   selectedOption: string;
@@ -71,14 +72,6 @@ function isConsentAnswerValid(
     return answer.freeText.trim().length > 0;
   }
   return true;
-}
-
-function isValidEmail(value: string): boolean {
-  const normalized = value.trim();
-  if (!normalized) {
-    return false;
-  }
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
 }
 
 export function getFormValidationError(

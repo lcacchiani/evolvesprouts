@@ -51,7 +51,9 @@ def test_delete_service_raises_when_instances_exist(monkeypatch: Any) -> None:
     monkeypatch.setattr(admin_services, "get_engine", lambda: object())
     monkeypatch.setattr(admin_services, "set_audit_context", lambda *_a, **_k: None)
     monkeypatch.setattr(admin_services, "ServiceRepository", _FakeServiceRepository)
-    monkeypatch.setattr(admin_services, "ServiceInstanceRepository", _FakeInstanceRepository)
+    monkeypatch.setattr(
+        admin_services, "ServiceInstanceRepository", _FakeInstanceRepository
+    )
 
     with pytest.raises(ValidationError) as exc_info:
         admin_services._delete_service(
@@ -64,7 +66,9 @@ def test_delete_service_raises_when_instances_exist(monkeypatch: Any) -> None:
     assert deleted["called"] is False
 
 
-def test_list_services_includes_instance_counts(monkeypatch: Any, api_gateway_event: Any) -> None:
+def test_list_services_includes_instance_counts(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
     sid_a, sid_b = uuid4(), uuid4()
     row_a = SimpleNamespace(id=sid_a)
     row_b = SimpleNamespace(id=sid_b)
@@ -121,7 +125,9 @@ def test_list_services_includes_instance_counts(monkeypatch: Any, api_gateway_ev
     )
 
     response = admin_services._list_services(
-        api_gateway_event(method="GET", path="/v1/admin/services", query_params={"limit": "10"})
+        api_gateway_event(
+            method="GET", path="/v1/admin/services", query_params={"limit": "10"}
+        )
     )
     assert response["statusCode"] == 200
     body = response["body"]

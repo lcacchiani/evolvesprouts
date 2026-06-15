@@ -24,10 +24,16 @@ def _read_value(column: Any, value: Any) -> Any:
     [
         (Asset.__table__.c.asset_type, AssetType.DOCUMENT, "document"),
         (Asset.__table__.c.visibility, AssetVisibility.RESTRICTED, "restricted"),
-        (AssetAccessGrant.__table__.c.grant_type, AccessGrantType.ALL_AUTHENTICATED, "all_authenticated"),
+        (
+            AssetAccessGrant.__table__.c.grant_type,
+            AccessGrantType.ALL_AUTHENTICATED,
+            "all_authenticated",
+        ),
     ],
 )
-def test_asset_enums_bind_postgres_labels(column: Any, enum_member: Any, db_label: str) -> None:
+def test_asset_enums_bind_postgres_labels(
+    column: Any, enum_member: Any, db_label: str
+) -> None:
     assert db_label in column.type.enums
     assert _bind_value(column, enum_member) == db_label
 
@@ -37,8 +43,14 @@ def test_asset_enums_bind_postgres_labels(column: Any, enum_member: Any, db_labe
     [
         (Asset.__table__.c.asset_type, AssetType.DOCUMENT, "document"),
         (Asset.__table__.c.visibility, AssetVisibility.RESTRICTED, "restricted"),
-        (AssetAccessGrant.__table__.c.grant_type, AccessGrantType.ALL_AUTHENTICATED, "all_authenticated"),
+        (
+            AssetAccessGrant.__table__.c.grant_type,
+            AccessGrantType.ALL_AUTHENTICATED,
+            "all_authenticated",
+        ),
     ],
 )
-def test_asset_enums_round_trip_db_labels(column: Any, enum_member: Any, db_label: str) -> None:
+def test_asset_enums_round_trip_db_labels(
+    column: Any, enum_member: Any, db_label: str
+) -> None:
     assert _read_value(column, db_label) == enum_member

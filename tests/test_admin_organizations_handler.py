@@ -62,7 +62,9 @@ def _install_organizations_persistence_fakes(
             return stored.get(organization_id)
 
     monkeypatch.setattr(admin_organizations, "OrganizationRepository", _FakeRepo)
-    monkeypatch.setattr(admin_organizations, "Session", lambda _engine: _FakeSessionCtx())
+    monkeypatch.setattr(
+        admin_organizations, "Session", lambda _engine: _FakeSessionCtx()
+    )
     monkeypatch.setattr(admin_organizations, "get_engine", lambda: object())
     monkeypatch.setattr(
         admin_organizations, "set_audit_context", lambda *args, **kwargs: None
@@ -279,7 +281,9 @@ def test_list_organizations_default_excludes_vendors_from_repository_filter(
             return None
 
     monkeypatch.setattr(admin_organizations, "OrganizationRepository", _FakeRepo)
-    monkeypatch.setattr(admin_organizations, "Session", lambda _engine: _FakeSessionCtx())
+    monkeypatch.setattr(
+        admin_organizations, "Session", lambda _engine: _FakeSessionCtx()
+    )
     monkeypatch.setattr(admin_organizations, "get_engine", lambda: object())
     monkeypatch.setattr(
         admin_organizations,
@@ -327,7 +331,9 @@ def test_list_organizations_vendor_query_sets_vendor_filter_and_skips_relationsh
             return None
 
     monkeypatch.setattr(admin_organizations, "OrganizationRepository", _FakeRepo)
-    monkeypatch.setattr(admin_organizations, "Session", lambda _engine: _FakeSessionCtx())
+    monkeypatch.setattr(
+        admin_organizations, "Session", lambda _engine: _FakeSessionCtx()
+    )
     monkeypatch.setattr(admin_organizations, "get_engine", lambda: object())
     monkeypatch.setattr(
         admin_organizations,
@@ -377,7 +383,9 @@ def test_list_organizations_sort_name_sets_name_asc_list_order(
             return None
 
     monkeypatch.setattr(admin_organizations, "OrganizationRepository", _FakeRepo)
-    monkeypatch.setattr(admin_organizations, "Session", lambda _engine: _FakeSessionCtx())
+    monkeypatch.setattr(
+        admin_organizations, "Session", lambda _engine: _FakeSessionCtx()
+    )
     monkeypatch.setattr(admin_organizations, "get_engine", lambda: object())
     monkeypatch.setattr(
         admin_organizations,
@@ -421,7 +429,9 @@ def test_get_organization_returns_partner_row_via_non_vendor_loader(
             return None
 
     monkeypatch.setattr(admin_organizations, "OrganizationRepository", _FakeRepo)
-    monkeypatch.setattr(admin_organizations, "Session", lambda _engine: _FakeSessionCtx())
+    monkeypatch.setattr(
+        admin_organizations, "Session", lambda _engine: _FakeSessionCtx()
+    )
     monkeypatch.setattr(admin_organizations, "get_engine", lambda: object())
     monkeypatch.setattr(
         admin_organizations,
@@ -431,7 +441,11 @@ def test_get_organization_returns_partner_row_via_non_vendor_loader(
     monkeypatch.setattr(
         admin_organizations,
         "serialize_organization_summary",
-        lambda _org: {"id": str(partner_id), "relationship_type": "partner", "members": []},
+        lambda _org: {
+            "id": str(partner_id),
+            "relationship_type": "partner",
+            "members": [],
+        },
     )
 
     response = admin_organizations.handle_admin_organizations_request(
@@ -468,7 +482,9 @@ def test_get_organization_returns_404_when_crm_loader_finds_nothing(
             return None
 
     monkeypatch.setattr(admin_organizations, "OrganizationRepository", _FakeRepo)
-    monkeypatch.setattr(admin_organizations, "Session", lambda _engine: _FakeSessionCtx())
+    monkeypatch.setattr(
+        admin_organizations, "Session", lambda _engine: _FakeSessionCtx()
+    )
     monkeypatch.setattr(admin_organizations, "get_engine", lambda: object())
     monkeypatch.setattr(
         admin_organizations,

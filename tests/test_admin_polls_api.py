@@ -20,7 +20,9 @@ def reset_poll_store() -> None:
     store.reset_table_for_tests()
 
 
-def _identity_event(api_gateway_event: Any, *, method: str, path: str) -> dict[str, Any]:
+def _identity_event(
+    api_gateway_event: Any, *, method: str, path: str
+) -> dict[str, Any]:
     return api_gateway_event(
         method=method,
         path=path,

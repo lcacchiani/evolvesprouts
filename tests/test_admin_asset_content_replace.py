@@ -77,7 +77,10 @@ def test_complete_raises_when_head_no_such_key(
 
     def _head_fail(**_kwargs: Any) -> dict[str, Any]:
         raise ClientError(
-            {"Error": {"Code": "NoSuchKey"}, "ResponseMetadata": {"HTTPStatusCode": 404}},
+            {
+                "Error": {"Code": "NoSuchKey"},
+                "ResponseMetadata": {"HTTPStatusCode": 404},
+            },
             "HeadObject",
         )
 
@@ -109,7 +112,9 @@ def test_complete_blocks_expense_tagged_asset(
     asset_id = uuid4()
     pending = f"assets/{asset_id}/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-x.pdf"
     monkeypatch.setattr(content_replace, "head_s3_object", lambda **_k: _good_head())
-    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: True)
+    monkeypatch.setattr(
+        content_replace, "asset_links_expense_attachment", lambda _a: True
+    )
 
     class _Repo:
         def get_with_asset_tags(self, _id: UUID) -> Asset:
@@ -175,7 +180,9 @@ def test_init_returns_404_when_asset_missing(
             api_gateway_event(
                 method="POST",
                 path="/x",
-                body=json.dumps({"file_name": "a.pdf", "content_type": "application/pdf"}),
+                body=json.dumps(
+                    {"file_name": "a.pdf", "content_type": "application/pdf"}
+                ),
             ),
             asset_id,
             identity_user_sub="u",
@@ -204,7 +211,9 @@ def test_init_blocks_expense_linked_asset(
     monkeypatch.setattr(content_replace, "get_engine", lambda: object())
     monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
     monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
-    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: True)
+    monkeypatch.setattr(
+        content_replace, "asset_links_expense_attachment", lambda _a: True
+    )
 
     with pytest.raises(ValidationError, match="expense"):
         content_replace.init_asset_content_replace(
@@ -246,7 +255,9 @@ def test_complete_rejects_oversized_object(
     monkeypatch.setattr(content_replace, "get_engine", lambda: object())
     monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
     monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
-    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+    monkeypatch.setattr(
+        content_replace, "asset_links_expense_attachment", lambda _a: False
+    )
 
     with pytest.raises(ValidationError, match="between 1 and"):
         content_replace.complete_asset_content_replace(
@@ -297,7 +308,9 @@ def test_complete_rejects_non_pdf_head_content_type(
     monkeypatch.setattr(content_replace, "get_engine", lambda: object())
     monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
     monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
-    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+    monkeypatch.setattr(
+        content_replace, "asset_links_expense_attachment", lambda _a: False
+    )
 
     with pytest.raises(ValidationError, match="Content-Type"):
         content_replace.complete_asset_content_replace(
@@ -375,7 +388,9 @@ def test_complete_success_updates_and_deletes_previous(
     monkeypatch.setattr(content_replace, "get_engine", lambda: object())
     monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
     monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: repo)
-    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+    monkeypatch.setattr(
+        content_replace, "asset_links_expense_attachment", lambda _a: False
+    )
 
     resp = content_replace.complete_asset_content_replace(
         api_gateway_event(
@@ -448,7 +463,9 @@ def test_complete_does_not_delete_when_update_raises(
     monkeypatch.setattr(content_replace, "get_engine", lambda: object())
     monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
     monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
-    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+    monkeypatch.setattr(
+        content_replace, "asset_links_expense_attachment", lambda _a: False
+    )
 
     with pytest.raises(RuntimeError, match="simulated"):
         content_replace.complete_asset_content_replace(
@@ -510,7 +527,9 @@ def test_second_complete_same_pending_after_success_raises(
     monkeypatch.setattr(content_replace, "get_engine", lambda: object())
     monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
     monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
-    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+    monkeypatch.setattr(
+        content_replace, "asset_links_expense_attachment", lambda _a: False
+    )
 
     with pytest.raises(ValidationError, match="nothing to replace"):
         content_replace.complete_asset_content_replace(
@@ -547,7 +566,10 @@ def test_delete_previous_logs_warning_on_failure(
 
     def _delete_fail(**_kwargs: Any) -> None:
         raise ClientError(
-            {"Error": {"Code": "AccessDenied"}, "ResponseMetadata": {"HTTPStatusCode": 403}},
+            {
+                "Error": {"Code": "AccessDenied"},
+                "ResponseMetadata": {"HTTPStatusCode": 403},
+            },
             "DeleteObject",
         )
 
@@ -580,7 +602,9 @@ def test_delete_previous_logs_warning_on_failure(
     monkeypatch.setattr(content_replace, "get_engine", lambda: object())
     monkeypatch.setattr(content_replace, "set_audit_context", lambda *a, **k: None)
     monkeypatch.setattr(content_replace, "AssetRepository", lambda _s: _Repo())
-    monkeypatch.setattr(content_replace, "asset_links_expense_attachment", lambda _a: False)
+    monkeypatch.setattr(
+        content_replace, "asset_links_expense_attachment", lambda _a: False
+    )
 
     with caplog.at_level(logging.WARNING):
         resp = content_replace.complete_asset_content_replace(

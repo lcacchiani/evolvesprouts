@@ -30,7 +30,9 @@ def test_list_organizations_default_where_excludes_vendor_and_partner() -> None:
 
     stmt = mock_session.execute.call_args[0][0]
     sql = str(
-        stmt.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
+        stmt.compile(
+            dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
+        )
     )
     assert "relationship_type IN" in sql
     assert "'vendor'" not in sql
@@ -46,7 +48,9 @@ def test_count_organizations_default_matches_list_filter() -> None:
 
     stmt = mock_session.execute.call_args[0][0]
     sql = str(
-        stmt.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
+        stmt.compile(
+            dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
+        )
     )
     assert "relationship_type IN" in sql
     assert "'vendor'" not in sql
@@ -62,6 +66,8 @@ def test_get_non_vendor_organization_by_id_allows_partner_rows() -> None:
     repo.get_non_vendor_organization_by_id(uuid4())
     stmt = mock_session.execute.call_args[0][0]
     sql = str(
-        stmt.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
+        stmt.compile(
+            dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
+        )
     )
     assert "relationship_type != 'vendor'" in sql

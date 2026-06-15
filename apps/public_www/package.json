@@ -28,7 +28,9 @@
     "validate:analytics-contract": "node ./scripts/validate-analytics-contract.mjs",
     "validate:analytics-governance": "node ./scripts/validate-analytics-governance.mjs",
     "validate:meta-pixel-contract": "node ./scripts/validate-meta-pixel-contract.mjs",
-    "lint": "npm run validate:analytics-contract && npm run validate:analytics-governance && npm run validate:meta-pixel-contract && eslint --max-warnings=0 .",
+    "lint": "npm run check:public-api-types && npm run validate:analytics-contract && npm run validate:analytics-governance && npm run validate:meta-pixel-contract && eslint --max-warnings=0 .",
+    "generate:public-api-types": "openapi-typescript ../../docs/api/public.yaml -o src/types/generated/public-api.generated.ts",
+    "check:public-api-types": "node ./scripts/check-public-api-types.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "audit:deps:prod": "npm audit --omit=dev --audit-level=high"
@@ -58,6 +60,7 @@
     "eslint-config-next": "^16.2.9",
     "jsdom": "^29.1.1",
     "libphonenumber-js": "^1.13.6",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.15",
     "sharp": "^0.35.1",
     "tailwindcss": "^4.2.0",
@@ -75,6 +78,9 @@
     "typescript-eslint": "8.58.0",
     "@lhci/cli": {
       "uuid": "^14.0.0"
+    },
+    "openapi-typescript": {
+      "typescript": "$typescript"
     }
   }
 }

@@ -44,7 +44,9 @@ class _DepImporter:
         return ""
 
 
-def test_check_dependencies_raises_when_parent_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_check_dependencies_raises_when_parent_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from app.imports import refs
 
     monkeypatch.setattr(refs, "has_mapping", lambda _s, _dep: False)
@@ -52,7 +54,9 @@ def test_check_dependencies_raises_when_parent_missing(monkeypatch: pytest.Monke
         check_dependencies(_DepImporter(), MagicMock(spec=Session), dry_run=False)
 
 
-def test_check_dependencies_organizations_optional_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_check_dependencies_organizations_optional_when_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Contacts depend on families + organizations; org import may be empty."""
 
     from app.imports import refs
@@ -65,7 +69,9 @@ def test_check_dependencies_organizations_optional_when_empty(monkeypatch: pytes
         def parse(self, sql_text: str) -> Sequence[Any]:
             return []
 
-        def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
+        def resolve_context(
+            self, session: Session, *, dry_run: bool
+        ) -> ImporterContext:
             return ImporterContext()
 
         def apply(
@@ -101,7 +107,9 @@ def test_check_dependencies_labels_optional_for_event_instance_tags(
         def parse(self, sql_text: str) -> Sequence[Any]:
             return []
 
-        def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
+        def resolve_context(
+            self, session: Session, *, dry_run: bool
+        ) -> ImporterContext:
             return ImporterContext()
 
         def apply(
@@ -146,7 +154,11 @@ def test_resolve_importer_context_attaches_dependency_maps(
     from app.imports import refs
 
     monkeypatch.setattr(refs, "has_mapping", lambda _s, _dep: True)
-    monkeypatch.setattr(refs, "load_mapping", lambda _s, dep: {"1": UUID(int=1)} if dep == "venues" else {})
+    monkeypatch.setattr(
+        refs,
+        "load_mapping",
+        lambda _s, dep: {"1": UUID(int=1)} if dep == "venues" else {},
+    )
 
     ctx = resolve_importer_context(
         _DepImporter(),
@@ -227,7 +239,9 @@ def test_resolve_importer_context_merges_skip_legacy_keys(
         def parse(self, sql_text: str) -> Sequence[Any]:
             return []
 
-        def resolve_context(self, session: Session, *, dry_run: bool) -> ImporterContext:
+        def resolve_context(
+            self, session: Session, *, dry_run: bool
+        ) -> ImporterContext:
             return ImporterContext(skip_legacy_keys=frozenset({"a"}))
 
         def apply(

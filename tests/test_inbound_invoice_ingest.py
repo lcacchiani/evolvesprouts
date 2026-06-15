@@ -25,7 +25,9 @@ def _base_event() -> InboundInvoiceEmailEvent:
     )
 
 
-def test_process_inbound_invoice_email_reuses_existing_expense(monkeypatch: Any) -> None:
+def test_process_inbound_invoice_email_reuses_existing_expense(
+    monkeypatch: Any,
+) -> None:
     expense_id = UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
     ensure_calls: list[UUID] = []
 
@@ -75,9 +77,11 @@ def test_process_inbound_invoice_email_marks_failed_when_no_supported_attachment
     )
     monkeypatch.setattr(
         "app.services.inbound_invoice_ingest._upsert_tracking_record",
-        lambda _event, *, status, parsed_email=None, failure_reason=None: upsert_calls.append(
-            (status, failure_reason)
-        ),
+        lambda _event,
+        *,
+        status,
+        parsed_email=None,
+        failure_reason=None: upsert_calls.append((status, failure_reason)),
     )
 
     result = process_inbound_invoice_email(_base_event())
@@ -107,9 +111,11 @@ def test_process_inbound_invoice_email_skips_spam_without_loading_raw_email(
     )
     monkeypatch.setattr(
         "app.services.inbound_invoice_ingest._upsert_tracking_record",
-        lambda _event, *, status, parsed_email=None, failure_reason=None: statuses.append(
-            status
-        ),
+        lambda _event,
+        *,
+        status,
+        parsed_email=None,
+        failure_reason=None: statuses.append(status),
     )
     monkeypatch.setattr(
         "app.services.inbound_invoice_ingest._load_raw_email",
@@ -150,9 +156,11 @@ def test_process_inbound_invoice_email_fails_when_sender_not_allowlisted(
     )
     monkeypatch.setattr(
         "app.services.inbound_invoice_ingest._upsert_tracking_record",
-        lambda _event, *, status, parsed_email=None, failure_reason=None: upsert_calls.append(
-            (status, failure_reason)
-        ),
+        lambda _event,
+        *,
+        status,
+        parsed_email=None,
+        failure_reason=None: upsert_calls.append((status, failure_reason)),
     )
 
     result = process_inbound_invoice_email(_base_event())
@@ -199,9 +207,11 @@ def test_process_inbound_invoice_email_allowlisted_by_envelope_substring(
     )
     monkeypatch.setattr(
         "app.services.inbound_invoice_ingest._upsert_tracking_record",
-        lambda _event, *, status, parsed_email=None, failure_reason=None: upsert_calls.append(
-            (status, failure_reason)
-        ),
+        lambda _event,
+        *,
+        status,
+        parsed_email=None,
+        failure_reason=None: upsert_calls.append((status, failure_reason)),
     )
 
     process_inbound_invoice_email(_base_event())
@@ -248,9 +258,11 @@ def test_process_inbound_invoice_email_stores_and_enqueues_parse(
     )
     monkeypatch.setattr(
         "app.services.inbound_invoice_ingest._upsert_tracking_record",
-        lambda _event, *, status, parsed_email=None, failure_reason=None: upsert_calls.append(
-            (status, failure_reason)
-        ),
+        lambda _event,
+        *,
+        status,
+        parsed_email=None,
+        failure_reason=None: upsert_calls.append((status, failure_reason)),
     )
 
     result = process_inbound_invoice_email(_base_event())

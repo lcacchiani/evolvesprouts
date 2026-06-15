@@ -8,9 +8,7 @@ from app.api.public_form_hooks import send_booking_confirmation_email
 from app.utils.fps_qr_png import decode_fps_qr_png_data_url
 
 # 1×1 PNG (valid magic).
-_TINY_PNG_B64 = (
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
-)
+_TINY_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 _TINY_PNG_DATA_URL = f"data:image/png;base64,{_TINY_PNG_B64}"
 
 

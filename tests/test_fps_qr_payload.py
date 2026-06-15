@@ -33,9 +33,7 @@ def test_mobile_invalid_returns_none(raw: str) -> None:
 
 
 def test_currency_non_hkd_returns_none() -> None:
-    assert (
-        build_fps_payload("Acme", "91234567", Decimal("1"), currency="USD") is None
-    )
+    assert build_fps_payload("Acme", "91234567", Decimal("1"), currency="USD") is None
 
 
 def test_amount_none_omits_tag54() -> None:

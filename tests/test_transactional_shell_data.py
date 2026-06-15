@@ -129,7 +129,9 @@ def test_build_transactional_template_shell_data_footer(
     assert "margin:16px 0 0 0;text-align:center" in data["footer_block_html"]
 
 
-def test_build_footer_block_html_copyright_when_no_social_links(monkeypatch: Any) -> None:
+def test_build_footer_block_html_copyright_when_no_social_links(
+    monkeypatch: Any,
+) -> None:
     fixed_now = datetime(2027, 6, 1, tzinfo=UTC)
 
     class _DatetimePatch:
@@ -193,7 +195,10 @@ def test_build_free_intro_call_url_message_short_link_without_phone_falls_back(
     )
     monkeypatch.delenv("PUBLIC_WWW_BUSINESS_PHONE_NUMBER", raising=False)
     monkeypatch.delenv("NEXT_PUBLIC_BUSINESS_PHONE_NUMBER", raising=False)
-    assert build_free_intro_call_url(locale="en") == "https://www.example.com/en/contact-us"
+    assert (
+        build_free_intro_call_url(locale="en")
+        == "https://www.example.com/en/contact-us"
+    )
 
 
 def test_merge_transactional_shell_template_data_order(monkeypatch: Any) -> None:

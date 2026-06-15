@@ -103,7 +103,7 @@ function assertNewResources(): void {
 function main(): void {
   assertExistingResources();
   assertNewResources();
-  // eslint-disable-next-line no-console
+   
   console.log("OK");
 }
 

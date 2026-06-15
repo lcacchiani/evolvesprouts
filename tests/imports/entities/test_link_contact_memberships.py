@@ -255,7 +255,12 @@ def test_stale_refs_are_pruned_and_counted(monkeypatch: pytest.MonkeyPatch) -> N
         _person(legacy_id=4, family_id=30, kind="partner"),
     ]
     ctx = _ctx(
-        contacts={"1": live_contact, "2": stale_contact, "3": live_contact, "4": live_contact},
+        contacts={
+            "1": live_contact,
+            "2": stale_contact,
+            "3": live_contact,
+            "4": live_contact,
+        },
         families={"10": live_family, "20": stale_family},
         organizations={"30": stale_org, "40": live_org},
     )

@@ -38,14 +38,18 @@ def test_parse_raw_email_extracts_supported_invoice_attachments() -> None:
     assert invoice_attachments[0].asset_type == AssetType.PDF
 
 
-def test_select_invoice_attachments_skips_inline_logo_and_keeps_attachment_image() -> None:
+def test_select_invoice_attachments_skips_inline_logo_and_keeps_attachment_image() -> (
+    None
+):
     message = EmailMessage()
     message["From"] = "Accounts <accounts@example.com>"
     message["To"] = "invoices@inbound.example.com"
     message["Subject"] = "Invoice with logo"
     message.set_content("Invoice email")
     message.make_related()
-    message.add_alternative("<html><body><img src='cid:logo' /></body></html>", subtype="html")
+    message.add_alternative(
+        "<html><body><img src='cid:logo' /></body></html>", subtype="html"
+    )
     message.get_payload()[1].add_related(
         b"logo-bytes",
         maintype="image",

@@ -55,7 +55,9 @@ def test_handle_admin_assets_returns_405_for_unsupported_collection_method(
     assert response["statusCode"] == 405
 
 
-def test_handle_admin_assets_returns_404_for_non_admin_path(api_gateway_event: Any) -> None:
+def test_handle_admin_assets_returns_404_for_non_admin_path(
+    api_gateway_event: Any,
+) -> None:
     response = admin_assets.handle_admin_assets_request(
         api_gateway_event(method="GET", path="/v1/unknown/assets"),
         "GET",
@@ -104,11 +106,15 @@ def test_handle_admin_assets_dispatches_content_init_route(
         "extract_identity",
         lambda _: _build_admin_identity(admin_identity),
     )
-    monkeypatch.setattr(admin_assets, "init_asset_content_replace", lambda *_a, **_k: marker)
+    monkeypatch.setattr(
+        admin_assets, "init_asset_content_replace", lambda *_a, **_k: marker
+    )
     asset_id = str(uuid4())
 
     response = admin_assets.handle_admin_assets_request(
-        api_gateway_event(method="POST", path=f"/v1/admin/assets/{asset_id}/content/init"),
+        api_gateway_event(
+            method="POST", path=f"/v1/admin/assets/{asset_id}/content/init"
+        ),
         "POST",
         f"/v1/admin/assets/{asset_id}/content/init",
     )
@@ -154,7 +160,9 @@ def test_handle_admin_assets_returns_405_for_content_init_get(
     asset_id = str(uuid4())
 
     response = admin_assets.handle_admin_assets_request(
-        api_gateway_event(method="GET", path=f"/v1/admin/assets/{asset_id}/content/init"),
+        api_gateway_event(
+            method="GET", path=f"/v1/admin/assets/{asset_id}/content/init"
+        ),
         "GET",
         f"/v1/admin/assets/{asset_id}/content/init",
     )

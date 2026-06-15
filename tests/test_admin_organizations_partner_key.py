@@ -36,7 +36,9 @@ def test_apply_partner_key_non_partner_clears_when_empty() -> None:
     org = _org_stub(
         relationship_type=RelationshipType.PROSPECT, partner_key="should-clear"
     )
-    admin_organizations._apply_organization_partner_key_from_body(org, {"partner_key": ""})
+    admin_organizations._apply_organization_partner_key_from_body(
+        org, {"partner_key": ""}
+    )
     assert org.partner_key is None
 
 
@@ -70,7 +72,9 @@ def test_apply_legal_name_non_partner_clears_when_empty() -> None:
     org = _org_stub(
         relationship_type=RelationshipType.PROSPECT, legal_name="should-clear"
     )
-    admin_organizations._apply_organization_legal_name_from_body(org, {"legal_name": ""})
+    admin_organizations._apply_organization_legal_name_from_body(
+        org, {"legal_name": ""}
+    )
     assert org.legal_name is None
 
 

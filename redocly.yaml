@@ -1,0 +1,21 @@
+extends:
+  - recommended
+
+rules:
+  struct: off
+  info-license: off
+  info-contact: off
+  security-defined: off
+  operation-operationId: warn
+  operation-summary: warn
+  operation-description: warn
+  no-server-example.com: off
+  no-invalid-media-type-examples: off
+  path-parameters-defined: warn
+  tag-description: warn
+
+apis:
+  admin:
+    root: docs/api/admin.yaml
+  public:
+    root: docs/api/public.yaml

@@ -230,7 +230,9 @@ def test_build_booking_confirmation_ics_uses_primary_session_end_iso() -> None:
     assert "DTEND:20260416T113000Z" in ics.decode("utf-8")
 
 
-def test_build_booking_confirmation_ics_folds_long_utf8_summary_within_octet_limit() -> None:
+def test_build_booking_confirmation_ics_folds_long_utf8_summary_within_octet_limit() -> (
+    None
+):
     course = "课" * 40
     ics = build_booking_confirmation_ics(
         title=course,

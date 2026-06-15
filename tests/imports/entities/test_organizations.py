@@ -20,10 +20,18 @@ def test_organization_type_rules_constant() -> None:
 
 
 def test_infer_organization_type_heuristics() -> None:
-    assert infer_organization_type_from_name("Little Academy") == OrganizationType.SCHOOL
+    assert (
+        infer_organization_type_from_name("Little Academy") == OrganizationType.SCHOOL
+    )
     assert infer_organization_type_from_name("Sharkfold NGO") == OrganizationType.NGO
-    assert infer_organization_type_from_name("Happy Baton Group") == OrganizationType.COMMUNITY_GROUP
-    assert infer_organization_type_from_name("Honeycombers Limited") == OrganizationType.COMPANY
+    assert (
+        infer_organization_type_from_name("Happy Baton Group")
+        == OrganizationType.COMMUNITY_GROUP
+    )
+    assert (
+        infer_organization_type_from_name("Honeycombers Limited")
+        == OrganizationType.COMPANY
+    )
     assert infer_organization_type_from_name("Retykle") == OrganizationType.OTHER
 
 

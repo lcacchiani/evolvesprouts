@@ -128,7 +128,9 @@ def test_list_contact_services_returns_labels(
     monkeypatch.setattr(admin_entity_services, "ContactRepository", _FakeContactRepo)
 
     resp = admin_entity_services.list_contact_services(
-        api_gateway_event(method="GET", path=f"/v1/admin/contacts/{contact_id}/services"),
+        api_gateway_event(
+            method="GET", path=f"/v1/admin/contacts/{contact_id}/services"
+        ),
         contact_id=contact_id,
     )
     assert resp["statusCode"] == 200
@@ -153,7 +155,9 @@ def test_list_contact_services_query_includes_contact_family_and_org(
     monkeypatch.setattr(admin_entity_services, "ContactRepository", _FakeContactRepo)
 
     admin_entity_services.list_contact_services(
-        api_gateway_event(method="GET", path=f"/v1/admin/contacts/{contact_id}/services"),
+        api_gateway_event(
+            method="GET", path=f"/v1/admin/contacts/{contact_id}/services"
+        ),
         contact_id=contact_id,
     )
 
@@ -187,7 +191,9 @@ def test_list_contact_services_excludes_cancelled(
     monkeypatch.setattr(admin_entity_services, "ContactRepository", _FakeContactRepo)
 
     resp = admin_entity_services.list_contact_services(
-        api_gateway_event(method="GET", path=f"/v1/admin/contacts/{contact_id}/services"),
+        api_gateway_event(
+            method="GET", path=f"/v1/admin/contacts/{contact_id}/services"
+        ),
         contact_id=contact_id,
     )
     assert resp["statusCode"] == 200
@@ -212,7 +218,9 @@ def test_list_contact_services_unknown_contact_404(
 
     with pytest.raises(NotFoundError, match="Contact"):
         admin_entity_services.list_contact_services(
-            api_gateway_event(method="GET", path=f"/v1/admin/contacts/{contact_id}/services"),
+            api_gateway_event(
+                method="GET", path=f"/v1/admin/contacts/{contact_id}/services"
+            ),
             contact_id=contact_id,
         )
 
@@ -234,7 +242,9 @@ def test_list_family_services_query_includes_family_and_member_contacts(
     monkeypatch.setattr(admin_entity_services, "FamilyRepository", _FakeFamilyRepo)
 
     admin_entity_services.list_family_services(
-        api_gateway_event(method="GET", path=f"/v1/admin/families/{family_id}/services"),
+        api_gateway_event(
+            method="GET", path=f"/v1/admin/families/{family_id}/services"
+        ),
         family_id=family_id,
     )
 
@@ -252,8 +262,12 @@ def test_list_family_services_includes_member_enrollments_and_dedupes(
     api_gateway_event: Any,
 ) -> None:
     family_id = uuid4()
-    en_family = _make_enrollment(instance_title="Shared Label", service_title="Event Parent")
-    en_member = _make_enrollment(instance_title="Shared Label", service_title="Event Parent")
+    en_family = _make_enrollment(
+        instance_title="Shared Label", service_title="Event Parent"
+    )
+    en_member = _make_enrollment(
+        instance_title="Shared Label", service_title="Event Parent"
+    )
     label = build_enrollment_invoice_line_description(en_family)  # type: ignore[arg-type]
 
     class _FakeFamilyRepo:
@@ -268,7 +282,9 @@ def test_list_family_services_includes_member_enrollments_and_dedupes(
     monkeypatch.setattr(admin_entity_services, "FamilyRepository", _FakeFamilyRepo)
 
     resp = admin_entity_services.list_family_services(
-        api_gateway_event(method="GET", path=f"/v1/admin/families/{family_id}/services"),
+        api_gateway_event(
+            method="GET", path=f"/v1/admin/families/{family_id}/services"
+        ),
         family_id=family_id,
     )
     assert resp["statusCode"] == 200
@@ -294,7 +310,9 @@ def test_list_family_services_unknown_family_404(
 
     with pytest.raises(NotFoundError, match="Family"):
         admin_entity_services.list_family_services(
-            api_gateway_event(method="GET", path=f"/v1/admin/families/{family_id}/services"),
+            api_gateway_event(
+                method="GET", path=f"/v1/admin/families/{family_id}/services"
+            ),
             family_id=family_id,
         )
 
@@ -422,7 +440,9 @@ def test_handle_admin_contacts_services_get(
     )
 
     response = admin_contacts.handle_admin_contacts_request(
-        api_gateway_event(method="GET", path=f"/v1/admin/contacts/{contact_id}/services"),
+        api_gateway_event(
+            method="GET", path=f"/v1/admin/contacts/{contact_id}/services"
+        ),
         "GET",
         f"/v1/admin/contacts/{contact_id}/services",
     )
@@ -449,7 +469,9 @@ def test_handle_admin_families_services_get(
     )
 
     response = admin_families.handle_admin_families_request(
-        api_gateway_event(method="GET", path=f"/v1/admin/families/{family_id}/services"),
+        api_gateway_event(
+            method="GET", path=f"/v1/admin/families/{family_id}/services"
+        ),
         "GET",
         f"/v1/admin/families/{family_id}/services",
     )

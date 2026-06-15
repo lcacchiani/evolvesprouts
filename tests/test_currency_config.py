@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from app.currency_config import clear_currency_config_cache, currency_symbol_for_iso_code
+from app.currency_config import (
+    clear_currency_config_cache,
+    currency_symbol_for_iso_code,
+)
 
 
 def test_currency_symbol_for_iso_code_uses_shared_config() -> None:

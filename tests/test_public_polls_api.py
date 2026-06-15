@@ -28,15 +28,19 @@ def _event(api_gateway_event: Any, *, body: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def _poll_control_item(*enabled_question_ids: str) -> dict[str, Any]:
-    return {
-        "Item": {
-            "pk": "POLL#workshop-food-jun-26",
-            "sk": "CONTROL",
-            "enabledQuestionIds": list(enabled_question_ids),
-            "updatedAt": "2026-06-26T10:00:00Z",
-        }
+def _poll_control_item(
+    *enabled_question_ids: str,
+    question_options: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    item: dict[str, Any] = {
+        "pk": "POLL#workshop-food-jun-26",
+        "sk": "CONTROL",
+        "enabledQuestionIds": list(enabled_question_ids),
+        "updatedAt": "2026-06-26T10:00:00Z",
     }
+    if question_options is not None:
+        item["questionOptions"] = question_options
+    return {"Item": item}
 
 
 def test_put_poll_answer_persists_select(api_gateway_event: Any, mock_env: Any) -> None:
@@ -92,7 +96,9 @@ def test_put_poll_answer_persists_multiselect(
     ]
 
 
-def test_put_poll_answer_persists_truefalse(api_gateway_event: Any, mock_env: Any) -> None:
+def test_put_poll_answer_persists_truefalse(
+    api_gateway_event: Any, mock_env: Any
+) -> None:
     table = MagicMock()
     table.get_item.return_value = _poll_control_item("myth1")
     store.configure_table_for_tests(table)
@@ -551,3 +557,167 @@ def test_put_poll_answer_rejects_unknown_path(api_gateway_event: Any) -> None:
         event, "PUT", "/www/v1/polls/workshop-food-jun-26/submit"
     )
     assert resp["statusCode"] == 404
+
+
+def test_put_poll_answer_rejects_option_not_in_published_list(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = _poll_control_item(
+        "role",
+        question_options={
+            "role": {
+                "type": "select",
+                "options": ["Parent", "Professional"],
+            }
+        },
+    )
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "role",
+        "questionType": "select",
+        "selectedOption": "Not a real option",
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 409
+    payload = json.loads(resp["body"])
+    assert payload["error"] == "option_not_allowed"
+    table.put_item.assert_not_called()
+
+
+def test_put_poll_answer_accepts_option_in_published_list(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = _poll_control_item(
+        "role",
+        question_options={
+            "role": {
+                "type": "select",
+                "options": ["Parent", "Professional"],
+            }
+        },
+    )
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "role",
+        "questionType": "select",
+        "selectedOption": "Parent",
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 200
+
+
+def test_put_poll_answer_skips_option_check_without_published_options(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = _poll_control_item("role")
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "role",
+        "questionType": "select",
+        "selectedOption": "Any option string",
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 200
+
+
+def test_put_poll_control_persists_question_options(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = {"Item": None}
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    event = api_gateway_event(
+        method="PUT",
+        path="/www/v1/polls/workshop-food-jun-26/control",
+        body=json.dumps(
+            {
+                "enabledQuestionIds": ["role"],
+                "questionOptions": {
+                    "role": {
+                        "type": "select",
+                        "options": ["Parent", "Professional"],
+                    }
+                },
+            }
+        ),
+        headers={"content-type": "application/json"},
+    )
+    resp = pp.handle_public_polls_request(
+        event,
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/control",
+    )
+    assert resp["statusCode"] == 200
+    item = table.put_item.call_args.kwargs["Item"]
+    assert item["questionOptions"]["role"]["options"] == ["Parent", "Professional"]
+
+
+def test_put_poll_answer_rejects_rate_limited_session(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    table.get_item.return_value = _poll_control_item("role")
+    table.update_item.side_effect = _rate_limit_conditional_failure
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "questionId": "role",
+        "questionType": "select",
+        "selectedOption": "Parent",
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 429
+    payload = json.loads(resp["body"])
+    assert payload["error"] == "poll_write_rate_limit_exceeded"
+    table.put_item.assert_not_called()
+
+
+def _rate_limit_conditional_failure(*_args: Any, **_kwargs: Any) -> None:
+    from botocore.exceptions import ClientError
+
+    raise ClientError(
+        {
+            "Error": {
+                "Code": "ConditionalCheckFailedException",
+                "Message": "conditional check failed",
+            }
+        },
+        "UpdateItem",
+    )

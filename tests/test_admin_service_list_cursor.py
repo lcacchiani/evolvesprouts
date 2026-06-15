@@ -9,7 +9,10 @@ from uuid import uuid4
 
 import pytest
 
-from app.api.admin_services_cursor import encode_service_list_cursor, parse_service_list_cursor
+from app.api.admin_services_cursor import (
+    encode_service_list_cursor,
+    parse_service_list_cursor,
+)
 from app.exceptions import ValidationError
 
 

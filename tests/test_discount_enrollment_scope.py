@@ -18,7 +18,9 @@ from app.exceptions import ValidationError
 
 
 class _FakeSession:
-    def __init__(self, *, discount: DiscountCode | None, instance: ServiceInstance | None):
+    def __init__(
+        self, *, discount: DiscountCode | None, instance: ServiceInstance | None
+    ):
         self._discount = discount
         self._instance = instance
 
@@ -49,9 +51,12 @@ def test_ensure_discount_accepts_global_code() -> None:
     )
     inst = ServiceInstance(id=iid, service_id=sid)
     session = _FakeSession(discount=dc, instance=inst)
-    assert ensure_discount_code_eligible_for_instance(
-        session, discount_code_id=dc_id, service_id=sid, instance_id=iid
-    ) is dc
+    assert (
+        ensure_discount_code_eligible_for_instance(
+            session, discount_code_id=dc_id, service_id=sid, instance_id=iid
+        )
+        is dc
+    )
 
 
 def test_ensure_discount_rejects_wrong_service() -> None:

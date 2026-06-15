@@ -52,14 +52,18 @@ def test_create_service_duplicate_slug_maps_to_validation_error(
         def __init__(self, _session: Any) -> None:
             pass
 
-        def create_service(self, _service: Service, _details: TrainingCourseDetails) -> Service:
+        def create_service(
+            self, _service: Service, _details: TrainingCourseDetails
+        ) -> Service:
             raise _make_services_service_key_tier_integrity_error()
 
     monkeypatch.setattr(admin_services, "Session", _SessionCtx)
     monkeypatch.setattr(admin_services, "get_engine", lambda: object())
     monkeypatch.setattr(admin_services, "set_audit_context", lambda *_a, **_k: None)
     monkeypatch.setattr(admin_services, "ServiceRepository", _FakeServiceRepository)
-    monkeypatch.setattr(admin_services, "require_assignable_tag", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        admin_services, "require_assignable_tag", lambda *_a, **_k: None
+    )
 
     body = {
         "service_type": "training_course",

@@ -9,15 +9,14 @@ from pathlib import Path
 
 import pytest
 
-psycopg = pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
+from tests.helpers.db import database_url, libpq_conn_url
+
+psycopg = pytest.importorskip(
+    "psycopg", reason="psycopg required for DB integration test"
+)
 
 
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
-
-
-def _libpq_conn_url(url: str) -> str:
+def libpq_conn_url(url: str) -> str:
     return url.replace("postgresql+psycopg://", "postgresql://", 1)
 
 
@@ -30,7 +29,7 @@ def _alembic_ini() -> Path:
 
 
 def _run_alembic(*args: str) -> subprocess.CompletedProcess[str]:
-    env = {**os.environ, "DATABASE_URL": _database_url() or ""}
+    env = {**os.environ, "DATABASE_URL": database_url() or ""}
     cmd = [sys.executable, "-m", "alembic", "-c", str(_alembic_ini()), *args]
     proc = subprocess.run(
         cmd,
@@ -47,13 +46,13 @@ def _run_alembic(*args: str) -> subprocess.CompletedProcess[str]:
     return proc
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_0049_service_instances_slug_is_not_null() -> None:
     _run_alembic("upgrade", "head")
 
-    url = _database_url()
+    url = database_url()
     assert url is not None
-    conn_url = _libpq_conn_url(url)
+    conn_url = libpq_conn_url(url)
 
     with psycopg.connect(conn_url) as conn:
         cur = conn.execute(

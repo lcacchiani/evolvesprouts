@@ -108,7 +108,9 @@ def test_create_booking_instance_for_service_retries_after_integrity_error() -> 
     assert getattr(out, "id", None) is not None
 
 
-def test_create_booking_instance_for_service_raises_after_three_integrity_errors() -> None:
+def test_create_booking_instance_for_service_raises_after_three_integrity_errors() -> (
+    None
+):
     svc_id = uuid4()
     locked = SimpleNamespace(
         id=svc_id,

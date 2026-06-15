@@ -303,9 +303,6 @@ After this initial upload, the GitHub Actions workflow can upload subsequent bui
 
 The workflow automatically triggers on pushes to `main` that modify:
 - `apps/evolvesprouts_app/**`
-- `packages/flutter_ui/**`
-- `packages/api_client_dart/**`
-- `packages/models_shared/**`
 
 ### Via GitHub CLI
 

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import re
+import time
 from collections import Counter
 from datetime import UTC, datetime
 from collections.abc import Mapping
@@ -12,7 +14,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
-from app.exceptions import AppError
+from app.exceptions import AppError, RateLimitError
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -22,6 +24,12 @@ _PK_PREFIX = "POLL#"
 _SK_PREFIX = "SESSION#"
 _SK_QUESTION_SEP = "#Q#"
 _SK_CONTROL = "CONTROL"
+_SK_RATELIMIT_PREFIX = "RATELIMIT#"
+
+# Per-session and per-IP write caps for poll answer PUTs (rolling window via TTL).
+_SESSION_WRITE_LIMIT = 120
+_IP_WRITE_LIMIT = 300
+_RATE_LIMIT_TTL_SECONDS = 3600
 
 _dynamodb = None
 _table = None
@@ -126,7 +134,53 @@ def upsert_poll_answer(
 
 
 def _is_poll_answer_item(item: Mapping[str, Any]) -> bool:
-    return item.get("sk") != _SK_CONTROL
+    sk = item.get("sk")
+    if not isinstance(sk, str):
+        return True
+    if sk == _SK_CONTROL:
+        return False
+    if sk.startswith(_SK_RATELIMIT_PREFIX):
+        return False
+    return sk.startswith(_SK_PREFIX)
+
+
+def _parse_question_options(
+    raw: Any,
+) -> dict[str, dict[str, Any]] | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return None
+    parsed: dict[str, dict[str, Any]] = {}
+    for question_id, entry in raw.items():
+        if not isinstance(question_id, str) or not _QUESTION_ID_PATTERN.match(
+            question_id.strip()
+        ):
+            continue
+        if not isinstance(entry, dict):
+            continue
+        question_type = entry.get("type")
+        if not isinstance(question_type, str):
+            continue
+        normalized_type = question_type.strip().lower()
+        options_raw = entry.get("options")
+        options: list[str] | None = None
+        if options_raw is not None:
+            if not isinstance(options_raw, list):
+                continue
+            options = [
+                str(value).strip()
+                for value in options_raw
+                if isinstance(value, str) and str(value).strip()
+            ]
+        parsed[question_id.strip()] = {
+            "type": normalized_type,
+            "options": options,
+        }
+    return parsed or None
+
+
+_QUESTION_ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 def aggregate_poll_question_results(
@@ -242,22 +296,27 @@ def get_poll_control_state(*, poll_slug: str) -> dict[str, Any]:
                 enabled.append(value.strip())
 
     updated_at = item.get("updatedAt") if isinstance(item, dict) else None
-    if isinstance(updated_at, str):
-        return {
-            "pollSlug": poll_slug,
-            "enabledQuestionIds": enabled,
-            "updatedAt": updated_at,
-        }
-    return {
+    question_options = (
+        _parse_question_options(item.get("questionOptions"))
+        if isinstance(item, dict)
+        else None
+    )
+    response: dict[str, Any] = {
         "pollSlug": poll_slug,
         "enabledQuestionIds": enabled,
     }
+    if question_options:
+        response["questionOptions"] = question_options
+    if isinstance(updated_at, str):
+        response["updatedAt"] = updated_at
+    return response
 
 
 def put_poll_control_state(
     *,
     poll_slug: str,
     enabled_question_ids: list[str],
+    question_options: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Replace the set of questions respondents may answer (default is none)."""
     table = _get_table()
@@ -272,6 +331,8 @@ def put_poll_control_state(
         "enabledQuestionIds": enabled_question_ids,
         "updatedAt": now,
     }
+    if question_options:
+        item["questionOptions"] = question_options
     try:
         existing = table.get_item(Key=key).get("Item")
         if existing and existing.get("createdAt"):
@@ -289,11 +350,66 @@ def put_poll_control_state(
             status_code=500,
         ) from None
 
-    return {
+    result: dict[str, Any] = {
         "pollSlug": poll_slug,
         "enabledQuestionIds": enabled_question_ids,
         "updatedAt": now,
     }
+    if question_options:
+        result["questionOptions"] = question_options
+    return result
+
+
+def check_poll_write_rate_limit(
+    *,
+    poll_slug: str,
+    session_id: str,
+    client_ip: str | None,
+) -> None:
+    """Reject excessive poll answer writes per session and per client IP."""
+    table = _get_table()
+    now_epoch = int(time.time())
+    expires_at = now_epoch + _RATE_LIMIT_TTL_SECONDS
+    scopes: list[tuple[str, int]] = [
+        (f"SESSION#{session_id}", _SESSION_WRITE_LIMIT),
+    ]
+    normalized_ip = (client_ip or "").strip()
+    if normalized_ip:
+        scopes.append((f"IP#{normalized_ip}", _IP_WRITE_LIMIT))
+
+    for scope_key, limit in scopes:
+        key = {
+            "pk": _partition_key(poll_slug=poll_slug),
+            "sk": f"{_SK_RATELIMIT_PREFIX}{scope_key}",
+        }
+        try:
+            table.update_item(
+                Key=key,
+                UpdateExpression=(
+                    "ADD writeCount :inc SET expiresAt = :expires, updatedAt = :updated"
+                ),
+                ConditionExpression=(
+                    "attribute_not_exists(writeCount) OR writeCount < :limit"
+                ),
+                ExpressionAttributeValues={
+                    ":inc": 1,
+                    ":expires": expires_at,
+                    ":updated": _now_iso(),
+                    ":limit": limit,
+                },
+            )
+        except ClientError as exc:
+            error_code = exc.response.get("Error", {}).get("Code")
+            if error_code == "ConditionalCheckFailedException":
+                raise RateLimitError("poll_write_rate_limit_exceeded") from None
+            logger.exception(
+                "Failed to update poll write rate limit counter",
+                extra={"poll_slug": poll_slug, "scope": scope_key},
+            )
+            raise AppError(
+                "Failed to enforce poll write rate limit",
+                status_code=500,
+            ) from None
 
 
 def _count_boolean_answers(items: list[dict[str, Any]], *, expected: bool) -> int:

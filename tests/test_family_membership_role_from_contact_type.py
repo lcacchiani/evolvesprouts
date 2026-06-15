@@ -12,8 +12,7 @@ def test_family_role_from_contact_type_mapping() -> None:
         == FamilyRole.PARENT
     )
     assert (
-        family_membership_role_from_contact_type(ContactType.CHILD)
-        == FamilyRole.CHILD
+        family_membership_role_from_contact_type(ContactType.CHILD) == FamilyRole.CHILD
     )
     assert (
         family_membership_role_from_contact_type(ContactType.HELPER)
@@ -24,6 +23,5 @@ def test_family_role_from_contact_type_mapping() -> None:
         == FamilyRole.OTHER
     )
     assert (
-        family_membership_role_from_contact_type(ContactType.OTHER)
-        == FamilyRole.OTHER
+        family_membership_role_from_contact_type(ContactType.OTHER) == FamilyRole.OTHER
     )

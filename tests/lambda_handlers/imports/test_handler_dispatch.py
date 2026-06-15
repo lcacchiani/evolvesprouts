@@ -97,7 +97,9 @@ class _DepStubImporter:
         return ""
 
 
-def test_lambda_handler_dispatches_stub(mock_env: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_lambda_handler_dispatches_stub(
+    mock_env: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
     if _STUB_ENTITY not in known_entities():
         register(_StubImporter())
     h = _load_handler()

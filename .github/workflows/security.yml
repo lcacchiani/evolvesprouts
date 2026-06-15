@@ -30,7 +30,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.12'
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
@@ -70,7 +70,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.12'
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
@@ -215,14 +215,14 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
-          languages: python
+          languages: python, javascript-typescript
           queries: security-extended
           config-file: .github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:python"
+          category: "/language:python-and-javascript"
 
   # Secret scanning (in addition to GitHub's built-in scanning)
   secrets-scan:

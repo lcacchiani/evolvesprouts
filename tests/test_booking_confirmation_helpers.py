@@ -12,8 +12,14 @@ from app.templates.booking_confirmation_render import (
 
 
 def test_format_schedule_datetime_line_joins_or_prefers_parts() -> None:
-    assert format_schedule_datetime_line("Apr 2026", "10:00 – 11:00") == "Apr 2026 10:00 – 11:00"
-    assert format_schedule_datetime_line("", "Mon, 12 Apr 2026 AM") == "Mon, 12 Apr 2026 AM"
+    assert (
+        format_schedule_datetime_line("Apr 2026", "10:00 – 11:00")
+        == "Apr 2026 10:00 – 11:00"
+    )
+    assert (
+        format_schedule_datetime_line("", "Mon, 12 Apr 2026 AM")
+        == "Mon, 12 Apr 2026 AM"
+    )
     assert format_schedule_datetime_line("Apr, 2026", "") == "Apr, 2026"
     assert format_schedule_datetime_line(None, None) is None
 

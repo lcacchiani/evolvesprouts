@@ -46,7 +46,9 @@ def test_merge_single_tier_patch_preserves_extra_tier_rows() -> None:
     instance = SimpleNamespace(ticket_tiers=[tier_cat, tier_other])
     resolved = [{"name": "workshop", "price": Decimal("25.00"), "currency": "EUR"}]
     merged = admin_service_instances._merge_event_ticket_tiers_with_existing(
-        service, instance, resolved  # type: ignore[arg-type]
+        service,
+        instance,
+        resolved,  # type: ignore[arg-type]
     )
     assert len(merged) == 2
     by_name = {m["name"]: m for m in merged}

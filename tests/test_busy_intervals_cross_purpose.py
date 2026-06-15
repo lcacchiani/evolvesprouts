@@ -5,11 +5,12 @@ Seeds minimal rows; removes them in ``finally``. Skips when URL or intro-call te
 
 from __future__ import annotations
 
-import os
 from datetime import UTC, date, datetime, timedelta
 from uuid import uuid4
 
 import pytest
+
+from tests.helpers.db import database_url, libpq_conn_url
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
@@ -27,11 +28,6 @@ _AM_START_UTC = datetime(2030, 6, 10, 1, 0, 0, tzinfo=UTC)
 _AM_END_UTC = datetime(2030, 6, 10, 4, 0, 0, tzinfo=UTC)
 
 
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
-
-
 def _sqlalchemy_engine_url(url: str) -> str:
     if url.startswith("postgresql+") or url.startswith("postgres+"):
         return url
@@ -46,10 +42,10 @@ def _utc(dt: datetime) -> datetime:
     return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_intro_call_slot_blocks_consultation_am() -> None:
     """Intro-call booking overlap removes Monday AM half-day from consultation availability."""
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine)
@@ -126,10 +122,10 @@ def test_intro_call_slot_blocks_consultation_am() -> None:
                 )
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_consultation_booking_blocks_intro_slot() -> None:
     """Consultation session overlap removes intro-call candidates inside Monday AM UTC window."""
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine)

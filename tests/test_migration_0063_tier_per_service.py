@@ -9,14 +9,11 @@ from pathlib import Path
 from uuid import UUID
 
 import pytest
+
+from tests.helpers.db import database_url, libpq_conn_url
 from sqlalchemy import create_engine, text
 
 pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
-
-
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
 
 
 def _sqlalchemy_engine_url(url: str) -> str:
@@ -38,7 +35,7 @@ def _alembic_ini() -> Path:
 
 
 def _run_alembic(*args: str) -> None:
-    env = {**os.environ, "DATABASE_URL": _database_url() or ""}
+    env = {**os.environ, "DATABASE_URL": database_url() or ""}
     cmd = [sys.executable, "-m", "alembic", "-c", str(_alembic_ini()), *args]
     proc = subprocess.run(
         cmd,
@@ -62,9 +59,9 @@ DISCOUNT = UUID("eeee0004-0001-4001-8001-000000000001")
 SLOT = UUID("eeee0005-0001-4001-8001-000000000001")
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_0063_splits_consultation_tiers_and_repoints_children() -> None:
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
 
@@ -225,9 +222,7 @@ def test_0063_splits_consultation_tiers_and_repoints_children() -> None:
             assert deep_key is not None
 
             row = verify.execute(
-                text(
-                    "SELECT service_tier FROM services WHERE id = CAST(:id AS uuid)"
-                ),
+                text("SELECT service_tier FROM services WHERE id = CAST(:id AS uuid)"),
                 {"id": str(ess_key)},
             ).scalar_one()
             assert row == "essentials"
@@ -318,9 +313,7 @@ def test_0063_splits_consultation_tiers_and_repoints_children() -> None:
                 {"id": str(CHILD)},
             )
             cleanup.execute(
-                text(
-                    "DELETE FROM service_instances WHERE id IN (:a, :b)"
-                ),
+                text("DELETE FROM service_instances WHERE id IN (:a, :b)"),
                 {"a": str(ESS_TMPL), "b": str(DEEP_TMPL)},
             )
             cleanup.execute(

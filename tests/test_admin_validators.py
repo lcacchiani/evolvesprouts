@@ -26,7 +26,9 @@ def test_validate_email_normalizes_case() -> None:
 
 
 def test_parse_optional_service_instance_slug_normalizes_and_validates() -> None:
-    assert parse_optional_service_instance_slug("  Spring-Workshop  ") == "spring-workshop"
+    assert (
+        parse_optional_service_instance_slug("  Spring-Workshop  ") == "spring-workshop"
+    )
     assert parse_optional_service_instance_slug(None) is None
     assert parse_optional_service_instance_slug("   ") is None
 
@@ -39,9 +41,12 @@ def test_parse_optional_service_instance_slug_rejects_invalid() -> None:
 
 
 def test_parse_optional_service_instance_slug_like_text_matches_slug_rules() -> None:
-    assert parse_optional_service_instance_slug_like_text(
-        "  Spring-Cohort  ", field="cohort"
-    ) == "spring-cohort"
+    assert (
+        parse_optional_service_instance_slug_like_text(
+            "  Spring-Cohort  ", field="cohort"
+        )
+        == "spring-cohort"
+    )
     assert parse_optional_service_instance_slug_like_text(None, field="cohort") is None
     assert parse_optional_service_instance_slug_like_text("   ", field="cohort") is None
 

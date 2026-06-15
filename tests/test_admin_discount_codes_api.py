@@ -230,8 +230,12 @@ def test_update_discount_code_clamps_partial_payload_for_existing_referral(
         "parse_update_discount_code_payload",
         lambda _body: {"discount_value": Decimal("25")},
     )
-    monkeypatch.setattr(admin_discount_codes, "set_audit_context", lambda *_a, **_k: None)
-    monkeypatch.setattr(admin_discount_codes, "ensure_discount_code_scope", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        admin_discount_codes, "set_audit_context", lambda *_a, **_k: None
+    )
+    monkeypatch.setattr(
+        admin_discount_codes, "ensure_discount_code_scope", lambda *_a, **_k: None
+    )
     monkeypatch.setattr(admin_discount_codes, "DiscountCodeRepository", _FakeRepo)
     monkeypatch.setattr(
         admin_discount_codes,
@@ -300,8 +304,12 @@ def test_update_discount_code_rejects_zero_discount_value_for_percentage(
         "parse_update_discount_code_payload",
         lambda _body: {"discount_value": Decimal("0")},
     )
-    monkeypatch.setattr(admin_discount_codes, "set_audit_context", lambda *_a, **_k: None)
-    monkeypatch.setattr(admin_discount_codes, "ensure_discount_code_scope", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        admin_discount_codes, "set_audit_context", lambda *_a, **_k: None
+    )
+    monkeypatch.setattr(
+        admin_discount_codes, "ensure_discount_code_scope", lambda *_a, **_k: None
+    )
     monkeypatch.setattr(admin_discount_codes, "DiscountCodeRepository", _FakeRepo)
 
     with pytest.raises(ValidationError) as exc_info:

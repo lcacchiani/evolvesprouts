@@ -144,7 +144,9 @@ def test_apply_notes_helper_loads_contact_refs(monkeypatch: pytest.MonkeyPatch) 
         "load_mapping",
         lambda _session, entity: {"10": c1, "11": c2} if entity == "contacts" else {},
     )
-    monkeypatch.setattr(mod.refs, "load_legacy_keys", lambda _session, _entity: frozenset())
+    monkeypatch.setattr(
+        mod.refs, "load_legacy_keys", lambda _session, _entity: frozenset()
+    )
 
     session = MagicMock()
 

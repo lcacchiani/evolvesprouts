@@ -1,5 +1,6 @@
 import type { PollQuestion } from '@/content/poll-types';
 import type { PollSessionAnswerItem } from '@/lib/polls-api';
+import { isValidEmail } from '@/lib/validation';
 
 export interface QuestionAnswerState {
   selectedOption: string;
@@ -96,12 +97,4 @@ export function isAnswerValid(question: PollQuestion, answer: QuestionAnswerStat
     return answer.freeText.trim().length > 0;
   }
   return false;
-}
-
-function isValidEmail(value: string): boolean {
-  const normalized = value.trim();
-  if (!normalized) {
-    return false;
-  }
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
 }

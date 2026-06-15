@@ -9,7 +9,10 @@ import pytest
 
 from app.api.public_reservations_intro_call import _enforce_intro_call_invariants
 from app.db.models.enums import ServiceType
-from app.services.intro_call_slots import enumerate_intro_call_candidate_slots, intro_call_window
+from app.services.intro_call_slots import (
+    enumerate_intro_call_candidate_slots,
+    intro_call_window,
+)
 
 
 def test_intro_call_cooldown_lookup_failure_propagates(

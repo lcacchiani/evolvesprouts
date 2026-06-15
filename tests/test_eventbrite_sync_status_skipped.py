@@ -2,17 +2,13 @@
 
 from __future__ import annotations
 
-import os
 
 import pytest
+
+from tests.helpers.db import database_url, libpq_conn_url
 from sqlalchemy import create_engine, text
 
 pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
-
-
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
 
 
 def _sqlalchemy_engine_url(url: str) -> str:
@@ -25,9 +21,9 @@ def _sqlalchemy_engine_url(url: str) -> str:
     return url
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_eventbrite_sync_enum_contains_skipped() -> None:
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
     with engine.connect() as conn:

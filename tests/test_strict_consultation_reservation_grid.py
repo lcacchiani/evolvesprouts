@@ -6,7 +6,9 @@ from typing import Any
 
 import pytest
 
-from app.api.public_reservations_intro_call import _assert_consultation_start_grid_aligned
+from app.api.public_reservations_intro_call import (
+    _assert_consultation_start_grid_aligned,
+)
 from app.exceptions import ValidationError
 
 

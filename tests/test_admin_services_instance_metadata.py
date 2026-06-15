@@ -70,7 +70,9 @@ def _minimal_consultation_service() -> Service:
     )
 
 
-def test_parse_create_consultation_instance_rejects_consultation_details_payload() -> None:
+def test_parse_create_consultation_instance_rejects_consultation_details_payload() -> (
+    None
+):
     service = _minimal_consultation_service()
     body = {
         "slug": "tier-instance",
@@ -95,7 +97,9 @@ def test_parse_create_consultation_instance_without_pricing_payload_succeeds() -
     assert parsed["type_details"] == {}
 
 
-def test_parse_update_consultation_instance_rejects_consultation_details_payload() -> None:
+def test_parse_update_consultation_instance_rejects_consultation_details_payload() -> (
+    None
+):
     service = _minimal_consultation_service()
     body = {
         "status": "scheduled",
@@ -546,7 +550,9 @@ def test_parse_update_instance_payload_capacity_left_override_explicit_null() ->
     assert parsed["capacity_left_override"] is None
 
 
-def test_parse_update_instance_payload_omits_capacity_left_override_when_absent() -> None:
+def test_parse_update_instance_payload_omits_capacity_left_override_when_absent() -> (
+    None
+):
     service = _minimal_event_service_for_instance_payload()
     service.event_details = EventDetails(
         service_id=service.id,

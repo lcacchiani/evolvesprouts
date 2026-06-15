@@ -114,7 +114,9 @@ def test_list_instances_returns_repository_total_count(
     )
 
     response = admin_service_instances._list_instances(
-        api_gateway_event(method="GET", path=f"/v1/admin/services/{service_id}/instances"),
+        api_gateway_event(
+            method="GET", path=f"/v1/admin/services/{service_id}/instances"
+        ),
         service_id=service_id,
     )
 
