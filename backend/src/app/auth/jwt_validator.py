@@ -74,6 +74,11 @@ _jwks_clients: dict[str, PyJWKClient] = {}
 _jwks_client_lock_time: dict[str, float] = {}
 JWKS_CACHE_TTL = 3600  # 1 hour
 
+_COGNITO_TOKEN_USE_ID = "id"  # nosec B105 - Cognito token_use claim value, not a password
+_COGNITO_TOKEN_USE_ACCESS = (
+    "access"  # nosec B105 - Cognito token_use claim value, not a password
+)
+
 
 @dataclass
 class TokenClaims:
@@ -142,7 +147,7 @@ def _get_allowed_client_ids() -> frozenset[str]:
 def _verify_token_client_claim(decoded: dict[str, Any], token_use: str) -> None:
     """Ensure ID token ``aud`` or access token ``client_id`` is allowlisted."""
     allowed = _get_allowed_client_ids()
-    if token_use == "id":
+    if token_use == _COGNITO_TOKEN_USE_ID:
         claim_name = "aud"
         claim_value = decoded.get("aud")
     else:
@@ -336,7 +341,7 @@ def decode_and_verify_token(
 
     # Validate token_use claim
     token_use = decoded.get("token_use", "")
-    if token_use not in ("id", "access"):
+    if token_use not in (_COGNITO_TOKEN_USE_ID, _COGNITO_TOKEN_USE_ACCESS):
         raise JWTValidationError(
             f"Invalid token_use: {token_use}",
             reason="invalid_token",
