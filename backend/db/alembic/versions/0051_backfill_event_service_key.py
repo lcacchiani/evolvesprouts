@@ -24,10 +24,13 @@ Downgrade is intentionally a no-op (forward-only data fix).
 
 from __future__ import annotations
 
+import logging
 from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+
+logger = logging.getLogger(__name__)
 
 revision: str = "0051_backfill_event_service_key"
 down_revision: Union[str, None] = "0050_fix_mba_service_key"
@@ -134,7 +137,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    print(
+    logger.warning(
         "0051_backfill_event_service_key: downgrade is a no-op; "
         "backfilled service_key values are not reverted"
     )

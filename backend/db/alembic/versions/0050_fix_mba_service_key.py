@@ -16,10 +16,13 @@ Seed-data assessment:
 
 from __future__ import annotations
 
+import logging
 from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+
+logger = logging.getLogger(__name__)
 
 revision: str = "0050_fix_mba_service_key"
 down_revision: Union[str, None] = "0049_inst_slug_not_null"
@@ -43,7 +46,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    print(
+    logger.warning(
         "0050_fix_mba_service_key: downgrade is a no-op; "
         "canonical MBA service_key is not reverted to legacy values"
     )

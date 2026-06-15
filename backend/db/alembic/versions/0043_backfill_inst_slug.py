@@ -26,8 +26,12 @@ to stdout (for tests and deploy logs); it does not alter data.
 
 from __future__ import annotations
 
+import logging
+
 import sqlalchemy as sa
 from alembic import op
+
+logger = logging.getLogger(__name__)
 
 revision = "0043_backfill_inst_slug"
 down_revision = "0042_slug_nulls_nd"
@@ -263,6 +267,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    print(
+    logger.warning(
         "0043_backfill_inst_slug: downgrade is a no-op; backfilled slugs are not safely reversible"
     )
