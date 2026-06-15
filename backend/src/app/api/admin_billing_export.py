@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import base64
 import csv
 import io
+import json
+from datetime import datetime
 from typing import Any
 from collections.abc import Mapping
 from uuid import UUID
@@ -11,7 +14,7 @@ from uuid import UUID
 from sqlalchemy import select
 
 from app.api.admin_billing_common import _session_with_audit
-from app.api.admin_request import query_param
+from app.api.admin_request import parse_limit, query_param
 from app.db.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.db.models.customer_payment import CustomerPayment
 from app.db.models.customer_receipt import CustomerReceipt
@@ -19,6 +22,30 @@ from app.db.models.enums import BillingPaymentDirection
 from app.db.models.payment_allocation import PaymentAllocation
 from app.exceptions import ValidationError
 from app.utils import json_response
+
+_DEFAULT_EXPORT_LIMIT = 1000
+_MAX_EXPORT_LIMIT = 5000
+
+
+def _encode_export_cursor(created_at: datetime, payment_id: UUID) -> str:
+    payload = {
+        "created_at": created_at.isoformat(),
+        "payment_id": str(payment_id),
+    }
+    return base64.urlsafe_b64encode(json.dumps(payload).encode("utf-8")).decode("ascii")
+
+
+def _parse_export_cursor(raw: str | None) -> tuple[datetime, UUID] | None:
+    if raw is None or not str(raw).strip():
+        return None
+    try:
+        decoded = base64.urlsafe_b64decode(str(raw).strip().encode("ascii"))
+        payload = json.loads(decoded.decode("utf-8"))
+        created_at = datetime.fromisoformat(str(payload["created_at"]))
+        payment_id = UUID(str(payload["payment_id"]))
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+        raise ValidationError("Invalid export cursor", field="cursor") from None
+    return created_at, payment_id
 
 
 def _export_csv(
@@ -36,19 +63,35 @@ def _export_csv(
     if raw_ver not in ("1", "2"):
         raise ValidationError("exportVersion must be 1 or 2", field="exportVersion")
 
+    row_limit = parse_limit(
+        event, default=_DEFAULT_EXPORT_LIMIT, max_limit=_MAX_EXPORT_LIMIT
+    )
+    cursor_raw = query_param(event, "cursor")
+    cursor = _parse_export_cursor(cursor_raw)
+
     with _session_with_audit(user_sub, request_id) as session:
         if raw_ver == "1":
-            payments = (
-                session.execute(
-                    select(CustomerPayment)
-                    .order_by(CustomerPayment.created_at.desc())
-                    .limit(5000)
+            payment_query = select(CustomerPayment).order_by(
+                CustomerPayment.created_at.desc()
+            )
+            if cursor is not None:
+                cursor_ts, cursor_id = cursor
+                payment_query = payment_query.where(
+                    (CustomerPayment.created_at < cursor_ts)
+                    | (
+                        (CustomerPayment.created_at == cursor_ts)
+                        & (CustomerPayment.id < cursor_id)
+                    )
                 )
+            payments = (
+                session.execute(payment_query.limit(row_limit + 1)).scalars().all()
+            )
+            has_more = len(payments) > row_limit
+            payments_page = list(payments[:row_limit])
+            allocs = (
+                session.execute(select(PaymentAllocation).limit(row_limit))
                 .scalars()
                 .all()
-            )
-            allocs = (
-                session.execute(select(PaymentAllocation).limit(10000)).scalars().all()
             )
             buf = io.StringIO()
             w = csv.writer(buf)
@@ -65,7 +108,7 @@ def _export_csv(
                     "created_at",
                 ]
             )
-            for p in payments:
+            for p in payments_page:
                 w.writerow(
                     [
                         "1",
@@ -93,23 +136,41 @@ def _export_csv(
                         a.created_at.isoformat(),
                     ]
                 )
-            return json_response(200, {"csv": buf.getvalue()}, event=event)
-
-        payments = (
-            session.execute(
-                select(CustomerPayment)
-                .order_by(CustomerPayment.created_at.desc())
-                .limit(5000)
+            next_cursor: str | None = None
+            if has_more and payments_page:
+                last_payment = payments_page[-1]
+                next_cursor = _encode_export_cursor(
+                    last_payment.created_at, last_payment.id
+                )
+            return json_response(
+                200,
+                {"csv": buf.getvalue(), "next_cursor": next_cursor},
+                event=event,
             )
-            .scalars()
-            .all()
+
+        payment_query = select(CustomerPayment).order_by(
+            CustomerPayment.created_at.desc()
         )
-        allocs = session.execute(select(PaymentAllocation).limit(10000)).scalars().all()
+        if cursor is not None:
+            cursor_ts, cursor_id = cursor
+            payment_query = payment_query.where(
+                (CustomerPayment.created_at < cursor_ts)
+                | (
+                    (CustomerPayment.created_at == cursor_ts)
+                    & (CustomerPayment.id < cursor_id)
+                )
+            )
+        payments = session.execute(payment_query.limit(row_limit + 1)).scalars().all()
+        has_more = len(payments) > row_limit
+        payments_page = list(payments[:row_limit])
+        allocs = (
+            session.execute(select(PaymentAllocation).limit(row_limit)).scalars().all()
+        )
         invoices = (
             session.execute(
                 select(CustomerInvoice)
                 .order_by(CustomerInvoice.created_at.desc())
-                .limit(5000)
+                .limit(row_limit)
             )
             .scalars()
             .all()
@@ -135,7 +196,7 @@ def _export_csv(
             session.execute(
                 select(CustomerReceipt)
                 .order_by(CustomerReceipt.created_at.desc())
-                .limit(5000)
+                .limit(row_limit)
             )
             .scalars()
             .all()
@@ -179,7 +240,7 @@ def _export_csv(
                 "created_at",
             ]
         )
-        for p in payments:
+        for p in payments_page:
             w.writerow(
                 [
                     "2",
@@ -315,4 +376,13 @@ def _export_csv(
                 ]
             )
 
-    return json_response(200, {"csv": buf.getvalue()}, event=event)
+    next_cursor: str | None = None
+    if has_more and payments_page:
+        last_payment = payments_page[-1]
+        next_cursor = _encode_export_cursor(last_payment.created_at, last_payment.id)
+
+    return json_response(
+        200,
+        {"csv": buf.getvalue(), "next_cursor": next_cursor},
+        event=event,
+    )

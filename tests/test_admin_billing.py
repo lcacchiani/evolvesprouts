@@ -1921,6 +1921,65 @@ def test_export_csv_rejects_invalid_export_version(
         admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/export")
 
 
+def test_export_csv_returns_next_cursor_when_payment_page_is_full(
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    created = datetime(2026, 1, 15, 12, 0, 0, tzinfo=UTC)
+    p1_id, p2_id = uuid4(), uuid4()
+
+    def _payment(pid: UUID) -> MagicMock:
+        payment = MagicMock()
+        payment.id = pid
+        payment.amount = Decimal("10")
+        payment.currency = "HKD"
+        payment.stripe_payment_intent_id = None
+        payment.stripe_refund_id = None
+        payment.enrollment_id = None
+        payment.created_at = created
+        payment.direction = BillingPaymentDirection.INBOUND
+        payment.method = "stripe_card"
+        payment.external_reference = None
+        payment.confirmed_by = None
+        payment.original_payment_id = None
+        return payment
+
+    class _FakeResult:
+        def __init__(self, rows: list[Any]) -> None:
+            self._rows = rows
+
+        def scalars(self) -> "_FakeResult":
+            return self
+
+        def all(self) -> list[Any]:
+            return self._rows
+
+    class _FakeSession:
+        def execute(self, _stmt: Any) -> _FakeResult:
+            return _FakeResult([_payment(p1_id), _payment(p2_id)])
+
+    @contextmanager
+    def _fake_session(_u: str, _r: str | None) -> Any:
+        yield _FakeSession()
+
+    _patch_billing_sessions(monkeypatch, _fake_session)
+
+    ev = api_gateway_event(
+        method="GET",
+        path="/v1/admin/billing/export",
+        query_params={"exportVersion": "1", "limit": "1"},
+        authorizer_context=admin_identity,
+    )
+    response = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/export"
+    )
+    body = json.loads(response["body"])
+    assert response["statusCode"] == 200
+    assert "payment" in body["csv"]
+    assert body["next_cursor"]
+
+
 def test_list_invoices_rejects_invalid_currency_length(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
