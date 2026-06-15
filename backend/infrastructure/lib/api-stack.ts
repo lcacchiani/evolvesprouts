@@ -1761,6 +1761,7 @@ export class ApiStack extends cdk.Stack {
         STRIPE_PAYMENT_METHOD_CONFIGURATION_ID:
           evolveSproutsStripePaymentMethodConfigurationId.valueAsString,
         COGNITO_USER_POOL_ID: userPool.userPoolId,
+        COGNITO_ALLOWED_CLIENT_IDS: userPoolClient.ref,
         ADMIN_GROUP: adminGroupName,
         INSTRUCTOR_GROUP: "instructor",
         DEPLOYMENT_STAGE: deploymentStage,
@@ -2527,6 +2528,8 @@ export class ApiStack extends cdk.Stack {
         noVpc: true,
         environment: {
           ALLOWED_GROUPS: `${adminGroupName},manager,instructor`,
+          COGNITO_USER_POOL_ID: userPool.userPoolId,
+          COGNITO_ALLOWED_CLIENT_IDS: userPoolClient.ref,
         },
       }
     );
@@ -2550,6 +2553,10 @@ export class ApiStack extends cdk.Stack {
         memorySize: 256,
         timeout: cdk.Duration.seconds(5),
         noVpc: true,
+        environment: {
+          COGNITO_USER_POOL_ID: userPool.userPoolId,
+          COGNITO_ALLOWED_CLIENT_IDS: userPoolClient.ref,
+        },
       }
     );
 
@@ -3260,6 +3267,7 @@ export class ApiStack extends cdk.Stack {
         handler: "lambda/admin_bootstrap/handler.lambda_handler",
         memorySize: 256,
         timeout: cdk.Duration.seconds(30),
+        noVpc: true,
       }
     );
     adminBootstrapFunction.addPermission(

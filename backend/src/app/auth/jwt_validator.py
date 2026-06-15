@@ -120,6 +120,47 @@ def _get_user_pool_id() -> str:
     return user_pool_id
 
 
+def _get_allowed_client_ids() -> frozenset[str]:
+    """Parse comma-separated Cognito app client IDs; fail closed when unset."""
+    raw = os.getenv("COGNITO_ALLOWED_CLIENT_IDS", "").strip()
+    if not raw:
+        logger.error("COGNITO_ALLOWED_CLIENT_IDS is not configured or empty")
+        raise JWTValidationError(
+            "COGNITO_ALLOWED_CLIENT_IDS is not configured",
+            reason="misconfigured",
+        )
+    client_ids = frozenset(part.strip() for part in raw.split(",") if part.strip())
+    if not client_ids:
+        logger.error("COGNITO_ALLOWED_CLIENT_IDS parsed to an empty allowlist")
+        raise JWTValidationError(
+            "COGNITO_ALLOWED_CLIENT_IDS is not configured",
+            reason="misconfigured",
+        )
+    return client_ids
+
+
+def _verify_token_client_claim(decoded: dict[str, Any], token_use: str) -> None:
+    """Ensure ID token ``aud`` or access token ``client_id`` is allowlisted."""
+    allowed = _get_allowed_client_ids()
+    if token_use == "id":
+        claim_name = "aud"
+        claim_value = decoded.get("aud")
+    else:
+        claim_name = "client_id"
+        claim_value = decoded.get("client_id")
+
+    if claim_value is None or str(claim_value).strip() == "":
+        raise JWTValidationError(
+            f"Missing required claim: {claim_name}",
+            reason="invalid_token",
+        )
+    if str(claim_value) not in allowed:
+        raise JWTValidationError(
+            f"Token {claim_name} is not an allowed client",
+            reason="invalid_audience",
+        )
+
+
 def _get_jwks_client(user_pool_id: str, region: str) -> PyJWKClient:
     """Get or create a cached JWKS client for the Cognito User Pool."""
     cache_key = f"{region}:{user_pool_id}"
@@ -255,9 +296,8 @@ def decode_and_verify_token(
                 "verify_signature": True,
                 "verify_exp": verify_expiration,
                 "verify_iss": True,
-                # Disable audience verification - Cognito ID tokens have aud=client_id
-                # which varies per app. Issuer verification is sufficient since we
-                # verify the token was issued by our specific Cognito User Pool.
+                # Audience/client_id is verified post-decode because access tokens
+                # use client_id while ID tokens use aud.
                 "verify_aud": False,
                 "require": ["sub", "iss", "exp", "token_use"],
             },
@@ -301,6 +341,8 @@ def decode_and_verify_token(
             f"Invalid token_use: {token_use}",
             reason="invalid_token",
         )
+
+    _verify_token_client_claim(decoded, token_use)
 
     # Extract groups (from id token's cognito:groups claim)
     groups_claim = decoded.get("cognito:groups", [])

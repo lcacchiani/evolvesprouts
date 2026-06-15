@@ -106,6 +106,15 @@ groups **`admin`**, **`manager`**, or **`instructor`**. Users who complete socia
 or passwordless sign-in without any of these groups must not see the admin
 dashboard; the client shows an access-denied state and sign out instead.
 
+### JWT audience / client verification
+
+Cognito ID tokens carry the app client id in the `aud` claim; access tokens use
+`client_id`. After signature and issuer checks, `decode_and_verify_token` in
+`backend/src/app/auth/jwt_validator.py` requires the claim to appear in the
+comma-separated allowlist env var `COGNITO_ALLOWED_CLIENT_IDS`. An empty or
+missing allowlist fails closed (tokens are rejected). Wire the same allowlist on
+admin API Lambdas and Cognito request authorizers via CDK.
+
 ### OTP/Code Generation
 
 **Always use cryptographically secure random for security tokens.**
