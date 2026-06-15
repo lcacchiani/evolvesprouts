@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import pytest
 
-from app.api import public_free_assets
+from app.api.assets import public_free_assets
 from app.db.models import AssetType
 from app.exceptions import ValidationError
 from app.utils import CACHE_CONTROL_EDGE_CACHEABLE_GET
