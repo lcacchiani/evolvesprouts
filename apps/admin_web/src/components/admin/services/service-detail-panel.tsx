@@ -1,70 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Button } from '@/components/ui/button';
 import { AdminInlineError } from '@/components/ui/admin-inline-error';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { WarningTriangleIcon } from '@/components/icons/action-icons';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { formatEnumLabel, formatLocationLabel } from '@/lib/format';
-import { INSTANCE_SLUG_PATTERN } from '@/lib/slug-utils';
-import { SERVICE_KEY_PATTERN } from '@/lib/service-key-utils';
-import { isAdminApiConflictOnField } from '@/lib/admin-api-conflict-messages';
-import { getServiceDiscountCodeUsageSummary } from '@/lib/services-api';
 
 import type { components } from '@/types/generated/admin-api.generated';
-import { SERVICE_DELIVERY_MODES, SERVICE_STATUSES, SERVICE_TYPES, isConsultationLikeServiceType } from '@/types/services';
-import type { ServiceDeliveryMode } from '@/types/services';
-import type { LocationSummary, ServiceDetail, ServiceType } from '@/types/services';
+import type { LocationSummary, ServiceDetail } from '@/types/services';
 
-import {
-  ConsultationCurrencyControl,
-  ConsultationDurationControl,
-  ConsultationHourlyRateControl,
-  ConsultationMaxGroupSizeControl,
-  ConsultationPackagePriceControl,
-  ConsultationPackageSessionsControl,
-  ConsultationPricingModelControl,
-  ConsultationServiceFormatField,
-  type ConsultationFormState,
-} from './consultation-form-fields';
-import {
-  EventCategoryControl,
-  EventDefaultCurrencyControl,
-  EventDefaultPriceControl,
-  type EventFormState,
-} from './event-form-fields';
-import {
-  DEFAULT_CONSULTATION_FORM,
-  DEFAULT_EVENT_FORM,
-  DEFAULT_SERVICE_FORM,
-  DEFAULT_TRAINING_FORM,
-} from './form-defaults';
-import { ServiceKeyField, type ServiceFormState } from './service-form-fields';
-import {
-  TrainingCurrencyControl,
-  TrainingPriceControl,
-  TrainingPricingUnitControl,
-  type TrainingFormState,
-} from './training-form-fields';
-import { ServiceTierControl } from './service-tier-control';
-import {
-  buildServiceCreatePayload,
-  buildServiceUpdatePayload,
-} from './service-detail-payload';
+import { ServiceDetailFormBody } from './service-detail-form-body';
+import { useServiceDetailPanel } from './use-service-detail-panel';
 
 type ApiSchemas = components['schemas'];
-
-const SERVICE_KEY_TIER_PAIR_CONFLICT_MSG =
-  'This service key and tier are already used by another service. Change the key or tier.';
-const EMPTY_TIER_CONFLICT_MSG =
-  'Another service uses this service key with an empty tier. Add a tier or use a different key.';
 
 export interface ServiceDetailPanelProps {
   service: ServiceDetail | null;
@@ -81,8 +28,6 @@ export interface ServiceDetailPanelProps {
   onUploadCover: (fileName: string, contentType: string) => Promise<void> | void;
 }
 
-type DiscountUsageLoadState = 'idle' | 'loading' | 'ok' | 'error';
-
 export function ServiceDetailPanel({
   service,
   createPrefillFromService = null,
@@ -96,451 +41,14 @@ export function ServiceDetailPanel({
   onUpdate,
   onUploadCover,
 }: ServiceDetailPanelProps) {
-  const isEditMode = Boolean(service);
-  const [confirmDialogProps, requestConfirm] = useConfirmDialog();
-  const [serviceType, setServiceType] = useState<ServiceType>(service?.serviceType ?? 'training_course');
-  const [serviceForm, setServiceForm] = useState<ServiceFormState>(
-    service
-      ? {
-          title: service.title,
-          description: service.description ?? '',
-          serviceKey: service.serviceKey ?? '',
-          deliveryMode: service.deliveryMode,
-          status: service.status,
-        }
-      : DEFAULT_SERVICE_FORM
-  );
-  const [trainingForm, setTrainingForm] = useState<TrainingFormState>(
-    service
-      ? {
-          pricingUnit: service.trainingDetails?.pricingUnit ?? 'per_person',
-          defaultPrice: service.trainingDetails?.defaultPrice ?? '',
-          defaultCurrency: service.trainingDetails?.defaultCurrency ?? 'HKD',
-        }
-      : DEFAULT_TRAINING_FORM
-  );
-  const [eventForm, setEventForm] = useState<EventFormState>(
-    service
-      ? {
-          eventCategory: service.eventDetails?.eventCategory ?? 'workshop',
-          defaultPrice: service.eventDetails?.defaultPrice ?? '',
-          defaultCurrency: service.eventDetails?.defaultCurrency ?? 'HKD',
-        }
-      : DEFAULT_EVENT_FORM
-  );
-  const [consultationForm, setConsultationForm] = useState<ConsultationFormState>(
-    service
-      ? {
-          consultationFormat: service.consultationDetails?.consultationFormat ?? 'one_on_one',
-          maxGroupSize: service.consultationDetails?.maxGroupSize?.toString() ?? '',
-          durationMinutes: service.consultationDetails?.durationMinutes?.toString() ?? '',
-          pricingModel: service.consultationDetails?.pricingModel ?? 'free',
-          defaultHourlyRate: service.consultationDetails?.defaultHourlyRate ?? '',
-          defaultPackagePrice: service.consultationDetails?.defaultPackagePrice ?? '',
-          defaultPackageSessions: service.consultationDetails?.defaultPackageSessions?.toString() ?? '',
-          defaultCurrency: service.consultationDetails?.defaultCurrency ?? 'HKD',
-        }
-      : DEFAULT_CONSULTATION_FORM
-  );
-  const [coverFileName, setCoverFileName] = useState('');
-  const [bookingSystem, setBookingSystem] = useState(service?.bookingSystem ?? '');
-  const [serviceTier, setServiceTier] = useState(service?.serviceTier ?? '');
-  const [locationId, setLocationId] = useState(service?.locationId ?? '');
-  const [discountUsageSummary, setDiscountUsageSummary] = useState<{
-    totalCurrentUses: number;
-    referencingCodeCount: number;
-  } | null>(null);
-  const [discountUsageLoadState, setDiscountUsageLoadState] = useState<DiscountUsageLoadState>('idle');
-  /** Last service_key+tier 409 (`field: service_key_tier`); messages shown only while inputs match this pair. */
-  const [serviceKeyTierConflict, setServiceKeyTierConflict] = useState<{
-    serviceKey: string;
-    tierNormalized: string;
-    variant: 'tier_same' | 'tier_empty';
-  } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!service?.id) {
-        setDiscountUsageSummary(null);
-        setDiscountUsageLoadState('idle');
-        return;
-      }
-      setDiscountUsageLoadState('loading');
-      setDiscountUsageSummary(null);
-      void getServiceDiscountCodeUsageSummary(service.id).then(({ summary, error: loadError }) => {
-        if (cancelled) {
-          return;
-        }
-        if (loadError) {
-          setDiscountUsageSummary(null);
-          setDiscountUsageLoadState('error');
-          return;
-        }
-        setDiscountUsageSummary(summary);
-        setDiscountUsageLoadState('ok');
-      });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [service?.id]);
-
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) {
-        return;
-      }
-      if (!service && createPrefillFromService) {
-        const p = createPrefillFromService;
-        setServiceType(p.serviceType);
-        setBookingSystem(p.bookingSystem ?? '');
-        setServiceTier(p.serviceTier ?? '');
-        setLocationId(p.locationId ?? '');
-        setServiceForm({
-          title: `${p.title} (copy)`,
-          description: p.description ?? '',
-          serviceKey: p.serviceKey ?? '',
-          deliveryMode: p.deliveryMode,
-          status: 'draft',
-        });
-        setTrainingForm(
-          p.trainingDetails
-            ? {
-                pricingUnit: p.trainingDetails.pricingUnit,
-                defaultPrice: p.trainingDetails.defaultPrice ?? '',
-                defaultCurrency: p.trainingDetails.defaultCurrency ?? 'HKD',
-              }
-            : DEFAULT_TRAINING_FORM
-        );
-        setEventForm(
-          p.eventDetails
-            ? {
-                eventCategory: p.eventDetails.eventCategory,
-                defaultPrice: p.eventDetails.defaultPrice ?? '',
-                defaultCurrency: p.eventDetails.defaultCurrency ?? 'HKD',
-              }
-            : DEFAULT_EVENT_FORM
-        );
-        setConsultationForm(
-          p.consultationDetails
-            ? {
-                consultationFormat: p.consultationDetails.consultationFormat,
-                maxGroupSize: p.consultationDetails.maxGroupSize?.toString() ?? '',
-                durationMinutes: p.consultationDetails.durationMinutes?.toString() ?? '',
-                pricingModel: p.consultationDetails.pricingModel,
-                defaultHourlyRate: p.consultationDetails.defaultHourlyRate ?? '',
-                defaultPackagePrice: p.consultationDetails.defaultPackagePrice ?? '',
-                defaultPackageSessions: p.consultationDetails.defaultPackageSessions?.toString() ?? '',
-                defaultCurrency: p.consultationDetails.defaultCurrency ?? 'HKD',
-              }
-            : DEFAULT_CONSULTATION_FORM
-        );
-        setServiceKeyTierConflict(null);
-        return;
-      }
-      if (!service) {
-        setServiceType('training_course');
-        setServiceForm(DEFAULT_SERVICE_FORM);
-        setTrainingForm(DEFAULT_TRAINING_FORM);
-        setEventForm(DEFAULT_EVENT_FORM);
-        setConsultationForm(DEFAULT_CONSULTATION_FORM);
-        setBookingSystem('');
-        setServiceTier('');
-        setLocationId('');
-        setServiceKeyTierConflict(null);
-        return;
-      }
-      setServiceType(service.serviceType);
-      setBookingSystem(service.bookingSystem ?? '');
-      setServiceTier(service.serviceTier ?? '');
-      setLocationId(service.locationId ?? '');
-      setServiceForm({
-        title: service.title,
-        description: service.description ?? '',
-        serviceKey: service.serviceKey ?? '',
-        deliveryMode: service.deliveryMode,
-        status: service.status,
-      });
-      setTrainingForm({
-        pricingUnit: service.trainingDetails?.pricingUnit ?? 'per_person',
-        defaultPrice: service.trainingDetails?.defaultPrice ?? '',
-        defaultCurrency: service.trainingDetails?.defaultCurrency ?? 'HKD',
-      });
-      setEventForm({
-        eventCategory: service.eventDetails?.eventCategory ?? 'workshop',
-        defaultPrice: service.eventDetails?.defaultPrice ?? '',
-        defaultCurrency: service.eventDetails?.defaultCurrency ?? 'HKD',
-      });
-      setConsultationForm({
-        consultationFormat: service.consultationDetails?.consultationFormat ?? 'one_on_one',
-        maxGroupSize: service.consultationDetails?.maxGroupSize?.toString() ?? '',
-        durationMinutes: service.consultationDetails?.durationMinutes?.toString() ?? '',
-        pricingModel: service.consultationDetails?.pricingModel ?? 'free',
-        defaultHourlyRate: service.consultationDetails?.defaultHourlyRate ?? '',
-        defaultPackagePrice: service.consultationDetails?.defaultPackagePrice ?? '',
-        defaultPackageSessions: service.consultationDetails?.defaultPackageSessions?.toString() ?? '',
-        defaultCurrency: service.consultationDetails?.defaultCurrency ?? 'HKD',
-      });
-      setServiceKeyTierConflict(null);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [service, createPrefillFromService]);
-
-  const serviceKeyPayloadValue = useMemo(() => {
-    const t = serviceForm.serviceKey.trim().toLowerCase();
-    return t.length ? t : null;
-  }, [serviceForm.serviceKey]);
-
-  const normalizedServiceKeyInput = serviceForm.serviceKey.trim().toLowerCase();
-  const tierTrimmedForValidation = serviceTier.trim().toLowerCase();
-
-  const serviceKeyTierConflictActive = useMemo(() => {
-    if (!serviceKeyTierConflict) {
-      return false;
-    }
-    return (
-      normalizedServiceKeyInput === serviceKeyTierConflict.serviceKey &&
-      tierTrimmedForValidation === serviceKeyTierConflict.tierNormalized
-    );
-  }, [serviceKeyTierConflict, normalizedServiceKeyInput, tierTrimmedForValidation]);
-
-  const serviceKeyConflictInline = useMemo(() => {
-    if (!serviceKeyTierConflictActive || !serviceKeyTierConflict || serviceKeyTierConflict.variant !== 'tier_same') {
-      return undefined;
-    }
-    return SERVICE_KEY_TIER_PAIR_CONFLICT_MSG;
-  }, [serviceKeyTierConflictActive, serviceKeyTierConflict]);
-
-  const tierConflictInline = useMemo(() => {
-    if (!serviceKeyTierConflictActive || !serviceKeyTierConflict || serviceKeyTierConflict.variant !== 'tier_empty') {
-      return undefined;
-    }
-    return EMPTY_TIER_CONFLICT_MSG;
-  }, [serviceKeyTierConflictActive, serviceKeyTierConflict]);
-
-  const hasLocationOptions = locationOptions.length > 0;
-  const locationExists = locationOptions.some((entry) => entry.id === locationId);
-  const selectedLocationValue = locationExists ? locationId : locationId || '';
-  const showDefaultLocationField = serviceForm.deliveryMode !== 'online';
-
-  const saveBlockedByPublishedBookableMissingKey = useMemo(() => {
-    if (serviceForm.status !== 'published') {
-      return false;
-    }
-    if (
-      serviceType !== 'event' &&
-      serviceType !== 'training_course' &&
-      serviceType !== 'intro_call'
-    ) {
-      return false;
-    }
-    return serviceForm.serviceKey.trim() === '';
-  }, [serviceForm.status, serviceForm.serviceKey, serviceType]);
-
-  const saveBlockedByPairConflict = serviceKeyTierConflictActive;
-
-  const tierInvalid =
-    Boolean(tierTrimmedForValidation) && !INSTANCE_SLUG_PATTERN.test(tierTrimmedForValidation);
-
-  function applyServiceKeyTierConflictFromApiError(
-    caught: unknown,
-    pair: { serviceKey: string | null; tierNormalized: string | null },
-  ): boolean {
-    if (!isAdminApiConflictOnField(caught, 'service_key_tier')) {
-      return false;
-    }
-    const tierNorm = pair.tierNormalized ?? '';
-    setServiceKeyTierConflict({
-      serviceKey: pair.serviceKey ?? '',
-      tierNormalized: tierNorm,
-      variant: tierNorm.length > 0 ? 'tier_same' : 'tier_empty',
-    });
-    return true;
-  }
-
-  const deliveryModeSelect = (
-    <div>
-      <Label htmlFor='service-delivery-mode'>Delivery mode</Label>
-      <Select
-        id='service-delivery-mode'
-        value={serviceForm.deliveryMode}
-        onChange={(event) => {
-          const nextMode = event.target.value as ServiceDeliveryMode;
-          setServiceForm({ ...serviceForm, deliveryMode: nextMode });
-          if (nextMode === 'online') {
-            setLocationId('');
-          }
-        }}
-      >
-        {SERVICE_DELIVERY_MODES.map((entry) => (
-          <option key={entry} value={entry}>
-            {formatEnumLabel(entry)}
-          </option>
-        ))}
-      </Select>
-    </div>
-  );
-
-  const bookingAndCover = (
-    <>
-      <div>
-        <Label htmlFor='service-booking-system'>Booking system</Label>
-        <Input
-          id='service-booking-system'
-          value={bookingSystem}
-          onChange={(event) => setBookingSystem(event.target.value)}
-          placeholder='e.g. training-booking'
-          maxLength={80}
-          autoComplete='off'
-        />
-      </div>
-      <div>
-        <Label htmlFor='service-detail-cover-file-name'>Cover file name</Label>
-        <Input
-          id='service-detail-cover-file-name'
-          value={coverFileName}
-          onChange={(event) => setCoverFileName(event.target.value)}
-          placeholder='e.g. media-cover.jpg'
-        />
-      </div>
-    </>
-  );
-
-  const defaultLocationField = (
-    <div>
-      <Label htmlFor='service-default-location'>Default location</Label>
-      {hasLocationOptions || isLoadingLocations ? (
-        <Select
-          id='service-default-location'
-          value={selectedLocationValue}
-          onChange={(event) => setLocationId(event.target.value)}
-        >
-          <option value=''>{isLoadingLocations ? 'Loading locations...' : 'Select location'}</option>
-          {locationId && !locationExists ? <option value={locationId}>{locationId}</option> : null}
-          {locationOptions.map((location) => (
-            <option key={location.id} value={location.id}>
-              {formatLocationLabel(location)}
-            </option>
-          ))}
-        </Select>
-      ) : (
-        <Input
-          id='service-default-location'
-          value={locationId}
-          onChange={(event) => setLocationId(event.target.value)}
-          placeholder='Location UUID'
-          autoComplete='off'
-        />
-      )}
-      {locationError ? <p className='mt-1 text-xs text-red-600'>{locationError}</p> : null}
-    </div>
-  );
-
-  async function confirmServiceKeyChangeIfNeeded(newServiceKey: string | null, oldServiceKey: string | null): Promise<boolean> {
-    if (newServiceKey === oldServiceKey) {
-      return true;
-    }
-    const usageUnknown = discountUsageLoadState === 'error' || discountUsageSummary === null;
-    if (usageUnknown) {
-      const confirmed = await requestConfirm({
-        title: 'Change service key?',
-        description:
-          "We couldn't verify current discount code usage — if this service key is referenced by active codes, changing it may break printed QR codes and links. Continue?",
-        confirmLabel: 'Continue',
-        cancelLabel: 'Cancel',
-        variant: 'default',
-      });
-      return confirmed;
-    }
-    if (discountUsageSummary.totalCurrentUses > 0) {
-      const confirmed = await requestConfirm({
-        title: 'Change service key?',
-        description: `This service has active discount code usage (${discountUsageSummary.totalCurrentUses} past redemptions). Changing the key will break any existing printed QR codes and links. Continue?`,
-        confirmLabel: 'Continue',
-        cancelLabel: 'Cancel',
-        variant: 'default',
-      });
-      return confirmed;
-    }
-    return true;
-  }
-
-  async function submitUpdate() {
-    if (!service) {
-      return;
-    }
-    const serviceKeyTrimmed = serviceForm.serviceKey.trim();
-    if (serviceKeyTrimmed && !SERVICE_KEY_PATTERN.test(serviceKeyTrimmed.toLowerCase())) {
-      return;
-    }
-    const newServiceKey = serviceKeyTrimmed.toLowerCase() || null;
-    const tierPayloadNormalized = serviceTier.trim().toLowerCase() || null;
-    const oldServiceKey = (service.serviceKey ?? '').trim().toLowerCase() || null;
-    const ok = await confirmServiceKeyChangeIfNeeded(newServiceKey, oldServiceKey);
-    if (!ok) {
-      return;
-    }
-    try {
-      await onUpdate(
-        buildServiceUpdatePayload({
-          serviceType: service.serviceType,
-          serviceForm,
-          serviceKey: newServiceKey,
-          bookingSystem,
-          serviceTier,
-          locationId,
-          trainingForm,
-          eventForm,
-          consultationForm,
-        }),
-      );
-      setServiceKeyTierConflict(null);
-    } catch (caught) {
-      if (
-        applyServiceKeyTierConflictFromApiError(caught, {
-          serviceKey: newServiceKey,
-          tierNormalized: tierPayloadNormalized,
-        })
-      ) {
-        return;
-      }
-      throw caught;
-    }
-  }
-
-  async function submitCreate() {
-    const tierPayloadNormalized = serviceTier.trim().toLowerCase() || null;
-    try {
-      await onCreate(
-        buildServiceCreatePayload({
-          serviceType,
-          serviceForm,
-          serviceKey: serviceKeyPayloadValue,
-          bookingSystem,
-          serviceTier,
-          locationId,
-          trainingForm,
-          eventForm,
-          consultationForm,
-        }),
-      );
-      setServiceKeyTierConflict(null);
-    } catch (caught) {
-      if (
-        applyServiceKeyTierConflictFromApiError(caught, {
-          serviceKey: serviceKeyPayloadValue,
-          tierNormalized: tierPayloadNormalized,
-        })
-      ) {
-        return;
-      }
-      throw caught;
-    }
-  }
+  const panel = useServiceDetailPanel({
+    service,
+    createPrefillFromService,
+    locationOptions,
+    isLoading,
+    onCreate,
+    onUpdate,
+  });
 
   return (
     <>
@@ -549,33 +57,23 @@ export function ServiceDetailPanel({
         description='Add or update a service using the same fields below.'
         actions={
           <>
-            {isEditMode ? (
+            {panel.isEditMode ? (
               <>
                 <Button type='button' variant='secondary' onClick={onCancelSelection} disabled={isLoading}>
                   Cancel
                 </Button>
                 <Button
                   type='button'
-                  disabled={
-                    isLoading ||
-                    !service ||
-                    saveBlockedByPairConflict ||
-                    saveBlockedByPublishedBookableMissingKey ||
-                    tierInvalid ||
-                    Boolean(
-                      serviceForm.serviceKey.trim() &&
-                        !SERVICE_KEY_PATTERN.test(serviceForm.serviceKey.trim().toLowerCase()),
-                    )
-                  }
-                  onClick={() => void submitUpdate()}
+                  disabled={panel.updateDisabled}
+                  onClick={() => void panel.submitUpdate()}
                 >
                   {isLoading ? 'Updating...' : 'Update service'}
                 </Button>
                 <Button
                   type='button'
                   variant='outline'
-                  disabled={isLoading || !coverFileName.trim() || !service}
-                  onClick={() => void onUploadCover(coverFileName.trim(), 'image/jpeg')}
+                  disabled={isLoading || !panel.coverFileName.trim() || !service}
+                  onClick={() => void onUploadCover(panel.coverFileName.trim(), 'image/jpeg')}
                 >
                   Generate cover upload URL
                 </Button>
@@ -583,18 +81,8 @@ export function ServiceDetailPanel({
             ) : (
               <Button
                 type='button'
-                disabled={
-                  isLoading ||
-                  saveBlockedByPairConflict ||
-                  saveBlockedByPublishedBookableMissingKey ||
-                  tierInvalid ||
-                  !serviceForm.title.trim() ||
-                  Boolean(
-                    serviceForm.serviceKey.trim() &&
-                      !SERVICE_KEY_PATTERN.test(serviceForm.serviceKey.trim().toLowerCase()),
-                  )
-                }
-                onClick={() => void submitCreate()}
+                disabled={panel.createDisabled}
+                onClick={() => void panel.submitCreate()}
               >
                 {isLoading ? 'Adding...' : 'Add service'}
               </Button>
@@ -602,184 +90,42 @@ export function ServiceDetailPanel({
           </>
         }
       >
-        <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-          <div>
-            <Label htmlFor='service-type'>Type</Label>
-            <Select
-              id='service-type'
-              value={serviceType}
-              onChange={(event) => setServiceType(event.target.value as ServiceType)}
-              disabled={isEditMode}
-            >
-              {SERVICE_TYPES.map((entry) => (
-                <option key={entry} value={entry}>
-                  {formatEnumLabel(entry)}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor='service-title'>Title</Label>
-            <Input
-              id='service-title'
-              value={serviceForm.title}
-              onChange={(event) => setServiceForm({ ...serviceForm, title: event.target.value })}
-            />
-          </div>
-          <ServiceKeyField
-            value={serviceForm.serviceKey}
-            onChange={(next) => setServiceForm({ ...serviceForm, serviceKey: next })}
-            serviceKeyUsageLoadError={
-              discountUsageLoadState === 'error'
-                ? 'Could not load discount code usage. Try again later.'
-                : undefined
-            }
-            serviceKeyConflictError={serviceKeyConflictInline}
-            publishedBookableKeyWarning={
-              (serviceType === 'event' || serviceType === 'training_course' || serviceType === 'intro_call') &&
-              serviceForm.status === 'published' &&
-              !serviceForm.serviceKey.trim()
-                ? 'A service key is required to take public bookings (discount validation and reservation submission). Set one before publishing.'
-                : undefined
-            }
-          />
-          <div>
-            <div className='relative mb-1'>
-              <Label htmlFor='service-status' className='mb-0 block pr-7'>
-                Status
-              </Label>
-              {serviceForm.status === 'draft' ? (
-                <span
-                  className='absolute right-0 top-1/2 inline-flex -translate-y-1/2 text-amber-600'
-                  role='img'
-                  aria-label='Draft — not published to the website'
-                  title='Draft — not published to the website'
-                >
-                  <WarningTriangleIcon className='h-4 w-4' aria-hidden />
-                </span>
-              ) : null}
-            </div>
-            <Select
-              id='service-status'
-              value={serviceForm.status}
-              onChange={(event) =>
-                setServiceForm({ ...serviceForm, status: event.target.value as ServiceFormState['status'] })
-              }
-            >
-              {SERVICE_STATUSES.map((entry) => (
-                <option key={entry} value={entry}>
-                  {formatEnumLabel(entry)}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor='service-description'>Description</Label>
-          <Textarea
-            id='service-description'
-            value={serviceForm.description}
-            onChange={(event) => setServiceForm({ ...serviceForm, description: event.target.value })}
-            rows={3}
-          />
-        </div>
-
-        {serviceType === 'training_course' ? (
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            {deliveryModeSelect}
-            <ServiceTierControl
-              value={serviceTier}
-              onChange={setServiceTier}
-              id='service-tier-training'
-              invalid={tierInvalid}
-              tierConflictError={tierConflictInline}
-            />
-            {bookingAndCover}
-          </div>
-        ) : null}
-
-        {serviceType === 'training_course' ? (
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            <TrainingPricingUnitControl value={trainingForm} onChange={setTrainingForm} />
-            <TrainingPriceControl
-              value={trainingForm}
-              onChange={setTrainingForm}
-              priceLabel='Default price'
-            />
-            <TrainingCurrencyControl value={trainingForm} onChange={setTrainingForm} />
-            {showDefaultLocationField ? defaultLocationField : null}
-          </div>
-        ) : null}
-
-        {serviceType === 'event' ? (
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            {deliveryModeSelect}
-            <ServiceTierControl
-              value={serviceTier}
-              onChange={setServiceTier}
-              id='service-tier-event'
-              invalid={tierInvalid}
-              tierConflictError={tierConflictInline}
-            />
-            {bookingAndCover}
-          </div>
-        ) : null}
-
-        {serviceType === 'event' ? (
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            <EventCategoryControl value={eventForm} onChange={setEventForm} categoryFieldId='service-event-category' />
-            <EventDefaultPriceControl value={eventForm} onChange={setEventForm} />
-            <EventDefaultCurrencyControl value={eventForm} onChange={setEventForm} />
-            {showDefaultLocationField ? defaultLocationField : null}
-          </div>
-        ) : null}
-
-        {isConsultationLikeServiceType(serviceType) ? (
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-            {deliveryModeSelect}
-            <ServiceTierControl
-              value={serviceTier}
-              onChange={setServiceTier}
-              id='service-tier-consultation'
-              invalid={tierInvalid}
-              tierConflictError={tierConflictInline}
-            />
-            {bookingAndCover}
-          </div>
-        ) : null}
-
-        {isConsultationLikeServiceType(serviceType) ? (
-          <>
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-              <ConsultationPricingModelControl value={consultationForm} onChange={setConsultationForm} />
-              {consultationForm.pricingModel === 'hourly' ? (
-                <ConsultationHourlyRateControl value={consultationForm} onChange={setConsultationForm} />
-              ) : null}
-              {consultationForm.pricingModel === 'package' ? (
-                <ConsultationPackagePriceControl value={consultationForm} onChange={setConsultationForm} />
-              ) : null}
-              {consultationForm.pricingModel !== 'free' ? (
-                <ConsultationCurrencyControl value={consultationForm} onChange={setConsultationForm} />
-              ) : null}
-              {showDefaultLocationField ? defaultLocationField : null}
-            </div>
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-              <ConsultationServiceFormatField value={consultationForm} onChange={setConsultationForm} />
-              <ConsultationDurationControl value={consultationForm} onChange={setConsultationForm} />
-              {consultationForm.pricingModel === 'package' ? (
-                <ConsultationPackageSessionsControl value={consultationForm} onChange={setConsultationForm} />
-              ) : null}
-              {consultationForm.consultationFormat !== 'one_on_one' ? (
-                <ConsultationMaxGroupSizeControl value={consultationForm} onChange={setConsultationForm} />
-              ) : null}
-            </div>
-          </>
-        ) : null}
+        <ServiceDetailFormBody
+          isEditMode={panel.isEditMode}
+          serviceType={panel.serviceType}
+          onServiceTypeChange={panel.setServiceType}
+          serviceForm={panel.serviceForm}
+          onServiceFormChange={panel.setServiceForm}
+          trainingForm={panel.trainingForm}
+          onTrainingFormChange={panel.setTrainingForm}
+          eventForm={panel.eventForm}
+          onEventFormChange={panel.setEventForm}
+          consultationForm={panel.consultationForm}
+          onConsultationFormChange={panel.setConsultationForm}
+          bookingSystem={panel.bookingSystem}
+          onBookingSystemChange={panel.setBookingSystem}
+          coverFileName={panel.coverFileName}
+          onCoverFileNameChange={panel.setCoverFileName}
+          serviceTier={panel.serviceTier}
+          onServiceTierChange={panel.setServiceTier}
+          locationId={panel.locationId}
+          onLocationIdChange={panel.setLocationId}
+          locationOptions={locationOptions}
+          isLoadingLocations={isLoadingLocations}
+          locationError={locationError}
+          hasLocationOptions={panel.hasLocationOptions}
+          selectedLocationValue={panel.selectedLocationValue}
+          locationExists={panel.locationExists}
+          showDefaultLocationField={panel.showDefaultLocationField}
+          tierInvalid={panel.tierInvalid}
+          tierConflictInline={panel.tierConflictInline}
+          serviceKeyConflictInline={panel.serviceKeyConflictInline}
+          discountUsageLoadState={panel.discountUsageLoadState}
+        />
 
         {error ? <AdminInlineError>{error}</AdminInlineError> : null}
       </AdminEditorCard>
-      <ConfirmDialog {...confirmDialogProps} />
+      <ConfirmDialog {...panel.confirmDialogProps} />
     </>
   );
 }
