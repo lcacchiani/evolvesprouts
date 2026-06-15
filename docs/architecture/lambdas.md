@@ -436,6 +436,7 @@ their primary responsibilities.
 - Handler: backend/lambda/admin_bootstrap/handler.py
 - Trigger: CloudFormation custom resource (optional)
 - Purpose: create a bootstrap admin user and add to admin group
+- VPC: No (Cognito public API only; no database access)
 
 ### API key rotation
 - Function: ApiKeyRotationFunction
