@@ -3512,7 +3512,8 @@ export interface paths {
         /**
          * List purchased services for a contact
          * @description Returns invoice-style labels for non-cancelled enrollments attributed to the
-         *     contact. Labels are deduplicated and sorted alphabetically.
+         *     contact or to any family or organisation the contact belongs to. Labels are
+         *     deduplicated and sorted alphabetically.
          */
         get: {
             parameters: {

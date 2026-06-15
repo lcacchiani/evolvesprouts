@@ -136,7 +136,7 @@ def test_list_contact_services_returns_labels(
     assert body == {"items": [{"label": expected}]}
 
 
-def test_list_contact_services_query_filters_by_contact_and_non_cancelled(
+def test_list_contact_services_query_includes_contact_family_and_org(
     monkeypatch: pytest.MonkeyPatch,
     api_gateway_event: Any,
 ) -> None:
@@ -163,6 +163,11 @@ def test_list_contact_services_query_filters_by_contact_and_non_cancelled(
     assert str(contact_id) in sql
     assert "enrollments.status" in sql
     assert "cancelled" in sql.lower()
+    # Services purchased by the contact's family or organisation are inherited.
+    assert "enrollments.family_id" in sql
+    assert "family_members" in sql
+    assert "enrollments.organization_id" in sql
+    assert "organization_members" in sql
 
 
 def test_list_contact_services_excludes_cancelled(

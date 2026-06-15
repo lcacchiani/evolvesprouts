@@ -55,9 +55,19 @@ def list_contact_services(
         if contact_repo.get_by_id_for_admin(contact_id) is None:
             raise NotFoundError("Contact", str(contact_id))
 
+        family_ids = select(FamilyMember.family_id).where(
+            FamilyMember.contact_id == contact_id
+        )
+        organization_ids = select(OrganizationMember.organization_id).where(
+            OrganizationMember.contact_id == contact_id
+        )
         stmt = select(Enrollment).where(
-            Enrollment.contact_id == contact_id,
             Enrollment.status != EnrollmentStatus.CANCELLED,
+            or_(
+                Enrollment.contact_id == contact_id,
+                Enrollment.family_id.in_(family_ids),
+                Enrollment.organization_id.in_(organization_ids),
+            ),
         )
         labels = _labels_for_enrollments(session, stmt)
         return json_response(
