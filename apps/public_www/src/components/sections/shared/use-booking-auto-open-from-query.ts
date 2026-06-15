@@ -14,6 +14,11 @@ export function useBookingAutoOpenFromQuery({
   onOpen,
 }: UseBookingAutoOpenFromQueryOptions) {
   const hasOpenedBookingModalFromQueryRef = useRef(false);
+  const onOpenRef = useRef(onOpen);
+
+  useEffect(() => {
+    onOpenRef.current = onOpen;
+  }, [onOpen]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -33,11 +38,11 @@ export function useBookingAutoOpenFromQuery({
 
     hasOpenedBookingModalFromQueryRef.current = true;
     const openModalTimerId = window.setTimeout(() => {
-      onOpen();
+      onOpenRef.current();
     }, 0);
 
     return () => {
       window.clearTimeout(openModalTimerId);
     };
-  }, [bookingSystem, canOpen, onOpen]);
+  }, [bookingSystem, canOpen]);
 }

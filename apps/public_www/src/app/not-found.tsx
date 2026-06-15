@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { PlaceholderPageLayout } from '@/components/shared/placeholder-page-layout';
 import { Whoops } from '@/components/sections/whoops';
-import { DEFAULT_LOCALE, getContent, isValidLocale, type Locale } from '@/content';
+import { DEFAULT_LOCALE, getContent, isValidLocale, SUPPORTED_LOCALES, type Locale } from '@/content';
 
 function resolveLocaleFromPathname(pathname: string): Locale | null {
   const firstSegment = pathname.split('/').filter(Boolean)[0];
@@ -29,8 +29,11 @@ function resolveLocaleFromNavigator(): Locale | null {
       continue;
     }
 
-    if (isValidLocale(normalized)) {
-      return normalized;
+    const exactMatch = SUPPORTED_LOCALES.find(
+      (locale) => locale.toLowerCase() === normalized,
+    );
+    if (exactMatch) {
+      return exactMatch;
     }
 
     const primary = normalized.split('-')[0];
@@ -59,14 +62,14 @@ function resolveNotFoundLocale(): Locale {
 }
 
 export default function NotFoundPage() {
-  const [locale] = useState<Locale>(() => {
-    if (typeof window === 'undefined') {
-      return DEFAULT_LOCALE;
-    }
-    return resolveNotFoundLocale();
-  });
+  const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
 
   const content = getContent(locale);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- defer locale detection until after hydration
+    setLocale(resolveNotFoundLocale());
+  }, []);
 
   useEffect(() => {
     document.title = `${content.whoops.title} - ${content.navbar.brand}`;

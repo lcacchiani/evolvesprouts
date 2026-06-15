@@ -273,7 +273,7 @@ export function FreeResourcesForGentleParenting({
   const cardDescription =
     readOptionalText(content.cardDescription) ??
     content.description;
-  const ctaLabel = readOptionalText(content.ctaLabel) ?? content.ctaLabel;
+  const ctaLabel = content.ctaLabel;
   const resourceKey =
     readOptionalText(content.resourceKey) ?? 'patience-free-guide';
   const formFirstNameLabel = content.formFirstNameLabel;

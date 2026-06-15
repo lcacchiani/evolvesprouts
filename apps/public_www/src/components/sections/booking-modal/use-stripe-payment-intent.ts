@@ -27,8 +27,12 @@ export function getStripePromise(): Promise<Stripe | null> | null {
   return stripePromiseCache;
 }
 
+export function isStripeConfigured(): boolean {
+  return STRIPE_PUBLISHABLE_KEY.trim().length > 0;
+}
+
 export function isStripeUnavailable(): boolean {
-  return getStripePromise() === null;
+  return !isStripeConfigured();
 }
 
 interface UseStripePaymentIntentOptions {
