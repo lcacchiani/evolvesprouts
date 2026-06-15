@@ -1,18 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminEntityFamilies } from '@/hooks/use-admin-entity-families';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
-import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
-import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
+import { useEntityInlineLocation } from '@/hooks/use-entity-inline-location';
+import { useEntityServiceLabels } from '@/hooks/use-entity-service-labels';
+import { EntityInlineLocationSection } from '@/components/admin/contacts/shared/entity-inline-location-section';
+import { EntityMembersSection } from '@/components/admin/contacts/shared/entity-members-section';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
 import { EntityServicesSection } from '@/components/admin/contacts/entity-services-section';
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
 import { DeleteIcon } from '@/components/icons/action-icons';
 import { Button } from '@/components/ui/button';
-import { AdminCollapsibleSection } from '@/components/ui/admin-collapsible-section';
 import {
   AdminDataTable,
   AdminDataTableBody,
@@ -99,16 +99,13 @@ export function FamiliesPanel({
   const [optimisticLocationSummary, setOptimisticLocationSummary] =
     useState<InlineLocationEmbeddedSummary | null>(null);
   const [tagIds, setTagIds] = useState<string[]>([]);
-  const [serviceLabelsState, setServiceLabelsState] = useState<{
-    entityId: string;
-    labels: string[];
-  } | null>(null);
   const [active, setActive] = useState(true);
 
-  const serviceLabels =
-    editorMode === 'edit' && selectedId && serviceLabelsState?.entityId === selectedId
-      ? serviceLabelsState.labels
-      : [];
+  const serviceLabels = useEntityServiceLabels(
+    editorMode,
+    selectedId,
+    useCallback((entityId, signal) => listAdminFamilyServices(entityId, signal), [])
+  );
 
   const [memberContactId, setMemberContactId] = useState('');
 
@@ -121,61 +118,30 @@ export function FamiliesPanel({
     [rows, selectedId]
   );
 
-  const inlineLocationStateKey =
-    editorMode === 'create' ? 'family-new' : `family:${selectedId ?? 'none'}`;
-
-  const resolvedLocation = useMemo(() => {
-    if (!pendingLocationId) {
-      return null;
-    }
-    return locations.find((l) => l.id === pendingLocationId) ?? null;
-  }, [locations, pendingLocationId]);
-
-  const embeddedLocationSummary = useMemo((): InlineLocationEmbeddedSummary | null => {
-    if (resolvedLocation) {
-      return null;
-    }
-    if (!pendingLocationId) {
-      return null;
-    }
-    if (optimisticLocationSummary && optimisticLocationSummary.id === pendingLocationId) {
-      return optimisticLocationSummary;
-    }
-    const s = selected?.location_summary;
-    if (s && s.id === pendingLocationId) {
-      return {
-        id: s.id,
-        name: s.name ?? null,
-        address: s.address ?? null,
-        areaName: s.area_name,
-        areaId: s.area_id,
-        lat: s.lat ?? null,
-        lng: s.lng ?? null,
-      };
-    }
-    return null;
-  }, [resolvedLocation, pendingLocationId, optimisticLocationSummary, selected?.location_summary]);
-
-  function summaryFromLocationRow(loc: LocationSummary): InlineLocationEmbeddedSummary {
-    const areaName = geographicAreas.find((a) => a.id === loc.areaId)?.name ?? 'Unknown area';
-    return {
-      id: loc.id,
-      name: loc.name,
-      address: loc.address,
-      areaName,
-      areaId: loc.areaId,
-      lat: loc.lat,
-      lng: loc.lng,
-    };
-  }
-
   const {
-    status: locationSaveStatus,
-    createSharedLocation,
+    inlineLocationStateKey,
+    resolvedLocation,
+    embeddedLocationSummary,
+    locationSaveStatus,
+    locationGeocoding,
+    geocodeLocation,
     updateSharedLocation,
-    clearError: clearLocationSaveError,
-  } = useInlineLocationSave(refreshLocations);
-  const { geocode: geocodeLocation, isGeocoding: locationGeocoding } = useGeocodeVenueAddress();
+    clearLocationSaveError,
+    clearPendingLocation,
+    saveNewLocation,
+  } = useEntityInlineLocation({
+    editorMode,
+    selectedId,
+    stateKeyPrefix: 'family',
+    pendingLocationId,
+    setPendingLocationId,
+    optimisticLocationSummary,
+    setOptimisticLocationSummary,
+    selectedLocationSummary: selected?.location_summary,
+    locations,
+    geographicAreas,
+    refreshLocations,
+  });
 
   const memberContactOptions = useMemo(() => {
     return contactOptions.filter((c) => {
@@ -186,31 +152,6 @@ export function FamiliesPanel({
       return contactEligibleForEntityMembership(row, selectedId, 'family');
     });
   }, [contactOptions, contactsForMembership, selectedId]);
-
-  useEffect(() => {
-    if (editorMode !== 'edit' || !selectedId) {
-      return;
-    }
-    const entityId = selectedId;
-    const controller = new AbortController();
-    let cancelled = false;
-    void (async () => {
-      try {
-        const labels = await listAdminFamilyServices(entityId, controller.signal);
-        if (!cancelled) {
-          setServiceLabelsState({ entityId, labels });
-        }
-      } catch {
-        if (!cancelled) {
-          setServiceLabelsState({ entityId, labels: [] });
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [selectedId, editorMode]);
 
   const primaryMemberLabel = useCallback((members: ApiSchemas['AdminFamilyMember'][]) => {
     const primary = members.find((m) => m.is_primary_contact);
@@ -415,39 +356,23 @@ export function FamiliesPanel({
             <div className='hidden lg:col-span-1 lg:block' aria-hidden />
           )}
           <div className='lg:col-span-4'>
-            <AdminCollapsibleSection id='crm-family-location' title='Location'>
-              <InlineLocationEditor
-                stateKey={inlineLocationStateKey}
-                location={resolvedLocation}
-                embeddedSummary={embeddedLocationSummary}
-                areas={geographicAreas}
-                areasLoading={areasLoading}
-                canModify
-                isSaving={isSaving || locationSaveStatus.isSaving}
-                isGeocoding={locationGeocoding}
-                saveError={locationSaveStatus.error}
-                onRequestEdit={() => {}}
-                onCancelEdit={() => {}}
-                onSaveCreate={async (payload) => {
-                  const created = await createSharedLocation(payload);
-                  if (created) {
-                    setPendingLocationId(created.id);
-                    setOptimisticLocationSummary(summaryFromLocationRow(created));
-                    return created.id;
-                  }
-                  return null;
-                }}
-                onSaveUpdate={async (id, payload) => {
-                  await updateSharedLocation(id, payload);
-                }}
-                onClear={() => {
-                  setPendingLocationId(null);
-                  setOptimisticLocationSummary(null);
-                  clearLocationSaveError();
-                }}
-                onGeocode={geocodeLocation}
-              />
-            </AdminCollapsibleSection>
+            <EntityInlineLocationSection
+              sectionId='crm-family-location'
+              stateKey={inlineLocationStateKey}
+              location={resolvedLocation}
+              embeddedSummary={embeddedLocationSummary}
+              areas={geographicAreas}
+              areasLoading={areasLoading}
+              isSaving={isSaving || locationSaveStatus.isSaving}
+              isGeocoding={locationGeocoding}
+              saveError={locationSaveStatus.error}
+              onSaveCreate={saveNewLocation}
+              onSaveUpdate={async (id, payload) => {
+                await updateSharedLocation(id, payload);
+              }}
+              onClear={clearPendingLocation}
+              onGeocode={geocodeLocation}
+            />
           </div>
           <div className='lg:col-span-4 space-y-4'>
             <EntityTagPicker
@@ -463,87 +388,22 @@ export function FamiliesPanel({
           </div>
           {editorMode === 'edit' && selected ? (
             <div className='lg:col-span-4'>
-              <AdminCollapsibleSection id='crm-family-members' title='Members'>
-                <div className='space-y-3 pt-1'>
-                  <AdminTableToolbar marginBottom='none'>
-                    <div className='min-w-[200px] flex-1'>
-                      <Label htmlFor='crm-family-member-contact'>Contact</Label>
-                      <Select
-                        id='crm-family-member-contact'
-                        value={memberContactId}
-                        onChange={(e) => setMemberContactId(e.target.value)}
-                      >
-                        <option value=''>Select contact</option>
-                        {memberContactOptions.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                    <Button
-                      type='button'
-                      disabled={isSaving || !memberContactId}
-                      onClick={() => void handleAddMember()}
-                    >
-                      Add member
-                    </Button>
-                  </AdminTableToolbar>
-                  <p className='text-xs text-slate-600'>
-                    Role is stored on each membership and matches the contact type when the member
-                    is added or when the contact type is changed on the contact record.
-                  </p>
-                  <AdminDataTable tableClassName='min-w-[520px]'>
-                    <AdminDataTableHead>
-                      <tr>
-                        <AdminDataTableHeadCell>Contact</AdminDataTableHeadCell>
-                        <AdminDataTableHeadCell>Role</AdminDataTableHeadCell>
-                        <AdminDataTableHeadCell>Primary contact</AdminDataTableHeadCell>
-                        <AdminDataTableOperationsHeadCell />
-                      </tr>
-                    </AdminDataTableHead>
-                    <AdminDataTableBody>
-                      {selected.members.map((m) => (
-                        <tr key={m.id}>
-                          <AdminDataTableCell>{m.contact_label || m.contact_id}</AdminDataTableCell>
-                          <AdminDataTableCell>{formatEnumLabel(m.role)}</AdminDataTableCell>
-                          <AdminDataTableCell>
-                            <input
-                              type='checkbox'
-                              className='h-4 w-4 rounded border-slate-300'
-                              checked={m.is_primary_contact}
-                              disabled={isSaving}
-                              onChange={(e) => {
-                                void handlePrimaryMemberChange(m.id, e.target.checked);
-                              }}
-                              aria-label={`Primary contact for ${m.contact_label || m.contact_id}`}
-                            />
-                          </AdminDataTableCell>
-                          <AdminDataTableCell className='text-right'>
-                            <Button
-                              type='button'
-                              size='sm'
-                              variant='danger'
-                              className='h-8 min-w-8 px-0'
-                              disabled={isSaving}
-                              onClick={() =>
-                                setRemoveTarget({
-                                  memberId: m.id,
-                                  label: m.contact_label || m.contact_id,
-                                })
-                              }
-                              aria-label={`Remove ${m.contact_label || m.contact_id} from family`}
-                              title='Remove member'
-                            >
-                              <DeleteIcon className='h-4 w-4 shrink-0' aria-hidden />
-                            </Button>
-                          </AdminDataTableCell>
-                        </tr>
-                      ))}
-                    </AdminDataTableBody>
-                  </AdminDataTable>
-                </div>
-              </AdminCollapsibleSection>
+              <EntityMembersSection
+                sectionId='crm-family-members'
+                contactSelectId='crm-family-member-contact'
+                entityLabel='family'
+                helpText='Role is stored on each membership and matches the contact type when the member is added or when the contact type is changed on the contact record.'
+                members={selected.members}
+                memberContactId={memberContactId}
+                memberContactOptions={memberContactOptions}
+                isSaving={isSaving}
+                onMemberContactIdChange={setMemberContactId}
+                onAddMember={() => void handleAddMember()}
+                onPrimaryChange={(memberId, checked) => {
+                  void handlePrimaryMemberChange(memberId, checked);
+                }}
+                onRemoveRequest={(memberId, label) => setRemoveTarget({ memberId, label })}
+              />
             </div>
           ) : null}
         </div>

@@ -3,12 +3,15 @@
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { useAdminEntityContacts } from '@/hooks/use-admin-entity-contacts';
+import { useFamilyOrgPickers } from '@/hooks/use-family-org-pickers';
 import { useGeocodeVenueAddress } from '@/hooks/use-geocode-venue-address';
 import { useInlineLocationSave } from '@/hooks/use-inline-location-save';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { InlineLocationEditor } from '@/components/admin/locations/inline-location-editor';
 import type { InlineLocationEmbeddedSummary } from '@/components/admin/locations/inline-location-editor';
 import { ContactNotesPanel } from '@/components/admin/contacts/contact-notes-panel';
+import { ContactEditorIdentityFields } from '@/components/admin/contacts/contact-editor-identity-fields';
+import { ContactEditorSourceFields } from '@/components/admin/contacts/contact-editor-source-fields';
 import { MailchimpSyncCard } from '@/components/admin/contacts/mailchimp-sync-card';
 import { EntityServicesSection } from '@/components/admin/contacts/entity-services-section';
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
@@ -27,17 +30,12 @@ import {
 import { AdminEditorCard } from '@/components/ui/admin-editor-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PhoneField } from '@/components/ui/phone-field';
 import { PaginatedTableCard } from '@/components/ui/paginated-table-card';
 import { AdminTableToolbar } from '@/components/ui/admin-table-toolbar';
 import { Select } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import {
-  type EntityPickerListItem,
   getAdminContact,
   listAdminContactServices,
-  listEntityFamilyPicker,
-  listEntityOrganizationPicker,
   searchEntityContactsForPicker,
   type EntityTagRef,
 } from '@/lib/entity-api';
@@ -47,6 +45,8 @@ import {
   formatEnumLabel,
 } from '@/lib/format';
 import { contactPhoneRequestFields } from '@/lib/phone-request';
+import { CONTACT_TYPES } from '@/lib/contacts/contacts-panel-constants';
+import type { EntityPickerListItem } from '@/lib/entity-api';
 import type { EntityListFilters } from '@/types/entity-list';
 import {
   CONTACT_RELATIONSHIP_TYPES,
@@ -56,98 +56,13 @@ import type { AdminUser } from '@/types/leads';
 import type { GeographicAreaSummary, LocationSummary } from '@/types/services';
 import type { components } from '@/types/generated/admin-api.generated';
 
-/** Shown after the contact name in the list when `family_ids` is non-empty. */
-const CONTACT_NAME_FAMILY_EMOJI = '👨‍👩‍👧';
-/** Shown after the contact name in the list when `organization_ids` is non-empty. */
-const CONTACT_NAME_ORG_EMOJI = '🏢';
-/** Shown after the contact name when `relationship_type` is `client`. */
-const CONTACT_NAME_CLIENT_EMOJI = '🤝';
-/** Shown when the contact has at least one issued completion certificate. */
-const CONTACT_NAME_CERTIFICATE_EMOJI = '🎓';
+import {
+  contactNameListSuffix,
+  contactRowLabel,
+  linkedVenueReadOnlyLines,
+} from '@/lib/contacts/contacts-panel-helpers';
 
 type ApiSchemas = components['schemas'];
-
-const CONTACT_TYPES: ApiSchemas['EntityContactType'][] = [
-  'parent',
-  'child',
-  'helper',
-  'professional',
-  'other',
-];
-
-const SOURCES: ApiSchemas['EntityContactSource'][] = [
-  'free_guide',
-  'newsletter',
-  'contact_form',
-  'reservation',
-  'referral',
-  'instagram',
-  'whatsapp',
-  'linkedin',
-  'event',
-  'phone_call',
-  'public_website',
-  'manual',
-];
-
-function contactNameListSuffix(row: ApiSchemas['AdminContact']): string {
-  const parts: string[] = [];
-  if (row.family_ids.length > 0) {
-    parts.push(CONTACT_NAME_FAMILY_EMOJI);
-  }
-  if (row.organization_ids.length > 0) {
-    parts.push(CONTACT_NAME_ORG_EMOJI);
-  }
-  if (row.relationship_type === 'client') {
-    parts.push(CONTACT_NAME_CLIENT_EMOJI);
-  }
-  if (row.has_completion_certificate) {
-    parts.push(CONTACT_NAME_CERTIFICATE_EMOJI);
-  }
-  return parts.length > 0 ? ` ${parts.join(' ')}` : '';
-}
-
-function linkedVenueReadOnlyLines(row: ApiSchemas['AdminContact']): {
-  lines: string[];
-  footerNote: string | null;
-} {
-  const lines: string[] = [];
-
-  function pushLine(emoji: string, summary: ApiSchemas['EntityLocationVenueSummary'] | null) {
-    if (!summary) {
-      lines.push(`${emoji} Not set`);
-      return;
-    }
-    lines.push(
-      `${emoji} ${formatEntityVenueLocationLabel({
-        id: summary.id,
-        name: summary.name,
-        address: summary.address,
-        areaName: summary.area_name,
-      })}`
-    );
-  }
-
-  if (row.family_ids.length > 0) {
-    pushLine(CONTACT_NAME_FAMILY_EMOJI, row.family_location_summary ?? null);
-  }
-  if (row.organization_ids.length > 0) {
-    pushLine(CONTACT_NAME_ORG_EMOJI, row.organization_location_summary ?? null);
-  }
-
-  if (lines.length === 0) {
-    return { lines: [], footerNote: null };
-  }
-
-  const footerNote =
-    row.family_ids.length > 0 && row.organization_ids.length > 0
-      ? 'Read-only. Edit addresses on the family and organisation records.'
-      : row.family_ids.length > 0
-        ? 'Read-only. Edit address on the family record.'
-        : 'Read-only. Edit address on the organisation record.';
-
-  return { lines, footerNote };
-}
 
 export interface ContactsPanelProps {
   contacts: ReturnType<typeof useAdminEntityContacts>;
@@ -192,33 +107,7 @@ export function ContactsPanel({
   const [pendingLocationLeaveDialogProps, requestPendingLocationLeaveConfirm] = useConfirmDialog();
   const [deleteActionError, setDeleteActionError] = useState('');
   const [notesTarget, setNotesTarget] = useState<ApiSchemas['AdminContact'] | null>(null);
-
-  const [familyPicker, setFamilyPicker] = useState<EntityPickerListItem[]>([]);
-  const [organizationPicker, setOrganizationPicker] = useState<EntityPickerListItem[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const [families, orgs] = await Promise.all([
-          listEntityFamilyPicker(),
-          listEntityOrganizationPicker(),
-        ]);
-        if (!cancelled) {
-          setFamilyPicker(Array.isArray(families) ? families : []);
-          setOrganizationPicker(Array.isArray(orgs) ? orgs : []);
-        }
-      } catch {
-        if (!cancelled) {
-          setFamilyPicker([]);
-          setOrganizationPicker([]);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { familyPicker, organizationPicker } = useFamilyOrgPickers();
 
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -541,17 +430,6 @@ export function ContactsPanel({
     }
   }
 
-  function contactRowLabel(row: ApiSchemas['AdminContact']): string {
-    const name = [row.first_name, row.last_name].filter(Boolean).join(' ').trim();
-    if (name) {
-      return name;
-    }
-    if (row.email?.trim()) {
-      return row.email.trim();
-    }
-    return row.id;
-  }
-
   async function handleDeleteContact(
     row: ApiSchemas['AdminContact'],
     clickEvent: MouseEvent<HTMLButtonElement>
@@ -638,175 +516,53 @@ export function ContactsPanel({
         }
       >
         <div className='space-y-4'>
-          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-            <div>
-              <Label htmlFor='crm-contact-first'>First name</Label>
-              <Input
-                id='crm-contact-first'
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                autoComplete='off'
-              />
-            </div>
-            <div>
-              <Label htmlFor='crm-contact-last'>Last name</Label>
-              <Input
-                id='crm-contact-last'
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                autoComplete='off'
-              />
-            </div>
-            <div>
-              <Label htmlFor='crm-contact-type'>Contact type</Label>
-              <Select
-                id='crm-contact-type'
-                value={contactType}
-                onChange={(e) => setContactType(e.target.value as ApiSchemas['EntityContactType'])}
-              >
-                {CONTACT_TYPES.map((v) => (
-                  <option key={v} value={v}>
-                    {formatEnumLabel(v)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor='crm-contact-rel'>Relationship</Label>
-              <Select
-                id='crm-contact-rel'
-                value={relationshipType}
-                onChange={(e) =>
-                  setRelationshipType(e.target.value as (typeof CONTACT_RELATIONSHIP_TYPES)[number])
-                }
-              >
-                {CONTACT_RELATIONSHIP_TYPES.map((v) => (
-                  <option key={v} value={v}>
-                    {formatEnumLabel(v)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
+          <ContactEditorIdentityFields
+            firstName={firstName}
+            lastName={lastName}
+            contactType={contactType}
+            relationshipType={relationshipType}
+            email={email}
+            phoneRegion={phoneRegion}
+            phoneNational={phoneNational}
+            instagramHandle={instagramHandle}
+            dateOfBirth={dateOfBirth}
+            onFirstNameChange={setFirstName}
+            onLastNameChange={setLastName}
+            onContactTypeChange={setContactType}
+            onRelationshipTypeChange={setRelationshipType}
+            onEmailChange={setEmail}
+            onPhoneRegionChange={setPhoneRegion}
+            onPhoneNationalChange={setPhoneNational}
+            onInstagramHandleChange={setInstagramHandle}
+            onDateOfBirthChange={setDateOfBirth}
+          />
 
-          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-            <div>
-              <Label htmlFor='crm-contact-email'>Email</Label>
-              <Input
-                id='crm-contact-email'
-                type='email'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete='off'
-              />
-            </div>
-            <div>
-              <PhoneField
-                variant='compact'
-                combinedLabel='Phone number'
-                regionLabel='Phone country / region'
-                nationalLabel='Phone number (national digits)'
-                region={phoneRegion}
-                national={phoneNational}
-                onRegionChange={setPhoneRegion}
-                onNationalChange={setPhoneNational}
-                nationalInputId='crm-contact-phone-national'
-              />
-            </div>
-            <div>
-              <Label htmlFor='crm-contact-ig'>Instagram</Label>
-              <Input
-                id='crm-contact-ig'
-                value={instagramHandle}
-                onChange={(e) => setInstagramHandle(e.target.value)}
-                autoComplete='off'
-              />
-            </div>
-            <div>
-              <Label htmlFor='crm-contact-dob'>Date of birth</Label>
-              <Input
-                id='crm-contact-dob'
-                type='date'
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className='space-y-4'>
-            <div className='grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-end'>
-              <div className='lg:col-span-1'>
-                <Label htmlFor='crm-contact-source'>Source</Label>
-                <Select
-                  id='crm-contact-source'
-                  value={source}
-                  onChange={(e) => {
-                    const v = e.target.value as ApiSchemas['EntityContactSource'];
-                    setSource(v);
-                    if (v !== 'referral') {
-                      setReferralContactId('');
-                      setReferralSearchInput('');
-                      setReferralSearchResults([]);
-                      setReferralPinnedLabel('');
-                    } else {
-                      setReferralSearchResults([]);
-                    }
-                  }}
-                >
-                  {SOURCES.map((v) => (
-                    <option key={v} value={v}>
-                      {formatEnumLabel(v)}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              {source === 'referral' ? (
-                <>
-                  <div className='lg:col-span-1'>
-                    <Label htmlFor='crm-contact-referral-search'>Find referring contact</Label>
-                    <Input
-                      id='crm-contact-referral-search'
-                      value={referralSearchInput}
-                      onChange={(e) => setReferralSearchInput(e.target.value)}
-                      placeholder='Type at least 2 characters (name, email, phone, Instagram)'
-                      autoComplete='off'
-                    />
-                  </div>
-                  <div className='lg:col-span-1'>
-                    <Label htmlFor='crm-contact-referral'>Referred by contact</Label>
-                    <Select
-                      id='crm-contact-referral'
-                      value={referralContactId}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setReferralContactId(v);
-                        const picked = referralSelectOptions.find((o) => o.id === v);
-                        if (picked) {
-                          setReferralPinnedLabel(picked.label);
-                        }
-                      }}
-                    >
-                      <option value=''>Select contact</option>
-                      {referralSelectOptions.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                </>
-              ) : null}
-            </div>
-            <div>
-              <Label htmlFor='crm-contact-source-detail'>Source detail</Label>
-              <Textarea
-                id='crm-contact-source-detail'
-                value={sourceDetail}
-                onChange={(e) => setSourceDetail(e.target.value)}
-                rows={2}
-              />
-            </div>
-          </div>
+          <ContactEditorSourceFields
+            source={source}
+            sourceDetail={sourceDetail}
+            referralContactId={referralContactId}
+            referralSearchInput={referralSearchInput}
+            referralSelectOptions={referralSelectOptions}
+            onSourceChange={(v) => {
+              setSource(v);
+              if (v !== 'referral') {
+                setReferralContactId('');
+                setReferralSearchInput('');
+                setReferralSearchResults([]);
+                setReferralPinnedLabel('');
+              } else {
+                setReferralSearchResults([]);
+              }
+            }}
+            onSourceDetailChange={setSourceDetail}
+            onReferralSearchInputChange={setReferralSearchInput}
+            onReferralContactIdChange={(contactId, pinnedLabel) => {
+              setReferralContactId(contactId);
+              if (pinnedLabel) {
+                setReferralPinnedLabel(pinnedLabel);
+              }
+            }}
+          />
 
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
             <div>

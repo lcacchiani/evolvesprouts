@@ -14,6 +14,17 @@ import {
   type EventFormState,
 } from './event-form-fields';
 import {
+  cloneEventTiersForCreate,
+  cloneSessionSlotsForCreate,
+  consultationFormFromInstanceResolved,
+  mapPartnerRefsFromInstance,
+  mergeServiceIntoConsultationForm,
+  mergeServiceIntoEventForm,
+  mergeServiceIntoInstanceForm,
+  mergeServiceIntoTrainingForm,
+  resolveInheritedEventCategory,
+} from './instance-form-merge';
+import {
   DEFAULT_CONSULTATION_INSTANCE_FORM,
   DEFAULT_EVENT_FORM,
   DEFAULT_INSTANCE_FORM,
@@ -32,16 +43,10 @@ import {
 import type { components } from '@/types/generated/admin-api.generated';
 import {
   isConsultationLikeServiceType,
-  normalizeEventCategoryFromApi,
-  type EventCategory,
-  type EventTicketTier,
   type LocationSummary,
-  type PartnerOrgRef,
   type ServiceInstance,
   type ServiceSummary,
   type ServiceType,
-  type SessionSlot,
-  type SessionSlotFormRow,
 } from '@/types/services';
 
 import { EntityTagPicker } from '@/components/admin/contacts/entity-tag-picker';
@@ -85,133 +90,6 @@ export interface InstanceDetailPanelProps {
     instanceId: string,
     payload: ApiSchemas['UpdateInstanceRequest']
   ) => Promise<void> | void;
-}
-
-function mergeServiceIntoInstanceForm(
-  prev: InstanceFormState,
-  service: ServiceSummary
-): InstanceFormState {
-  return {
-    ...prev,
-    deliveryMode: service.deliveryMode,
-    locationId: service.locationId ?? '',
-  };
-}
-
-function mergeServiceIntoEventForm(_prev: EventFormState, service: ServiceSummary): EventFormState {
-  if (service.serviceType !== 'event') {
-    return DEFAULT_EVENT_FORM;
-  }
-  const ed = service.eventDetails;
-  return {
-    eventCategory: ed?.eventCategory ?? 'workshop',
-    defaultPrice: ed?.defaultPrice ?? '',
-    defaultCurrency: ed?.defaultCurrency ?? defaultCurrencyCode,
-  };
-}
-
-function resolveInheritedEventCategory(
-  selectedService: ServiceSummary | null,
-  instance: ServiceInstance | null
-): EventCategory {
-  const fromService = selectedService?.eventDetails?.eventCategory;
-  if (fromService) {
-    return fromService;
-  }
-  const tierName = instance?.eventTicketTiers?.[0]?.name;
-  if (tierName) {
-    return normalizeEventCategoryFromApi(tierName);
-  }
-  return 'workshop';
-}
-
-function mergeServiceIntoTrainingForm(
-  prev: TrainingFormState,
-  service: ServiceSummary
-): TrainingFormState {
-  if (service.serviceType !== 'training_course' || !service.trainingDetails) {
-    return prev;
-  }
-  const td = service.trainingDetails;
-  return {
-    ...prev,
-    pricingUnit: td.pricingUnit,
-    defaultPrice: td.defaultPrice ?? '',
-    defaultCurrency: td.defaultCurrency ?? defaultCurrencyCode,
-  };
-}
-
-function mergeServiceIntoConsultationForm(
-  prev: ConsultationFormState,
-  service: ServiceSummary
-): ConsultationFormState {
-  if (!isConsultationLikeServiceType(service.serviceType)) {
-    return prev;
-  }
-  if (!service.consultationDetails) {
-    return DEFAULT_CONSULTATION_INSTANCE_FORM;
-  }
-  const cd = service.consultationDetails;
-  const pm = cd.pricingModel;
-  return {
-    ...prev,
-    pricingModel: pm,
-    defaultHourlyRate: pm === 'hourly' ? (cd.defaultHourlyRate ?? '') : '',
-    defaultPackagePrice: pm === 'package' ? (cd.defaultPackagePrice ?? '') : '',
-    defaultPackageSessions: cd.defaultPackageSessions?.toString() ?? '',
-    defaultCurrency: cd.defaultCurrency ?? defaultCurrencyCode,
-  };
-}
-
-function consultationFormFromInstanceResolved(instance: ServiceInstance): ConsultationFormState {
-  const r = instance.resolvedConsultationDetails;
-  if (!r) {
-    return DEFAULT_CONSULTATION_INSTANCE_FORM;
-  }
-  const pm = r.pricingModel;
-  return {
-    consultationFormat: 'one_on_one',
-    maxGroupSize: '',
-    durationMinutes: '',
-    pricingModel: pm,
-    defaultHourlyRate: pm === 'hourly' ? (r.price ?? '') : '',
-    defaultPackagePrice: pm === 'package' ? (r.price ?? '') : '',
-    defaultPackageSessions: r.packageSessions?.toString() ?? '',
-    defaultCurrency: r.currency ?? defaultCurrencyCode,
-  };
-}
-
-function mapPartnerRefsFromInstance(instance: ServiceInstance): PartnerOrgRef[] {
-  return instance.partnerOrganizations.map((row) => ({
-    id: row.id,
-    name: row.name,
-    active: row.active,
-    locationId: row.locationId ?? null,
-  }));
-}
-
-function cloneSessionSlotsForCreate(slots: SessionSlot[]): SessionSlotFormRow[] {
-  return mapSessionSlotsFromApiToForm(slots).map((row) => ({
-    id: null,
-    instanceId: null,
-    locationId: row.locationId,
-    startsAtLocal: row.startsAtLocal,
-    endsAtLocal: row.endsAtLocal,
-    sortOrder: row.sortOrder,
-  }));
-}
-
-function cloneEventTiersForCreate(tiers: EventTicketTier[]): EventTicketTier[] {
-  return tiers.map((tier, index) => ({
-    id: null,
-    instanceId: null,
-    name: tier.name,
-    description: tier.description,
-    price: tier.price,
-    currency: tier.currency,
-    maxQuantity: tier.maxQuantity,
-    sortOrder: tier.sortOrder ?? index,
-  }));
 }
 
 export function InstanceDetailPanel({

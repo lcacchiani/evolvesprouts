@@ -87,170 +87,27 @@ import {
 } from "@/lib/format";
 import { formatAmountInCurrency } from "@/lib/vendor-spend";
 
-const DRAFT_FORM_ID = "client-billing-draft-invoice-form";
-const ALLOCATE_FORM_ID = "client-billing-allocate-form";
-const REFUND_FORM_ID = "client-billing-refund-form";
-const MANUAL_PAYMENT_FORM_ID = "client-billing-manual-payment-form";
-export const NO_ENROLLMENT_OPTION_VALUE = "__none__";
-const INVOICE_LIST_SEARCH_DEBOUNCE_MS = 350;
-
-function isManualInboundPaymentEditable(
-  p: CustomerPaymentSummary | CustomerPaymentDetail | null | undefined,
-): boolean {
-  if (!p?.id) {
-    return false;
-  }
-  if (p.direction !== "inbound") {
-    return false;
-  }
-  const stripe = p.stripePaymentIntentId?.trim() ?? "";
-  if (stripe !== "") {
-    return false;
-  }
-  return true;
-}
-
-type CustomerInvoiceLineRow = NonNullable<
-  CustomerInvoiceDetail["lines"]
->[number];
-
-function invoiceLineSortKey(line: CustomerInvoiceLineRow): number {
-  const o = line.lineOrder;
-  if (typeof o === "number" && Number.isFinite(o)) {
-    return o;
-  }
-  return 0;
-}
-
-function formatAllocateLineOptionLabel(
-  line: CustomerInvoiceLineRow,
-  index: number,
-  descriptionCounts: Map<string, number>,
-): string {
-  const desc = line.description?.trim() ?? "";
-  const base = desc !== "" ? desc : `Line ${String(index + 1)}`;
-  const id = line.id?.trim() ?? "";
-  if (desc !== "" && (descriptionCounts.get(desc) ?? 0) > 1 && id !== "") {
-    return `${base} (${formatTruncatedId(id)})`;
-  }
-  return base;
-}
-
-function formatRecentEnrollmentPaymentSelectLabel(
-  row: BillingEnrollmentPickerRow,
-): string {
-  const party = formatBillingEnrollmentPartyCell(row).trim();
-  const inst = formatEnrollmentPickerInstanceServiceDisplay(row).trim();
-  if (party !== "" && inst !== "") {
-    return `${party} · ${inst}`;
-  }
-  if (party !== "") {
-    return party;
-  }
-  if (inst !== "") {
-    return inst;
-  }
-  return "Enrollment";
-}
-
-/** Manual payment editor (update mode): party · instance/service · tier/cohort when enrollment row is known. */
-function formatManualPaymentEnrollmentEditLabel(
-  row: BillingEnrollmentPickerRow | undefined,
-  partyFallback: string,
-): string {
-  const party = row ? formatBillingEnrollmentPartyCell(row).trim() : "";
-  const inst = row
-    ? formatEnrollmentPickerInstanceServiceDisplay(row).trim()
-    : "";
-  const tierCohort = row
-    ? formatTierCohortDisplay(row.serviceTierName, row.instanceCohort).trim()
-    : "";
-  const parts: string[] = [];
-  if (party !== "") {
-    parts.push(party);
-  }
-  if (inst !== "") {
-    parts.push(inst);
-  }
-  if (tierCohort !== "") {
-    parts.push(tierCohort);
-  }
-  if (parts.length > 0) {
-    return parts.join(" · ");
-  }
-  const fb = partyFallback.trim();
-  return fb !== "" ? fb : "—";
-}
-
-function formatAmountSeedTwoDecimals(raw: string): string {
-  const t = raw.trim();
-  if (t === "") {
-    return "";
-  }
-  const n = Number.parseFloat(t);
-  if (!Number.isFinite(n)) {
-    return t;
-  }
-  return n.toFixed(2);
-}
-
-function currencySelectValue(
-  code: string,
-  options: readonly { value: string }[],
-  fallback: string,
-): string {
-  const normalized = code.trim().toUpperCase() || fallback;
-  return options.some((o) => o.value === normalized) ? normalized : fallback;
-}
-
-function enrollmentNeedsAmountConfirmation(
-  row: BillingEnrollmentPickerRow,
-): boolean {
-  const ap = row.amountPaid?.trim() ?? "";
-  if (ap === "") {
-    return true;
-  }
-  const n = Number.parseFloat(ap);
-  return Number.isNaN(n);
-}
-
-function parseAmountInput(raw: string): number | null {
-  const t = raw.trim();
-  if (t === "") {
-    return null;
-  }
-  const n = Number.parseFloat(t);
-  return Number.isNaN(n) ? null : n;
-}
-
-function defaultLineAmount(row: BillingEnrollmentPickerRow): string {
-  return row.amountPaid != null && row.amountPaid.trim() !== ""
-    ? row.amountPaid.trim()
-    : "0";
-}
-
-function lineAmountsDiffer(
-  input: string,
-  row: BillingEnrollmentPickerRow,
-): boolean {
-  const trimmed = input.trim();
-  const baseline = defaultLineAmount(row);
-  const a = Number.parseFloat(trimmed === "" ? baseline : trimmed);
-  const b = Number.parseFloat(baseline);
-  if (!Number.isNaN(a) && !Number.isNaN(b)) {
-    return Math.abs(a - b) > 1e-9;
-  }
-  return trimmed !== "" && trimmed !== baseline;
-}
-
-/** Normalize admin-entered CSV/semicolon-separated emails for the billing API (comma-separated). */
-function normalizeInvoiceRecipientList(raw: string): string {
-  return raw
-    .split(/[,;]+/)
-    .map((part) => part.trim())
-    .filter((part) => part !== "")
-    .join(", ");
-}
+import {
+  ALLOCATE_FORM_ID,
+  currencySelectValue,
+  defaultLineAmount,
+  DRAFT_FORM_ID,
+  enrollmentNeedsAmountConfirmation,
+  formatAllocateLineOptionLabel,
+  formatAmountSeedTwoDecimals,
+  formatManualPaymentEnrollmentEditLabel,
+  formatRecentEnrollmentPaymentSelectLabel,
+  INVOICE_LIST_SEARCH_DEBOUNCE_MS,
+  invoiceLineSortKey,
+  isManualInboundPaymentEditable,
+  lineAmountsDiffer,
+  MANUAL_PAYMENT_FORM_ID,
+  NO_ENROLLMENT_OPTION_VALUE,
+  normalizeInvoiceRecipientList,
+  parseAmountInput,
+  REFUND_FORM_ID,
+} from '@/components/admin/finance/client-invoices-utils';
+export { NO_ENROLLMENT_OPTION_VALUE };
 
 export function ClientInvoicesPanel() {
   const draftFilterId = useId();

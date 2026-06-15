@@ -54,6 +54,10 @@ import {
   type TrainingFormState,
 } from './training-form-fields';
 import { ServiceTierControl } from './service-tier-control';
+import {
+  buildServiceCreatePayload,
+  buildServiceUpdatePayload,
+} from './service-detail-payload';
 
 type ApiSchemas = components['schemas'];
 
@@ -436,48 +440,6 @@ export function ServiceDetailPanel({
     </div>
   );
 
-  const buildTypeSpecificPayload = (
-    currentServiceType: ServiceType
-  ):
-    | Pick<ApiSchemas['CreateServiceRequest'], 'training_details'>
-    | Pick<ApiSchemas['CreateServiceRequest'], 'event_details'>
-    | Pick<ApiSchemas['CreateServiceRequest'], 'consultation_details'> => {
-    if (currentServiceType === 'training_course') {
-      return {
-        training_details: {
-          pricing_unit: trainingForm.pricingUnit,
-          default_price: trainingForm.defaultPrice.trim() || null,
-          default_currency: trainingForm.defaultCurrency.trim() || 'HKD',
-        },
-      };
-    }
-    if (currentServiceType === 'event') {
-      return {
-        event_details: {
-          event_category: eventForm.eventCategory,
-          default_price: eventForm.defaultPrice.trim() || null,
-          default_currency: eventForm.defaultCurrency.trim() || 'HKD',
-        },
-      };
-    }
-    return {
-      consultation_details: {
-        consultation_format: consultationForm.consultationFormat,
-        max_group_size: consultationForm.maxGroupSize ? Number(consultationForm.maxGroupSize) : null,
-        duration_minutes: consultationForm.durationMinutes
-          ? Number(consultationForm.durationMinutes)
-          : null,
-        pricing_model: consultationForm.pricingModel,
-        default_hourly_rate: consultationForm.defaultHourlyRate.trim() || null,
-        default_package_price: consultationForm.defaultPackagePrice.trim() || null,
-        default_package_sessions: consultationForm.defaultPackageSessions
-          ? Number(consultationForm.defaultPackageSessions)
-          : null,
-        default_currency: consultationForm.defaultCurrency.trim() || 'HKD',
-      },
-    };
-  };
-
   async function confirmServiceKeyChangeIfNeeded(newServiceKey: string | null, oldServiceKey: string | null): Promise<boolean> {
     if (newServiceKey === oldServiceKey) {
       return true;
@@ -523,17 +485,19 @@ export function ServiceDetailPanel({
       return;
     }
     try {
-      await onUpdate({
-        title: serviceForm.title.trim(),
-        description: serviceForm.description.trim() || null,
-        service_key: newServiceKey,
-        booking_system: bookingSystem.trim() || null,
-        service_tier: serviceTier.trim() || null,
-        location_id: serviceForm.deliveryMode === 'online' ? null : locationId.trim() || null,
-        delivery_mode: serviceForm.deliveryMode,
-        status: serviceForm.status,
-        ...buildTypeSpecificPayload(service.serviceType),
-      });
+      await onUpdate(
+        buildServiceUpdatePayload({
+          serviceType: service.serviceType,
+          serviceForm,
+          serviceKey: newServiceKey,
+          bookingSystem,
+          serviceTier,
+          locationId,
+          trainingForm,
+          eventForm,
+          consultationForm,
+        }),
+      );
       setServiceKeyTierConflict(null);
     } catch (caught) {
       if (
@@ -551,18 +515,19 @@ export function ServiceDetailPanel({
   async function submitCreate() {
     const tierPayloadNormalized = serviceTier.trim().toLowerCase() || null;
     try {
-      await onCreate({
-        service_type: serviceType,
-        title: serviceForm.title.trim(),
-        description: serviceForm.description.trim() || null,
-        service_key: serviceKeyPayloadValue,
-        booking_system: bookingSystem.trim() || null,
-        service_tier: serviceTier.trim() || null,
-        location_id: serviceForm.deliveryMode === 'online' ? null : locationId.trim() || null,
-        delivery_mode: serviceForm.deliveryMode,
-        status: serviceForm.status,
-        ...buildTypeSpecificPayload(serviceType),
-      });
+      await onCreate(
+        buildServiceCreatePayload({
+          serviceType,
+          serviceForm,
+          serviceKey: serviceKeyPayloadValue,
+          bookingSystem,
+          serviceTier,
+          locationId,
+          trainingForm,
+          eventForm,
+          consultationForm,
+        }),
+      );
       setServiceKeyTierConflict(null);
     } catch (caught) {
       if (
