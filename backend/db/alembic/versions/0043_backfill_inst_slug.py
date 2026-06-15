@@ -20,8 +20,8 @@ Seed-data assessment:
 6. FK/cascade changes: none.
 
 Downgrade is intentionally non-destructive: backfilled values are not safely
-reversible without losing public URLs. ``downgrade()`` prints a one-line message
-to stdout (for tests and deploy logs); it does not alter data.
+reversible without losing public URLs. ``downgrade()`` logs a warning and does
+not alter data.
 """
 
 from __future__ import annotations
