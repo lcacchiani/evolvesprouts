@@ -83,7 +83,8 @@ their primary responsibilities.
   `GET /v1/admin/contacts/search` for contact picker search,
   `GET|POST /v1/admin/contacts/{id}/notes` and `PATCH|DELETE /v1/admin/contacts/{id}/notes/{noteId}`
   for standalone CRM notes on a contact (not tied to a sales lead), `GET /v1/admin/contacts/{id}/services`
-  for read-only purchased-service labels on a contact, and `DELETE /v1/admin/contacts/{id}`
+  for read-only purchased-service labels on a contact (including services purchased by any family or
+  organisation the contact belongs to), and `DELETE /v1/admin/contacts/{id}`
   for hard-deleting a contact after clearing blocking CRM rows),
   `/v1/admin/families/picker`, `/v1/admin/families/*` (`GET /v1/admin/families` optional `query`
   matches family name and linked member contacts' names or email; `PATCH /v1/admin/families/{id}` with
