@@ -29,8 +29,7 @@ export function useClientInvoicesAllocateRefund({
   invoices,
   selectedId,
   detail,
-  loadPayments,
-  loadInvoicesFirstPage,
+  billingRefresh,
   loadDetail,
 }: ClientInvoicesAllocateRefundInput) {
   const { currencyOptions, defaultCurrency, setActionMessage, setActionError, setBusy } =
@@ -307,10 +306,10 @@ export function useClientInvoicesAllocateRefund({
         currency: allocateCurrency.trim().toUpperCase() || defaultCurrency,
       });
       setActionMessage(`Allocation created: ${out.allocationId}`);
-      await loadPayments();
+      await billingRefresh.refreshPayments();
       const ac = new AbortController();
       await loadDetail(selectedId, ac.signal);
-      await loadInvoicesFirstPage();
+      await billingRefresh.refreshInvoices();
     } catch (caught) {
       setActionError(
         toErrorMessage(caught, "Allocation failed.", {
@@ -348,7 +347,7 @@ export function useClientInvoicesAllocateRefund({
           refundStripeId.trim() === "" ? null : refundStripeId.trim(),
       });
       setActionMessage("Refund payment row recorded.");
-      await loadPayments();
+      await billingRefresh.refreshPayments();
       setRefundInvoicePaymentsRefresh((n) => n + 1);
     } catch (caught) {
       setActionError(

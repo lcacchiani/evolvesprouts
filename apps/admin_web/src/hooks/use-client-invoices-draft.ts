@@ -10,7 +10,6 @@ import {
 
 import type {
   ClientInvoicesDraftInput,
-  ClientInvoicesPanelShared,
 } from "@/hooks/client-invoices-panel-types";
 import { toErrorMessage } from "@/hooks/hook-errors";
 import {
@@ -29,8 +28,7 @@ import {
 export function useClientInvoicesDraft({
   shared,
   selection,
-  loadPayments,
-  loadInvoicesFirstPage,
+  billingRefresh,
 }: ClientInvoicesDraftInput) {
   const { setActionMessage, setActionError, setBusy } = shared;
   const {
@@ -240,9 +238,11 @@ export function useClientInvoicesDraft({
       setAllocateLineId("");
       setActionMessage(`Draft invoice created: ${result.invoiceId}`);
       setDraftInvoiceDate(localTodayYmd());
-      await loadPayments();
-      await loadInvoicesFirstPage();
-      await loadEnrollmentPicker(undefined, enrollmentFilter.trim());
+      await billingRefresh.refreshBillingLists();
+      await billingRefresh.refreshEnrollmentPicker(
+        undefined,
+        enrollmentFilter.trim(),
+      );
     } catch (caught) {
       setActionError(
         toErrorMessage(caught, "Create draft failed.", {
@@ -283,51 +283,3 @@ export function useClientInvoicesDraft({
 }
 
 export type ClientInvoicesDraftVm = ReturnType<typeof useClientInvoicesDraft>;
-
-export function buildClientInvoicesDraftVmSlice(
-  shared: ClientInvoicesPanelShared,
-  draft: ClientInvoicesDraftVm,
-  loadPayments: (signal?: AbortSignal) => Promise<void>,
-  loadInvoicesFirstPage: (signal?: AbortSignal) => Promise<void>,
-  selection: ClientInvoicesDraftInput["selection"],
-) {
-  const {
-    setSelectedInvoiceId,
-    setAllocateInvoiceId,
-    setAllocateLineId,
-  } = selection;
-
-  return {
-    draftCreationMode: draft.draftCreationMode,
-    setDraftCreationMode: draft.setDraftCreationMode,
-    customizedFormSubmitEnabled: draft.customizedFormSubmitEnabled,
-    setCustomizedFormSubmitEnabled: draft.setCustomizedFormSubmitEnabled,
-    enrollmentFilter: draft.enrollmentFilter,
-    setEnrollmentFilter: draft.setEnrollmentFilter,
-    enrollmentPickerRows: draft.enrollmentPickerRows,
-    enrollmentPickerTruncated: draft.enrollmentPickerTruncated,
-    enrollmentPickerLoading: draft.enrollmentPickerLoading,
-    enrollmentPickerError: draft.enrollmentPickerError,
-    selectedEnrollmentIds: draft.selectedEnrollmentIds,
-    setSelectedEnrollmentIds: draft.setSelectedEnrollmentIds,
-    lineOverrideByEnrollmentId: draft.lineOverrideByEnrollmentId,
-    setLineOverrideByEnrollmentId: draft.setLineOverrideByEnrollmentId,
-    draftInvoiceDateMin: draft.draftInvoiceDateMin,
-    draftInvoiceDateMax: draft.draftInvoiceDateMax,
-    draftInvoiceDate: draft.draftInvoiceDate,
-    setDraftInvoiceDate: draft.setDraftInvoiceDate,
-    selectableFilteredRows: draft.selectableFilteredRows,
-    selectedEnrollmentRows: draft.selectedEnrollmentRows,
-    draftSelectionIssue: draft.draftSelectionIssue,
-    draftAmountIssue: draft.draftAmountIssue,
-    handleCreateDraft: draft.handleCreateDraft,
-    loadPayments,
-    loadInvoicesFirstPage,
-    setBusy: shared.setBusy,
-    setActionError: shared.setActionError,
-    setSelectedInvoiceId,
-    setAllocateInvoiceId,
-    setAllocateLineId,
-    setActionMessage: shared.setActionMessage,
-  };
-}

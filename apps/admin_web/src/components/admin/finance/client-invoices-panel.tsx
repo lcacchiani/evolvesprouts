@@ -14,8 +14,19 @@ import { useClientInvoicesPanel } from "@/hooks/use-client-invoices-panel";
 export { NO_ENROLLMENT_OPTION_VALUE };
 
 export function ClientInvoicesPanel() {
-  const vm = useClientInvoicesPanel();
-  const { banners } = vm;
+  const {
+    ids,
+    currency,
+    banners,
+    busy,
+    draft,
+    invoices,
+    manualPayment,
+    payments,
+    allocate,
+    refund,
+    dialogs,
+  } = useClientInvoicesPanel();
   const { actionMessage, actionError } = banners;
 
   return (
@@ -31,13 +42,39 @@ export function ClientInvoicesPanel() {
         </StatusBanner>
       ) : null}
 
-      <ClientInvoicesDraftEditor vm={vm} />
-      <ClientInvoicesInvoicesTable vm={vm} />
-      <ClientInvoicesManualPaymentEditor vm={vm} />
-      <ClientInvoicesPaymentsTable vm={vm} />
-      <ClientInvoicesAllocateEditor vm={vm} />
-      <ClientInvoicesRefundEditor vm={vm} />
-      <ClientInvoicesBillingDialogs vm={vm} />
+      <ClientInvoicesDraftEditor
+        ids={ids}
+        currency={currency}
+        busy={busy}
+        draft={draft}
+      />
+      <ClientInvoicesInvoicesTable
+        ids={ids}
+        currency={currency}
+        busy={busy}
+        invoices={invoices}
+      />
+      <ClientInvoicesManualPaymentEditor
+        currency={currency}
+        busy={busy}
+        manualPayment={manualPayment}
+      />
+      <ClientInvoicesPaymentsTable
+        currency={currency}
+        busy={busy}
+        payments={payments}
+      />
+      <ClientInvoicesAllocateEditor
+        currency={currency}
+        busy={busy}
+        allocate={allocate}
+      />
+      <ClientInvoicesRefundEditor
+        currency={currency}
+        busy={busy}
+        refund={refund}
+      />
+      <ClientInvoicesBillingDialogs busy={busy} dialogs={dialogs} />
     </div>
   );
 }

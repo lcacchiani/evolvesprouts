@@ -6,16 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import type { useClientInvoicesPanel } from "@/hooks/use-client-invoices-panel";
-
-type ClientInvoicesPanelVm = ReturnType<typeof useClientInvoicesPanel>;
+import type {
+  ClientInvoicesBillingDialogsSlice,
+  ClientInvoicesPanelBusy,
+} from "@/hooks/client-invoices-panel-types";
 
 export interface ClientInvoicesBillingDialogsProps {
-  vm: ClientInvoicesPanelVm;
+  busy: ClientInvoicesPanelBusy;
+  dialogs: ClientInvoicesBillingDialogsSlice;
 }
 
-export function ClientInvoicesBillingDialogs({ vm }: ClientInvoicesBillingDialogsProps) {
-  const { busy, dialogs } = vm;
+export function ClientInvoicesBillingDialogs({
+  busy,
+  dialogs,
+}: ClientInvoicesBillingDialogsProps) {
   const { busyAction, editorBusy } = busy;
   const {
     voidDialogOpen,

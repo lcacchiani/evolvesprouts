@@ -11,16 +11,23 @@ import { Select } from "@/components/ui/select";
 import { formatTruncatedId } from "@/components/admin/finance/client-invoices-format-helpers";
 import { REFUND_FORM_ID } from "@/components/admin/finance/client-invoices-utils";
 
-import type { useClientInvoicesPanel } from "@/hooks/use-client-invoices-panel";
-
-type ClientInvoicesPanelVm = ReturnType<typeof useClientInvoicesPanel>;
+import type {
+  ClientInvoicesPanelBusy,
+  ClientInvoicesPanelCurrency,
+  ClientInvoicesRefundEditorSlice,
+} from "@/hooks/client-invoices-panel-types";
 
 export interface ClientInvoicesRefundEditorProps {
-  vm: ClientInvoicesPanelVm;
+  currency: ClientInvoicesPanelCurrency;
+  busy: ClientInvoicesPanelBusy;
+  refund: ClientInvoicesRefundEditorSlice;
 }
 
-export function ClientInvoicesRefundEditor({ vm }: ClientInvoicesRefundEditorProps) {
-  const { currency, busy, refund } = vm;
+export function ClientInvoicesRefundEditor({
+  currency,
+  busy,
+  refund,
+}: ClientInvoicesRefundEditorProps) {
   const { currencyOptions } = currency;
   const { busyAction, editorBusy } = busy;
   const {

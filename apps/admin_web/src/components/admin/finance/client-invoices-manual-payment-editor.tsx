@@ -13,16 +13,23 @@ import {
   formatRecentEnrollmentPaymentSelectLabel,
 } from "@/components/admin/finance/client-invoices-utils";
 
-import type { useClientInvoicesPanel } from "@/hooks/use-client-invoices-panel";
-
-type ClientInvoicesPanelVm = ReturnType<typeof useClientInvoicesPanel>;
+import type {
+  ClientInvoicesManualPaymentEditorSlice,
+  ClientInvoicesPanelBusy,
+  ClientInvoicesPanelCurrency,
+} from "@/hooks/client-invoices-panel-types";
 
 export interface ClientInvoicesManualPaymentEditorProps {
-  vm: ClientInvoicesPanelVm;
+  currency: ClientInvoicesPanelCurrency;
+  busy: ClientInvoicesPanelBusy;
+  manualPayment: ClientInvoicesManualPaymentEditorSlice;
 }
 
-export function ClientInvoicesManualPaymentEditor({ vm }: ClientInvoicesManualPaymentEditorProps) {
-  const { currency, busy, manualPayment } = vm;
+export function ClientInvoicesManualPaymentEditor({
+  currency,
+  busy,
+  manualPayment,
+}: ClientInvoicesManualPaymentEditorProps) {
   const { currencyOptions } = currency;
   const { busyAction, editorBusy } = busy;
   const {

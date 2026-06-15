@@ -27,16 +27,26 @@ import {
 } from "@/lib/format";
 import { formatAmountInCurrency } from "@/lib/vendor-spend";
 
-import type { useClientInvoicesPanel } from "@/hooks/use-client-invoices-panel";
-
-type ClientInvoicesPanelVm = ReturnType<typeof useClientInvoicesPanel>;
+import type {
+  ClientInvoicesInvoicesTableSlice,
+  ClientInvoicesPanelBusy,
+  ClientInvoicesPanelCurrency,
+  ClientInvoicesPanelIds,
+} from "@/hooks/client-invoices-panel-types";
 
 export interface ClientInvoicesInvoicesTableProps {
-  vm: ClientInvoicesPanelVm;
+  ids: ClientInvoicesPanelIds;
+  currency: ClientInvoicesPanelCurrency;
+  busy: ClientInvoicesPanelBusy;
+  invoices: ClientInvoicesInvoicesTableSlice;
 }
 
-export function ClientInvoicesInvoicesTable({ vm }: ClientInvoicesInvoicesTableProps) {
-  const { ids, currency, busy, invoices: inv } = vm;
+export function ClientInvoicesInvoicesTable({
+  ids,
+  currency,
+  busy,
+  invoices: inv,
+}: ClientInvoicesInvoicesTableProps) {
   const { invoiceSearchFilterId, invoiceSettlementFilterId } = ids;
   const { currencyOptions, defaultCurrency } = currency;
   const { busyAction, editorBusy } = busy;

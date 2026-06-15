@@ -14,16 +14,23 @@ import {
   formatAllocateLineOptionLabel,
 } from "@/components/admin/finance/client-invoices-utils";
 
-import type { useClientInvoicesPanel } from "@/hooks/use-client-invoices-panel";
-
-type ClientInvoicesPanelVm = ReturnType<typeof useClientInvoicesPanel>;
+import type {
+  ClientInvoicesAllocateEditorSlice,
+  ClientInvoicesPanelBusy,
+  ClientInvoicesPanelCurrency,
+} from "@/hooks/client-invoices-panel-types";
 
 export interface ClientInvoicesAllocateEditorProps {
-  vm: ClientInvoicesPanelVm;
+  currency: ClientInvoicesPanelCurrency;
+  busy: ClientInvoicesPanelBusy;
+  allocate: ClientInvoicesAllocateEditorSlice;
 }
 
-export function ClientInvoicesAllocateEditor({ vm }: ClientInvoicesAllocateEditorProps) {
-  const { currency, busy, allocate } = vm;
+export function ClientInvoicesAllocateEditor({
+  currency,
+  busy,
+  allocate,
+}: ClientInvoicesAllocateEditorProps) {
   const { currencyOptions } = currency;
   const { busyAction, editorBusy } = busy;
   const {

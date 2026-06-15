@@ -18,16 +18,23 @@ import { formatPaymentMethodLabel } from "@/components/admin/finance/client-invo
 import { formatEnumLabel } from "@/lib/format";
 import { formatAmountInCurrency } from "@/lib/vendor-spend";
 
-import type { useClientInvoicesPanel } from "@/hooks/use-client-invoices-panel";
-
-type ClientInvoicesPanelVm = ReturnType<typeof useClientInvoicesPanel>;
+import type {
+  ClientInvoicesPanelBusy,
+  ClientInvoicesPanelCurrency,
+  ClientInvoicesPaymentsTableSlice,
+} from "@/hooks/client-invoices-panel-types";
 
 export interface ClientInvoicesPaymentsTableProps {
-  vm: ClientInvoicesPanelVm;
+  currency: ClientInvoicesPanelCurrency;
+  busy: ClientInvoicesPanelBusy;
+  payments: ClientInvoicesPaymentsTableSlice;
 }
 
-export function ClientInvoicesPaymentsTable({ vm }: ClientInvoicesPaymentsTableProps) {
-  const { currency, busy, payments: pay } = vm;
+export function ClientInvoicesPaymentsTable({
+  currency,
+  busy,
+  payments: pay,
+}: ClientInvoicesPaymentsTableProps) {
   const { defaultCurrency } = currency;
   const { busyAction, editorBusy } = busy;
   const {

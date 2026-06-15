@@ -34,16 +34,26 @@ import {
 } from "@/lib/format";
 import { formatAmountInCurrency } from "@/lib/vendor-spend";
 
-import type { useClientInvoicesPanel } from "@/hooks/use-client-invoices-panel";
-
-type ClientInvoicesPanelVm = ReturnType<typeof useClientInvoicesPanel>;
+import type {
+  ClientInvoicesDraftEditorSlice,
+  ClientInvoicesPanelBusy,
+  ClientInvoicesPanelCurrency,
+  ClientInvoicesPanelIds,
+} from "@/hooks/client-invoices-panel-types";
 
 export interface ClientInvoicesDraftEditorProps {
-  vm: ClientInvoicesPanelVm;
+  ids: ClientInvoicesPanelIds;
+  currency: ClientInvoicesPanelCurrency;
+  busy: ClientInvoicesPanelBusy;
+  draft: ClientInvoicesDraftEditorSlice;
 }
 
-export function ClientInvoicesDraftEditor({ vm }: ClientInvoicesDraftEditorProps) {
-  const { ids, currency, busy, draft } = vm;
+export function ClientInvoicesDraftEditor({
+  ids,
+  currency,
+  busy,
+  draft,
+}: ClientInvoicesDraftEditorProps) {
   const {
     draftFilterId,
     draftModeId,
@@ -75,8 +85,7 @@ export function ClientInvoicesDraftEditor({ vm }: ClientInvoicesDraftEditorProps
     draftSelectionIssue,
     draftAmountIssue,
     handleCreateDraft,
-    loadPayments,
-    loadInvoicesFirstPage,
+    refreshBillingLists,
     setBusy,
     setActionError,
     setSelectedInvoiceId,
@@ -436,8 +445,7 @@ export function ClientInvoicesDraftEditor({ vm }: ClientInvoicesDraftEditorProps
               setAllocateLineId("");
               setActionMessage(`Draft invoice created: ${invoiceId}`);
               setDraftInvoiceDate(localTodayYmd());
-              await loadPayments();
-              await loadInvoicesFirstPage();
+              await refreshBillingLists();
             }}
           />
         )}

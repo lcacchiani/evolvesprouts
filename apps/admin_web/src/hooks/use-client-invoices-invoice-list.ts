@@ -22,7 +22,7 @@ import {
 export function useClientInvoicesInvoiceList({
   shared,
   selection,
-  loadPayments,
+  billingRefresh,
   loadEnrollmentPicker,
   enrollmentFilter,
 }: ClientInvoicesInvoiceListInput) {
@@ -240,8 +240,7 @@ export function useClientInvoicesInvoiceList({
       await voidInvoice(id, voidReason.trim());
       setActionMessage(`Invoice voided: ${id}`);
       closeVoidInvoiceDialog();
-      await loadPayments();
-      await loadInvoicesFirstPage();
+      await billingRefresh.refreshBillingLists();
     } catch (caught) {
       setVoidError(
         toErrorMessage(caught, "Void failed.", { honorBackendMessage: true }),
@@ -281,9 +280,11 @@ export function useClientInvoicesInvoiceList({
         setAllocateInvoiceId("");
         setAllocateLineId("");
       }
-      await loadPayments();
-      await loadInvoicesFirstPage();
-      await loadEnrollmentPicker(undefined, enrollmentFilter.trim());
+      await billingRefresh.refreshBillingLists();
+      await billingRefresh.refreshEnrollmentPicker(
+        undefined,
+        enrollmentFilter.trim(),
+      );
     } catch (caught) {
       setDeleteDraftError(
         toErrorMessage(caught, "Delete failed.", { honorBackendMessage: true }),
@@ -312,7 +313,7 @@ export function useClientInvoicesInvoiceList({
       setActionMessage(
         out.sent ? "Email send accepted." : "Email was not confirmed sent.",
       );
-      await loadInvoicesFirstPage();
+      await billingRefresh.refreshInvoices();
     } catch (caught) {
       setIssuedInvoiceEmailError(
         toErrorMessage(caught, "Email failed.", { honorBackendMessage: true }),
@@ -334,7 +335,7 @@ export function useClientInvoicesInvoiceList({
             ? ` (SHA-256: ${out.issuedPdfSha256.slice(0, 16)}…)`
             : ""),
       );
-      await loadInvoicesFirstPage();
+      await billingRefresh.refreshInvoices();
     } catch (caught) {
       setActionError(
         toErrorMessage(caught, "Issue failed.", { honorBackendMessage: true }),
