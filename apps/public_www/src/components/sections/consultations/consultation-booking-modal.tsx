@@ -8,6 +8,7 @@ import {
 } from 'react';
 
 import { BookingFlowModalShell } from '@/components/sections/booking-modal/booking-flow-modal-shell';
+import { useBookingModalScaffold } from '@/components/sections/booking-modal/use-booking-modal-scaffold';
 import { BookingEventDetails } from '@/components/sections/booking-modal/event-details';
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
 import type { MetaPixelContentName } from '@/lib/meta-pixel';
@@ -39,8 +40,7 @@ import {
   type ConsultationUnavailableByYmd,
 } from '@/lib/consultation-booking-slot';
 import { PUBLIC_SITE_IANA_TIMEZONE } from '@/lib/site-datetime';
-import { useModalLockBody } from '@/lib/hooks/use-modal-lock-body';
-import { useModalFocusManagement } from '@/lib/hooks/use-modal-focus-management';
+import { formatSlotDayAriaLabel } from '@/components/sections/shared/slot-picker-helpers';
 import { mergeClassNames } from '@/lib/class-name-utils';
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { SectionSpinnerStatus } from '@/components/shared/section-spinner-status';
@@ -201,19 +201,19 @@ function ConsultationDatePickerGrid({
                   const isDayDisabled = cell.isDisabled || interactionDisabled;
                   let ariaDayLabel: string;
                   if (interactionDisabled && !cell.isDisabled) {
-                    ariaDayLabel = content.datePickerLoadingDayTemplate.replace(
-                      '{day}',
-                      String(cell.dayOfMonth),
+                    ariaDayLabel = formatSlotDayAriaLabel(
+                      content.datePickerLoadingDayTemplate,
+                      cell.dayOfMonth,
                     );
                   } else if (isDayDisabled) {
-                    ariaDayLabel = content.datePickerUnavailableDayTemplate.replace(
-                      '{day}',
-                      String(cell.dayOfMonth),
+                    ariaDayLabel = formatSlotDayAriaLabel(
+                      content.datePickerUnavailableDayTemplate,
+                      cell.dayOfMonth,
                     );
                   } else {
-                    ariaDayLabel = content.datePickerDayTemplate.replace(
-                      '{day}',
-                      String(cell.dayOfMonth),
+                    ariaDayLabel = formatSlotDayAriaLabel(
+                      content.datePickerDayTemplate,
+                      cell.dayOfMonth,
                     );
                   }
                   return (
@@ -356,10 +356,12 @@ export function ConsultationBookingModal({
   onUpgradeToDeepDive,
 }: ConsultationBookingModalProps) {
   const topicsFieldConfig = bookingPayload.topicsFieldConfig;
-  const modalPanelRef = useRef<HTMLElement | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const dialogTitleId = useId();
-  const dialogDescriptionId = useId();
+  const {
+    modalPanelRef,
+    closeButtonRef,
+    dialogTitleId,
+    dialogDescriptionId,
+  } = useBookingModalScaffold(onClose);
 
   const timeZone = useMemo(() => PUBLIC_SITE_IANA_TIMEZONE, []);
 
@@ -403,14 +405,6 @@ export function ConsultationBookingModal({
     }
     setPickerSelection({ ymd: selectedYmd, period });
   }
-
-  useModalLockBody({ onEscape: onClose });
-  useModalFocusManagement({
-    isActive: true,
-    containerRef: modalPanelRef,
-    initialFocusRef: closeButtonRef,
-    restoreFocus: true,
-  });
 
   const rebasedParts = useMemo(() => {
     if (!selectedYmd) {

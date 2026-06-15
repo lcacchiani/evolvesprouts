@@ -87,6 +87,12 @@ describe('Page section structure contract', () => {
       expect(source).toMatch(
         /<SectionShell[\s\S]*?id='[a-z0-9-]+'[\s\S]*?dataFigmaNode='[a-z0-9-]+'/,
       );
+
+      const idMatch = source.match(/<SectionShell[\s\S]*?id='([a-z0-9-]+)'/);
+      const nodeMatch = source.match(/dataFigmaNode='([a-z0-9-]+)'/);
+      expect(idMatch?.[1]).toBeTruthy();
+      expect(nodeMatch?.[1]).toBeTruthy();
+      expect(idMatch?.[1]).toBe(nodeMatch?.[1]);
     },
   );
 });

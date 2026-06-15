@@ -42,7 +42,7 @@ describe('HeroBanner section', () => {
       <HeroBanner content={enContent.hero} ctaHref={ctaHref} />,
     );
 
-    const section = container.querySelector('section[data-figma-node="banner"]');
+    const section = container.querySelector('section[data-figma-node="hero-banner"]');
     expect(section).not.toBeNull();
     expect(section?.className).toContain('es-hero-section');
     expect(section?.className).toContain('es-section-shell-spacing');

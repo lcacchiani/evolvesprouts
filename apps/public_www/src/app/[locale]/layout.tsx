@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Script from 'next/script';
 
 import { renderQuotedDescriptionText } from '@/components/sections/shared/render-highlighted-text';
 import { StructuredDataScript } from '@/components/shared/structured-data-script';
@@ -40,6 +41,19 @@ export default async function LocaleLayout({
 
   return (
     <div data-locale={locale} dir={direction}>
+      <a
+        href='#main-content'
+        className='sr-only fixed left-4 top-4 z-[80] rounded-md bg-black px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black'
+      >
+        {content.common.shell.skipToMainContentLabel}
+      </a>
+      <div
+        id='environment-badge'
+        className='pointer-events-none fixed right-4 top-4 z-50 hidden rounded-md bg-amber-500 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white shadow-md'
+      >
+        {content.common.shell.environmentBadgeLabel}
+      </div>
+      <Script src='/scripts/show-staging-badge.js' strategy='afterInteractive' />
       <StructuredDataScript
         id={`organization-jsonld-${locale}`}
         data={buildOrganizationSchema({

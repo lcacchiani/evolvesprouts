@@ -87,6 +87,7 @@ export function LandingPage({
             <LandingPageDetails
               content={pageContent.details}
               ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
+              commonAccessibility={siteContent.common.accessibility}
               sectionClassName='es-section-bg-overlay es-book-a-free-call-good-to-know-section'
             />
             {introCallSectionBeforeCta}
@@ -112,6 +113,7 @@ export function LandingPage({
             <LandingPageDetails
               content={pageContent.details}
               ariaLabel={siteContent.landingPages.common.a11y.detailsSectionLabel}
+              commonAccessibility={siteContent.common.accessibility}
             />
             <Testimonials
               content={siteContent.testimonials}

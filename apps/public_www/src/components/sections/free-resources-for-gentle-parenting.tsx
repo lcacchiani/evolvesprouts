@@ -9,12 +9,7 @@ import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { FreeResourcesOverlayLayout } from '@/components/sections/free-resources-overlay-layout';
 import { FreeResourcesSplitLayout } from '@/components/sections/free-resources-split-layout';
-import enContent from '@/content/en.json';
-import {
-  readOptionalText,
-  readStringUnion,
-  toRecord,
-} from '@/content/content-field-utils';
+import { readOptionalText, readStringUnion, toRecord } from '@/content/content-field-utils';
 import type { Locale, ResourcesContent } from '@/content';
 
 interface FreeResourcesForGentleParentingProps {
@@ -65,8 +60,6 @@ interface ResourceCardContentProps {
 const HEADER_ALIGNMENT_VALUES = ['left', 'center'] as const;
 const LAYOUT_VARIANT_VALUES = ['split', 'overlay'] as const;
 const HORIZONTAL_POSITION_VALUES = ['left', 'right'] as const;
-
-const fallbackResourcesContent = enContent.resources;
 
 function readSectionConfig(
   content: ResourcesContent,
@@ -280,55 +273,25 @@ export function FreeResourcesForGentleParenting({
   const cardDescription =
     readOptionalText(content.cardDescription) ??
     content.description;
-  const ctaLabel = readOptionalText(content.ctaLabel) ?? fallbackResourcesContent.ctaLabel;
+  const ctaLabel = readOptionalText(content.ctaLabel) ?? content.ctaLabel;
   const resourceKey =
     readOptionalText(content.resourceKey) ?? 'patience-free-guide';
-  const formFirstNameLabel =
-    readOptionalText(content.formFirstNameLabel)
-    ?? fallbackResourcesContent.formFirstNameLabel;
-  const formEmailLabel =
-    readOptionalText(content.formEmailLabel)
-    ?? fallbackResourcesContent.formEmailLabel;
-  const formFirstNameValidationMessage =
-    readOptionalText(content.formFirstNameValidationMessage)
-    ?? fallbackResourcesContent.formFirstNameValidationMessage;
-  const formEmailValidationMessage =
-    readOptionalText(content.formEmailValidationMessage)
-    ?? fallbackResourcesContent.formEmailValidationMessage;
-  const formSubmitLabel =
-    readOptionalText(content.formSubmitLabel)
-    ?? fallbackResourcesContent.formSubmitLabel;
-  const formSubmittingLabel =
-    readOptionalText(content.formSubmittingLabel)
-    ?? fallbackResourcesContent.formSubmittingLabel;
-  const formSuccessMessage =
-    readOptionalText(content.formSuccessMessage) ??
-    fallbackResourcesContent.formSuccessMessage;
-  const formErrorMessage =
-    readOptionalText(content.formErrorMessage) ??
-    fallbackResourcesContent.formErrorMessage;
-  const formMarketingOptInLabel =
-    readOptionalText(content.formMarketingOptInLabel) ??
-    fallbackResourcesContent.formMarketingOptInLabel;
-  const formCaptchaRequiredError =
-    readOptionalText(content.formCaptchaRequiredError) ??
-    fallbackResourcesContent.formCaptchaRequiredError;
-  const formCaptchaLoadError =
-    readOptionalText(content.formCaptchaLoadError) ??
-    fallbackResourcesContent.formCaptchaLoadError;
-  const formCaptchaUnavailableError =
-    readOptionalText(content.formCaptchaUnavailableError) ??
-    fallbackResourcesContent.formCaptchaUnavailableError;
-  const formCaptchaLabel =
-    readOptionalText(content.formCaptchaLabel) ??
-    fallbackResourcesContent.formCaptchaLabel;
+  const formFirstNameLabel = content.formFirstNameLabel;
+  const formEmailLabel = content.formEmailLabel;
+  const formFirstNameValidationMessage = content.formFirstNameValidationMessage;
+  const formEmailValidationMessage = content.formEmailValidationMessage;
+  const formSubmitLabel = content.formSubmitLabel;
+  const formSubmittingLabel = content.formSubmittingLabel;
+  const formSuccessMessage = content.formSuccessMessage;
+  const formErrorMessage = content.formErrorMessage;
+  const formMarketingOptInLabel = content.formMarketingOptInLabel;
+  const formCaptchaRequiredError = content.formCaptchaRequiredError;
+  const formCaptchaLoadError = content.formCaptchaLoadError;
+  const formCaptchaUnavailableError = content.formCaptchaUnavailableError;
+  const formCaptchaLabel = content.formCaptchaLabel;
   const checklistItems = resolveChecklistItems(content.items);
-  const mediaTitleLine1 =
-    readOptionalText(content.mediaTitleLine1) ??
-    fallbackResourcesContent.mediaTitleLine1;
-  const mediaTitleLine2 =
-    readOptionalText(content.mediaTitleLine2) ??
-    fallbackResourcesContent.mediaTitleLine2;
+  const mediaTitleLine1 = content.mediaTitleLine1;
+  const mediaTitleLine2 = content.mediaTitleLine2;
   const mediaAltText = `${mediaTitleLine1} ${mediaTitleLine2}`;
 
   const headerAlignment = sectionConfig.headerAlignment ?? 'center';

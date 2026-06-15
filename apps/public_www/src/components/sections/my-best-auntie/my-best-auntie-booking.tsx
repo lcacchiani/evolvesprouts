@@ -8,6 +8,10 @@ import { ExternalLinkInlineContent } from '@/components/shared/external-link-ico
 import { ButtonPrimitive } from '@/components/shared/button-primitive';
 import { CarouselTrack } from '@/components/sections/shared/carousel-track';
 import { BOOKING_SELECTOR_CARD_CLASSNAME } from '@/components/sections/shared/booking-selector-layout';
+import { useBookingAutoOpenFromQuery } from '@/components/sections/shared/use-booking-auto-open-from-query';
+import { useBookingThankYouView } from '@/components/sections/shared/use-booking-thank-you-view';
+import { useReferralPrefill } from '@/components/sections/shared/use-referral-prefill';
+import { trackBookingBeginCheckout } from '@/components/sections/shared/track-booking-begin-checkout';
 import { CarouselHorizontalArrowControls } from '@/components/sections/shared/carousel-horizontal-arrow-controls';
 import { EventsLoadingState } from '@/components/sections/shared/events-shared';
 import {
@@ -42,11 +46,12 @@ import {
   isFutureCohort,
 } from '@/lib/my-best-auntie-cohort-calendar';
 import { useHorizontalCarousel } from '@/lib/hooks/use-horizontal-carousel';
-import { trackAnalyticsEvent, trackEcommerceEvent } from '@/lib/analytics';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 import { trackMetaPixelEvent } from '@/lib/meta-pixel';
 import { PIXEL_CONTENT_NAME } from '@/lib/meta-pixel-taxonomy';
-import { readReferralCodeFromSearch } from '@/lib/referral-link';
 import { useMyBestAuntieCohorts } from '@/components/sections/my-best-auntie/use-my-best-auntie-cohorts';
+
+const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 
 const MyBestAuntieBookingModal = dynamic(
   () =>
@@ -106,8 +111,6 @@ function formatNextCohortLabel(
   });
 }
 
-const BOOKING_SYSTEM_QUERY_PARAM = 'booking_system';
-const MY_BEST_AUNTIE_BOOKING_SYSTEM = 'my-best-auntie-booking';
 const MAX_VISIBLE_COHORTS_PER_AGE_GROUP = 3;
 
 interface BookingDateOption {
@@ -122,11 +125,6 @@ function formatSpacesLeftLabel(count: number, template: string): string {
   return formatContentTemplate(template, {
     count: String(count),
   });
-}
-
-function shouldAutoOpenMyBestAuntieBookingModal(searchValue: string): boolean {
-  const queryParams = new URLSearchParams(searchValue);
-  return queryParams.get(BOOKING_SYSTEM_QUERY_PARAM) === MY_BEST_AUNTIE_BOOKING_SYSTEM;
 }
 
 function sortCohortsByPrimarySession(
@@ -263,8 +261,6 @@ export function MyBestAuntieBooking({
       ? pendingDateSelectionSlug
       : preferredDateId;
   const dateCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const hasHandledReferralPrefillRef = useRef(false);
-  const hasOpenedBookingModalFromQueryRef = useRef(false);
   const {
     carouselRef: dateCarouselRef,
     hasNavigation: hasDateNavigation,
@@ -306,46 +302,25 @@ export function MyBestAuntieBooking({
     scrollItemIntoView(selectedDateCard);
   }, [scrollItemIntoView, selectedDateId]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
+  const handleReferralPrefill = (referral: string) => {
+    setPrefilledDiscountCode(referral);
+  };
+  useReferralPrefill(handleReferralPrefill);
 
-    if (!hasHandledReferralPrefillRef.current) {
-      hasHandledReferralPrefillRef.current = true;
-      const referral = readReferralCodeFromSearch(window.location.search);
-      if (referral) {
-        queueMicrotask(() => {
-          setPrefilledDiscountCode(referral);
-        });
+  useBookingAutoOpenFromQuery({
+    bookingSystem: MY_BEST_AUNTIE_BOOKING_SYSTEM,
+    canOpen: Boolean(selectedCohort && !selectedCohort.is_fully_booked),
+    onOpen: () => {
+      if (!selectedCohort) {
+        return;
       }
-    }
-
-    if (!shouldAutoOpenMyBestAuntieBookingModal(window.location.search)) {
-      return;
-    }
-    if (hasOpenedBookingModalFromQueryRef.current) {
-      return;
-    }
-    if (!selectedCohort || selectedCohort.is_fully_booked) {
-      return;
-    }
-
-    hasOpenedBookingModalFromQueryRef.current = true;
-
-    const openModalTimerId = window.setTimeout(() => {
-      trackAnalyticsEvent('booking_modal_open', {
+      trackBookingBeginCheckout({
         sectionId: 'my-best-auntie-booking',
         ctaLocation: 'query_param',
-        params: {
-          service_tier: selectedCohort.service_tier,
-          cohort_label: selectedCohort.cohort,
-          cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
-        },
-      });
-      trackMetaPixelEvent('InitiateCheckout', { content_name: PIXEL_CONTENT_NAME.my_best_auntie });
-      trackEcommerceEvent('begin_checkout', {
         value: selectedCohort.price,
+        serviceTier: selectedCohort.service_tier,
+        cohortLabel: selectedCohort.cohort,
+        cohortDate: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
         items: [{
           item_id: `mba-${selectedCohort.service_tier}`,
           item_name: 'My Best Auntie',
@@ -354,30 +329,16 @@ export function MyBestAuntieBooking({
           quantity: 1,
         }],
       });
+      trackMetaPixelEvent('InitiateCheckout', { content_name: PIXEL_CONTENT_NAME.my_best_auntie });
       setIsPaymentModalOpen(true);
-    }, 0);
+    },
+  });
 
-    return () => {
-      window.clearTimeout(openModalTimerId);
-    };
-  }, [selectedCohort]);
-
-  useEffect(() => {
-    if (!isThankYouModalOpen || !reservationSummary) {
-      return;
-    }
-
-    trackAnalyticsEvent('booking_thank_you_view', {
-      sectionId: 'my-best-auntie-booking',
-      ctaLocation: 'thank_you_modal',
-      params: {
-        payment_method: reservationSummary.paymentMethod,
-        total_amount: reservationSummary.totalAmount,
-        service_tier: reservationSummary.serviceTier,
-        cohort_date: reservationSummary.dateStartTime?.split('T')[0] ?? '',
-      },
-    });
-  }, [isThankYouModalOpen, reservationSummary]);
+  useBookingThankYouView({
+    isOpen: isThankYouModalOpen,
+    reservationSummary,
+    sectionId: 'my-best-auntie-booking',
+  });
 
   function handleDateCarouselNavigation(direction: 'prev' | 'next') {
     scrollDateCarouselByDirection(direction);
@@ -597,23 +558,13 @@ export function MyBestAuntieBooking({
                       total_amount: selectedCohort.price,
                     },
                   });
-                  trackAnalyticsEvent('booking_modal_open', {
+                  trackBookingBeginCheckout({
                     sectionId: 'my-best-auntie-booking',
                     ctaLocation: 'booking_section',
-                    params: {
-                      service_tier: selectedAgeOption?.label ?? '',
-                      cohort_label: selectedDateOption?.label ?? '',
-                      cohort_date: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
-                    },
-                  });
-                  trackMetaPixelEvent('InitiateCheckout', { content_name: PIXEL_CONTENT_NAME.my_best_auntie });
-                  trackMetaPixelEvent('AddPaymentInfo', {
-                    content_name: PIXEL_CONTENT_NAME.my_best_auntie,
                     value: selectedCohort.price,
-                    currency: 'HKD',
-                  });
-                  trackEcommerceEvent('begin_checkout', {
-                    value: selectedCohort.price,
+                    serviceTier: selectedAgeOption?.label ?? '',
+                    cohortLabel: selectedDateOption?.label ?? '',
+                    cohortDate: selectedCohort.dates[0]?.start_datetime?.split('T')[0] ?? '',
                     items: [{
                       item_id: `mba-${selectedCohort.service_tier}`,
                       item_name: 'My Best Auntie',
@@ -621,6 +572,14 @@ export function MyBestAuntieBooking({
                       price: selectedCohort.price,
                       quantity: 1,
                     }],
+                  });
+                  trackMetaPixelEvent('InitiateCheckout', {
+                    content_name: PIXEL_CONTENT_NAME.my_best_auntie,
+                  });
+                  trackMetaPixelEvent('AddPaymentInfo', {
+                    content_name: PIXEL_CONTENT_NAME.my_best_auntie,
+                    value: selectedCohort.price,
+                    currency: 'HKD',
                   });
                   setIsPaymentModalOpen(true);
                 }}

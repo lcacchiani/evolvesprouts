@@ -4,11 +4,12 @@ import { renderQuotedDescriptionText } from '@/components/sections/shared/render
 import { SectionHeader } from '@/components/sections/shared/section-header';
 import { SectionShell } from '@/components/sections/shared/section-shell';
 import { LandingPageInlineCalendarCta } from '@/components/sections/landing-pages/shared/landing-page-inline-calendar-cta';
-import type { LandingPageLocaleContent } from '@/content';
+import type { CommonAccessibilityContent, LandingPageLocaleContent } from '@/content';
 
 interface LandingPageDetailsProps {
   content: LandingPageLocaleContent['details'];
   ariaLabel?: string;
+  commonAccessibility: CommonAccessibilityContent;
   /** When set, replaces the default SectionShell section classes. */
   sectionClassName?: string;
 }
@@ -16,6 +17,7 @@ interface LandingPageDetailsProps {
 export function LandingPageDetails({
   content,
   ariaLabel,
+  commonAccessibility,
   sectionClassName,
 }: LandingPageDetailsProps) {
   const shellClassName =
@@ -38,6 +40,7 @@ export function LandingPageDetails({
         <CarouselTrack
           testId='landing-page-details-mobile-carousel'
           ariaLabel={ariaLabel ?? content.title}
+          ariaRoleDescription={commonAccessibility.carouselRoleDescription}
           className='md:snap-none md:overflow-visible'
         >
           <ul className='mt-8 flex min-w-0 gap-4 sm:gap-5 md:grid md:grid-cols-2 lg:grid-cols-3'>

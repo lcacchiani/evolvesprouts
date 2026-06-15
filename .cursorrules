@@ -363,6 +363,9 @@ should extend the shared primitives rather than reintroducing one-off layouts.
   - `ContactUsFaq` -> `contact-us-faq.tsx`
 - `SectionShell` identifiers must match the section file key in kebab-case.
  - Set both `id` and `dataFigmaNode` to the same normalized value.
+ - Stable in-page anchor ids may diverge from the file key when product navigation
+   depends on them (for example `resources`, `intro-call-booking`); in those cases
+   keep `id` and `dataFigmaNode` equal to the established anchor id.
  - Example:
   - `about-us-why-us.tsx` uses `id='about-us-why-us'` and
     `dataFigmaNode='about-us-why-us'`.

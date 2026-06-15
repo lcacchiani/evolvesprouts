@@ -7,7 +7,10 @@ import enContent from '@/content/en.json';
 describe('CarouselTrack', () => {
   it('uses region + carousel roledescription by default', () => {
     render(
-      <CarouselTrack ariaLabel='Test track'>
+      <CarouselTrack
+        ariaLabel='Test track'
+        ariaRoleDescription={enContent.common.accessibility.carouselRoleDescription}
+      >
         <span>child</span>
       </CarouselTrack>,
     );

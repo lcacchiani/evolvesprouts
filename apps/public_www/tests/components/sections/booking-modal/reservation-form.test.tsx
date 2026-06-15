@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';
 import { buildThankYouRecapLabels } from '@/components/sections/booking-modal/thank-you-recap-labels';
@@ -110,6 +110,21 @@ vi.mock('next/link', () => ({
 
 vi.mock('@stripe/stripe-js', () => ({
   loadStripe: vi.fn(() => Promise.resolve({})),
+}));
+
+vi.mock('next/dynamic', () => ({
+  default: (loader: () => Promise<React.ComponentType<Record<string, unknown>>>) => {
+    const LazyStripePaymentSection = React.lazy(async () => ({
+      default: await loader(),
+    }));
+    return function DynamicStripePaymentSection(props: Record<string, unknown>) {
+      return (
+        <React.Suspense fallback={null}>
+          <LazyStripePaymentSection {...props} />
+        </React.Suspense>
+      );
+    };
+  },
 }));
 
 vi.mock('@stripe/react-stripe-js', () => ({
