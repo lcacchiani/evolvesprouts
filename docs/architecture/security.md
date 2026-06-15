@@ -117,6 +117,9 @@ admin API Lambdas and Cognito request authorizers via CDK. Production deploys
 use a single Cognito app client (`EvolvesproutsUserPoolClient` in
 `backend/infrastructure/lib/api-stack.ts`); the reusable `AuthConstruct` in
 `backend/infrastructure/lib/constructs/auth.ts` is not wired into that stack.
+The infra test `backend/infrastructure/test/api-stack.test.ts` enforces this
+single-client invariant: it fails if more than one app client is synthesized or
+if any Lambda's `COGNITO_ALLOWED_CLIENT_IDS` references a different client.
 
 ### OTP/Code Generation
 

@@ -135,12 +135,54 @@ function assertPollResponsesTableUsesCustomerManagedKms(template: Template): voi
   }
 }
 
+function assertCognitoClientAllowlistWiring(template: Template): void {
+  // There must be exactly one Cognito app client. JWT validation is fail-closed
+  // and the allowlist (COGNITO_ALLOWED_CLIENT_IDS) is wired to this single
+  // client's id; a second client would have its tokens silently rejected.
+  const clients = template.findResources("AWS::Cognito::UserPoolClient");
+  const clientIds = Object.keys(clients);
+  if (clientIds.length !== 1) {
+    throw new Error(
+      `Expected exactly one AWS::Cognito::UserPoolClient; found ${clientIds.length}: ${clientIds.join(", ")}`,
+    );
+  }
+  const [clientLogicalId] = clientIds;
+
+  // Every Lambda that allowlists Cognito client ids must reference that single
+  // client via Ref, so the allowlist can never drift to a different client.
+  const functions = template.findResources("AWS::Lambda::Function");
+  const wired: string[] = [];
+  for (const [logicalId, resource] of Object.entries(functions)) {
+    const vars = ((resource.Properties ?? {}).Environment ?? {}).Variables ?? {};
+    if (!("COGNITO_ALLOWED_CLIENT_IDS" in vars)) {
+      continue;
+    }
+    const value = (vars as Record<string, unknown>).COGNITO_ALLOWED_CLIENT_IDS;
+    const ref =
+      value && typeof value === "object"
+        ? (value as Record<string, unknown>).Ref
+        : undefined;
+    if (ref !== clientLogicalId) {
+      throw new Error(
+        `Lambda ${logicalId}: COGNITO_ALLOWED_CLIENT_IDS must reference the single user pool client (${clientLogicalId}); found ${JSON.stringify(value)}`,
+      );
+    }
+    wired.push(logicalId);
+  }
+  if (wired.length === 0) {
+    throw new Error(
+      "Expected at least one Lambda to set COGNITO_ALLOWED_CLIENT_IDS (authorizers + API handler)",
+    );
+  }
+}
+
 function main(): void {
   const template = synthApiTemplate();
   assertStageHasNoApiGatewayCacheCluster(template);
   assertGatewayResponsesHaveNoBodyTemplates(template);
   assertStageHasCheckovCkv120Suppression(template);
   assertPollResponsesTableUsesCustomerManagedKms(template);
+  assertCognitoClientAllowlistWiring(template);
   // eslint-disable-next-line no-console
   console.log("api-stack API Gateway stage cache assertions passed.");
 }
