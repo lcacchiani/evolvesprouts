@@ -42,7 +42,16 @@ const baseExpense: Expense = {
   submittedAt: null,
   paidAt: null,
   voidedAt: null,
-  attachments: [{ assetId: 'asset-1', filename: 'invoice.pdf', contentType: 'application/pdf' }],
+  attachments: [
+    {
+      id: 'att-1',
+      assetId: 'asset-1',
+      sortOrder: 0,
+      fileName: 'invoice.pdf',
+      contentType: 'application/pdf',
+      assetTitle: null,
+    },
+  ],
 };
 
 function renderEditor(

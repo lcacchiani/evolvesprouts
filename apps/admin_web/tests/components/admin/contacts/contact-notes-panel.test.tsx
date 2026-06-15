@@ -62,6 +62,7 @@ const CONTACT: components['schemas']['AdminContact'] = {
   family_ids: [],
   organization_ids: [],
   standalone_note_count: 0,
+  has_completion_certificate: false,
 };
 
 describe('ContactNotesPanel', () => {
