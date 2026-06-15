@@ -12,7 +12,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from tests.helpers.db import database_url, libpq_conn_url
+from tests.helpers.db import database_url
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import IntegrityError
 

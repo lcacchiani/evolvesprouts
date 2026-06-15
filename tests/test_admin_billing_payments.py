@@ -4,46 +4,31 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 from types import SimpleNamespace
 from unittest.mock import MagicMock
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 
 from app.api import admin_billing
-from app.api import admin_billing_allocations as admin_billing_allocations_mod
-from app.api import admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod
-from app.api import admin_billing_export as admin_billing_export_mod
-from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts_mod
-from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
-from app.api import admin_billing_invoices as admin_billing_invoices_mod
 from app.api import admin_billing_payment_create as admin_billing_payment_create_mod
 from app.api import admin_billing_payment_update as admin_billing_payment_update_mod
 from app.api import admin_billing_payments as admin_billing_payments_mod
-from app.api.admin_billing_common import (
-    effective_enrollment_bill_to_fks,
-    enrollment_bill_to_merge_key,
-)
-from app.api.admin_billing_invoice_serializers import parse_optional_invoice_settlement
-from app.db.models import Contact, Enrollment
-from app.db.models.customer_invoice import CustomerInvoice
+from app.db.models import Enrollment
 from app.db.models.customer_payment import CustomerPayment
 from app.db.models.enums import (
     BillingBillToKind,
-    BillingInvoiceStatus,
     BillingPaymentDirection,
     BillingPaymentStatus,
     EnrollmentStatus,
-    ServiceType,
 )
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.services import customer_billing
 
 from tests.helpers.billing import patch_billing_sessions
-
 
 
 def test_handle_admin_billing_get_payment_and_unapplied_no_name_error(
@@ -115,6 +100,7 @@ def test_handle_admin_billing_get_payment_and_unapplied_no_name_error(
     assert body2["paymentId"] == str(pid)
     assert body2["unappliedAmount"] == "3"
 
+
 def test_payment_unapplied_amount_subtracts_allocations() -> None:
     pid = uuid4()
     pay = MagicMock()
@@ -125,6 +111,7 @@ def test_payment_unapplied_amount_subtracts_allocations() -> None:
     m.scalar_one.return_value = Decimal("35")
     session.execute.return_value = m
     assert customer_billing.payment_unapplied_amount(session, pid) == Decimal("65")
+
 
 @pytest.mark.parametrize("allocated", ("0", "0.00", "-1"))
 def test_create_payment_allocation_rejects_non_positive_allocated_amount(
@@ -149,6 +136,7 @@ def test_create_payment_allocation_rejects_non_positive_allocated_amount(
         admin_billing.handle_admin_billing_request(
             ev, "POST", "/v1/admin/billing/allocations"
         )
+
 
 def test_confirm_payment_creates_receipt_for_pending_inbound(
     api_gateway_event: Any,
@@ -228,6 +216,7 @@ def test_confirm_payment_creates_receipt_for_pending_inbound(
     assert r["statusCode"] == 200
     assert created["n"] == 1
 
+
 def test_delete_orphan_payment_succeeds(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -276,6 +265,7 @@ def test_delete_orphan_payment_succeeds(
     assert r["statusCode"] == 204
     assert json.loads(r["body"]) == {}
     holder["s"].delete.assert_called_once_with(pay)
+
 
 def test_delete_no_enrollment_pending_payment_succeeds(
     api_gateway_event: Any,
@@ -331,6 +321,7 @@ def test_delete_no_enrollment_pending_payment_succeeds(
     assert r["statusCode"] == 204
     holder["s"].delete.assert_called_once_with(pay)
 
+
 def test_delete_orphan_payment_not_found_raises(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -355,6 +346,7 @@ def test_delete_orphan_payment_not_found_raises(
         admin_billing.handle_admin_billing_request(
             ev, "DELETE", f"/v1/admin/billing/payments/{pid}"
         )
+
 
 def test_refund_create_rejects_currency_mismatch_with_original(
     api_gateway_event: Any,
@@ -388,7 +380,10 @@ def test_refund_create_rejects_currency_mismatch_with_original(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="currency"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
+
 
 def test_create_payment_returns_400_on_invalid_amount(
     api_gateway_event: Any,
@@ -416,7 +411,10 @@ def test_create_payment_returns_400_on_invalid_amount(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="amount"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
+
 
 def test_create_payment_requires_direction(
     api_gateway_event: Any,
@@ -436,7 +434,10 @@ def test_create_payment_requires_direction(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="direction"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
+
 
 def test_manual_inbound_payment_without_enrollment_succeeds(
     api_gateway_event: Any,
@@ -492,11 +493,14 @@ def test_manual_inbound_payment_without_enrollment_succeeds(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/payments"
+    )
     assert r["statusCode"] == 201
     assert len(added) == 1
     assert added[0].enrollment_id is None
     assert added[0].contact_id is None
+
 
 def test_manual_inbound_payment_without_enrollment_contact_not_found(
     api_gateway_event: Any,
@@ -526,7 +530,10 @@ def test_manual_inbound_payment_without_enrollment_contact_not_found(
         authorizer_context=admin_identity,
     )
     with pytest.raises(NotFoundError, match="Contact"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
+
 
 def test_manual_inbound_payment_without_enrollment_still_validates_currency(
     api_gateway_event: Any,
@@ -546,8 +553,11 @@ def test_manual_inbound_payment_without_enrollment_still_validates_currency(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="currency") as ei:
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
     assert ei.value.field == "currency"
+
 
 def test_manual_inbound_payment_without_enrollment_still_validates_method(
     api_gateway_event: Any,
@@ -567,8 +577,11 @@ def test_manual_inbound_payment_without_enrollment_still_validates_method(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="method") as ei:
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
     assert ei.value.field == "method"
+
 
 def test_manual_inbound_payment_enrollment_not_found(
     api_gateway_event: Any,
@@ -604,7 +617,10 @@ def test_manual_inbound_payment_enrollment_not_found(
         authorizer_context=admin_identity,
     )
     with pytest.raises(NotFoundError, match="Enrollment"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
+
 
 def test_patch_manual_inbound_payment_not_found(
     api_gateway_event: Any,
@@ -641,6 +657,7 @@ def test_patch_manual_inbound_payment_not_found(
         admin_billing.handle_admin_billing_request(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
+
 
 def test_patch_manual_inbound_payment_rejects_stripe_linked(
     api_gateway_event: Any,
@@ -699,6 +716,7 @@ def test_patch_manual_inbound_payment_rejects_stripe_linked(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
 
+
 def test_patch_manual_inbound_payment_rejects_refund_direction(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -716,7 +734,9 @@ def test_patch_manual_inbound_payment_rejects_refund_direction(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: pay if model is CustomerPayment and pk == pay_id else None
+        s.get.side_effect = (
+            lambda model, pk: pay if model is CustomerPayment and pk == pay_id else None
+        )
         yield s
 
     patch_billing_sessions(monkeypatch, _fake_session)
@@ -736,6 +756,7 @@ def test_patch_manual_inbound_payment_rejects_refund_direction(
         admin_billing.handle_admin_billing_request(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
+
 
 def test_patch_manual_inbound_payment_no_enrollment_succeeds(
     api_gateway_event: Any,
@@ -761,7 +782,9 @@ def test_patch_manual_inbound_payment_no_enrollment_succeeds(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: pay if model is CustomerPayment and pk == pay_id else None
+        s.get.side_effect = (
+            lambda model, pk: pay if model is CustomerPayment and pk == pay_id else None
+        )
         ex = MagicMock()
         ex.scalar_one_or_none.return_value = None
         s.execute.return_value = ex
@@ -815,6 +838,7 @@ def test_patch_manual_inbound_payment_no_enrollment_succeeds(
     assert pay.amount == Decimal("25")
     assert pay.method == "fps"
 
+
 def test_patch_manual_inbound_payment_no_enrollment_transitions_to_succeeded(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -839,7 +863,9 @@ def test_patch_manual_inbound_payment_no_enrollment_transitions_to_succeeded(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: pay if model is CustomerPayment and pk == pay_id else None
+        s.get.side_effect = (
+            lambda model, pk: pay if model is CustomerPayment and pk == pay_id else None
+        )
         ex = MagicMock()
         ex.scalar_one_or_none.return_value = None
         s.execute.return_value = ex
@@ -909,6 +935,7 @@ def test_patch_manual_inbound_payment_no_enrollment_transitions_to_succeeded(
     assert pay.status == BillingPaymentStatus.SUCCEEDED
     assert len(created) == 1
 
+
 def test_patch_manual_inbound_payment_rejects_cancelled_enrollment(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -964,6 +991,7 @@ def test_patch_manual_inbound_payment_rejects_cancelled_enrollment(
         admin_billing.handle_admin_billing_request(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
+
 
 def test_patch_manual_inbound_payment_rejects_currency_mismatch(
     api_gateway_event: Any,
@@ -1023,6 +1051,7 @@ def test_patch_manual_inbound_payment_rejects_currency_mismatch(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
 
+
 def test_patch_manual_inbound_payment_rejects_amount_below_allocated(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -1080,6 +1109,7 @@ def test_patch_manual_inbound_payment_rejects_amount_below_allocated(
         admin_billing.handle_admin_billing_request(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
+
 
 def test_patch_manual_inbound_payment_pending_free_zero_coerces(
     api_gateway_event: Any,
@@ -1190,6 +1220,7 @@ def test_patch_manual_inbound_payment_pending_free_zero_coerces(
     out = json.loads(r["body"])
     assert out["payment"]["status"] == "succeeded"
     assert out["payment"]["party"] == "Pat"
+
 
 def test_patch_manual_inbound_payment_pending_to_succeeded_creates_receipt(
     api_gateway_event: Any,
@@ -1311,6 +1342,7 @@ def test_patch_manual_inbound_payment_pending_to_succeeded_creates_receipt(
     assert out["payment"]["unappliedAmount"] == "10"
     assert out["payment"]["party"] == "Pat"
 
+
 def test_patch_manual_inbound_payment_succeeded_rejects_amount_change(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -1370,6 +1402,7 @@ def test_patch_manual_inbound_payment_succeeded_rejects_amount_change(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
 
+
 def test_patch_manual_inbound_payment_succeeded_rejects_free_method_when_positive_amount(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -1428,6 +1461,7 @@ def test_patch_manual_inbound_payment_succeeded_rejects_free_method_when_positiv
         admin_billing.handle_admin_billing_request(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
+
 
 def test_patch_manual_inbound_payment_succeeded_allows_external_reference_update(
     api_gateway_event: Any,
@@ -1499,7 +1533,12 @@ def test_patch_manual_inbound_payment_succeeded_allows_external_reference_update
         lambda *_a, **_k: mock_audit,
     )
 
-    body = {"amount": "100", "currency": "HKD", "method": "bank_transfer", "externalReference": "NEW-REF"}
+    body = {
+        "amount": "100",
+        "currency": "HKD",
+        "method": "bank_transfer",
+        "externalReference": "NEW-REF",
+    }
     ev = api_gateway_event(
         method="PATCH",
         path=f"/v1/admin/billing/payments/{pay_id}",
@@ -1513,6 +1552,7 @@ def test_patch_manual_inbound_payment_succeeded_allows_external_reference_update
     assert pay.external_reference == "NEW-REF"
     out = json.loads(r["body"])
     assert out["payment"]["externalReference"] == "NEW-REF"
+
 
 def test_patch_manual_inbound_payment_duplicate_external_reference_conflict(
     api_gateway_event: Any,
@@ -1564,7 +1604,9 @@ def test_patch_manual_inbound_payment_duplicate_external_reference_conflict(
         s.execute.return_value = ex
 
         def _flush() -> None:
-            raise IntegrityError("stmt", {}, Exception("uq_cp_enrollment_external_ref violated"))
+            raise IntegrityError(
+                "stmt", {}, Exception("uq_cp_enrollment_external_ref violated")
+            )
 
         s.flush.side_effect = _flush
         yield s
@@ -1592,6 +1634,7 @@ def test_patch_manual_inbound_payment_duplicate_external_reference_conflict(
         admin_billing.handle_admin_billing_request(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
+
 
 def test_patch_manual_inbound_payment_rejects_enrollment_missing(
     api_gateway_event: Any,
@@ -1638,6 +1681,7 @@ def test_patch_manual_inbound_payment_rejects_enrollment_missing(
             ev, "PATCH", f"/v1/admin/billing/payments/{pay_id}"
         )
 
+
 def test_manual_inbound_payment_cancelled_enrollment_rejected(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -1656,7 +1700,9 @@ def test_manual_inbound_payment_cancelled_enrollment_rejected(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: en if model is Enrollment and pk == eid else None
+        s.get.side_effect = (
+            lambda model, pk: en if model is Enrollment and pk == eid else None
+        )
         yield s
 
     patch_billing_sessions(monkeypatch, _fake_session)
@@ -1674,7 +1720,10 @@ def test_manual_inbound_payment_cancelled_enrollment_rejected(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="cancelled"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
+
 
 def test_manual_inbound_payment_succeeded_creates_receipt(
     api_gateway_event: Any,
@@ -1767,12 +1816,15 @@ def test_manual_inbound_payment_succeeded_creates_receipt(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/payments"
+    )
     assert r["statusCode"] == 201
     assert created["n"] == 1
     out = json.loads(r["body"])
     assert out["payment"]["enrollmentId"] == str(eid)
     assert out["payment"]["status"] == "succeeded"
+
 
 def test_manual_inbound_payment_pending_skips_receipt(
     api_gateway_event: Any,
@@ -1861,11 +1913,14 @@ def test_manual_inbound_payment_pending_skips_receipt(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/payments"
+    )
     assert r["statusCode"] == 201
     assert created["n"] == 0
     out = json.loads(r["body"])
     assert out["payment"]["status"] == "pending"
+
 
 def test_manual_inbound_payment_family_enrollment_recorded(
     api_gateway_event: Any,
@@ -1954,11 +2009,14 @@ def test_manual_inbound_payment_family_enrollment_recorded(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/payments"
+    )
     assert r["statusCode"] == 201
     out = json.loads(r["body"])
     assert out["payment"]["contactId"] is None
     assert out["payment"]["enrollmentId"] == str(eid)
+
 
 def test_manual_inbound_payment_rejects_currency_mismatch(
     api_gateway_event: Any,
@@ -1979,7 +2037,9 @@ def test_manual_inbound_payment_rejects_currency_mismatch(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: en if model is Enrollment and pk == eid else None
+        s.get.side_effect = (
+            lambda model, pk: en if model is Enrollment and pk == eid else None
+        )
         yield s
 
     patch_billing_sessions(monkeypatch, _fake_session)
@@ -1997,7 +2057,10 @@ def test_manual_inbound_payment_rejects_currency_mismatch(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="currency"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
+
 
 def test_manual_inbound_payment_unknown_method_rejected(
     api_gateway_event: Any,
@@ -2017,7 +2080,9 @@ def test_manual_inbound_payment_unknown_method_rejected(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: en if model is Enrollment and pk == eid else None
+        s.get.side_effect = (
+            lambda model, pk: en if model is Enrollment and pk == eid else None
+        )
         yield s
 
     patch_billing_sessions(monkeypatch, _fake_session)
@@ -2035,7 +2100,10 @@ def test_manual_inbound_payment_unknown_method_rejected(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="method"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
+
 
 def test_manual_inbound_payment_duplicate_external_reference_conflict(
     api_gateway_event: Any,
@@ -2104,7 +2172,10 @@ def test_manual_inbound_payment_duplicate_external_reference_conflict(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ConflictError):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/payments"
+        )
+
 
 def test_manual_inbound_payment_audit_includes_reconciliation_fields(
     api_gateway_event: Any,
@@ -2191,13 +2262,16 @@ def test_manual_inbound_payment_audit_includes_reconciliation_fields(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/payments"
+    )
     assert r["statusCode"] == 201
     assert len(audit_calls) == 1
     nv = audit_calls[0]["new_values"]
     assert nv["external_reference"] == "wire-123"
     assert nv["contact_id"] == str(cid)
     assert "succeeded_at" in nv
+
 
 def test_refund_created_audit_includes_reconciliation_fields(
     api_gateway_event: Any,
@@ -2217,7 +2291,11 @@ def test_refund_created_audit_includes_reconciliation_fields(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: _Orig() if model is CustomerPayment and pk == orig_id else None
+        s.get.side_effect = (
+            lambda model, pk: _Orig()
+            if model is CustomerPayment and pk == orig_id
+            else None
+        )
 
         def _add(obj: Any) -> None:
             added.append(obj)
@@ -2255,7 +2333,9 @@ def test_refund_created_audit_includes_reconciliation_fields(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/payments")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/payments"
+    )
     assert r["statusCode"] == 201
     assert len(audit_calls) == 1
     nv = audit_calls[0]["new_values"]

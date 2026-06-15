@@ -183,14 +183,14 @@ function main(): void {
   assertStageHasCheckovCkv120Suppression(template);
   assertPollResponsesTableUsesCustomerManagedKms(template);
   assertCognitoClientAllowlistWiring(template);
-   
+
   console.log("api-stack API Gateway stage cache assertions passed.");
 }
 
 try {
   main();
 } catch (err) {
-   
+
   console.error(err instanceof Error ? err.message : String(err));
   process.exit(1);
 }

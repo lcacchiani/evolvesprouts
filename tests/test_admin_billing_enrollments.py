@@ -4,44 +4,27 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
-from types import SimpleNamespace
 from unittest.mock import MagicMock
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 
 from app.api import admin_billing
-from app.api import admin_billing_allocations as admin_billing_allocations_mod
-from app.api import admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod
-from app.api import admin_billing_export as admin_billing_export_mod
-from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts_mod
-from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
-from app.api import admin_billing_invoices as admin_billing_invoices_mod
-from app.api import admin_billing_payment_create as admin_billing_payment_create_mod
-from app.api import admin_billing_payment_update as admin_billing_payment_update_mod
-from app.api import admin_billing_payments as admin_billing_payments_mod
+from app.api import (
+    admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod,
+)
 from app.api.admin_billing_common import (
     effective_enrollment_bill_to_fks,
     enrollment_bill_to_merge_key,
 )
-from app.api.admin_billing_invoice_serializers import parse_optional_invoice_settlement
-from app.db.models import Contact, Enrollment
-from app.db.models.customer_invoice import CustomerInvoice
-from app.db.models.customer_payment import CustomerPayment
+from app.db.models import Enrollment
 from app.db.models.enums import (
     BillingBillToKind,
-    BillingInvoiceStatus,
-    BillingPaymentDirection,
-    BillingPaymentStatus,
     EnrollmentStatus,
-    ServiceType,
 )
-from app.exceptions import ConflictError, NotFoundError, ValidationError
-from app.services import customer_billing
-
 
 
 def test_list_recent_enrollments_orders_and_filters(
@@ -207,6 +190,7 @@ def test_list_recent_enrollments_orders_and_filters(
     assert body["items"][1]["partyDisplayName"] == "Smith Family · Primary Person"
     assert body["items"][1]["billToKind"] == "family"
 
+
 def test_list_recent_enrollments_infers_family_when_bill_to_kind_null(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -293,6 +277,7 @@ def test_list_recent_enrollments_infers_family_when_bill_to_kind_null(
     assert body["items"][0]["billToKind"] == "family"
     assert body["items"][0]["partyDisplayName"] == "Ng Household · Pat Ng"
 
+
 def test_effective_enrollment_bill_to_fks_family_falls_back_to_family_id() -> None:
     """Family-scoped enrollments may set ``family_id`` without ``bill_to_family_id``."""
     iid = uuid4()
@@ -325,6 +310,7 @@ def test_effective_enrollment_bill_to_fks_family_falls_back_to_family_id() -> No
     key = enrollment_bill_to_merge_key(en)
     assert key.startswith("family||")
     assert str(fam_id) in key
+
 
 def test_list_recent_enrollments_void_invoice_does_not_block_linked_flag(
     api_gateway_event: Any,
@@ -402,6 +388,7 @@ def test_list_recent_enrollments_void_invoice_does_not_block_linked_flag(
     body = json.loads(r["body"])
     assert len(body["items"]) == 1
     assert body["items"][0]["invoiceLinked"] is False
+
 
 def test_list_recent_enrollments_org_bill_to_primary_email(
     api_gateway_event: Any,
@@ -488,6 +475,7 @@ def test_list_recent_enrollments_org_bill_to_primary_email(
     assert body["items"][0]["partyEmail"] == "org.primary@example.com"
     assert body["items"][0]["partyDisplayName"] == "Acme Corp · Jane Doe"
     assert body["items"][0]["billToKind"] == "organization"
+
 
 def test_list_recent_enrollments_parent_service_title_and_service_tier_fallback(
     api_gateway_event: Any,

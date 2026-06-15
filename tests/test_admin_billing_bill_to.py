@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
-from datetime import UTC, date, datetime, timedelta
-from decimal import Decimal
 from typing import Any
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -14,38 +12,18 @@ from uuid import UUID, uuid4
 import pytest
 
 from app.api import admin_billing
-from app.api import admin_billing_allocations as admin_billing_allocations_mod
-from app.api import admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod
-from app.api import admin_billing_export as admin_billing_export_mod
-from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts_mod
-from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
-from app.api import admin_billing_invoices as admin_billing_invoices_mod
-from app.api import admin_billing_payment_create as admin_billing_payment_create_mod
-from app.api import admin_billing_payment_update as admin_billing_payment_update_mod
-from app.api import admin_billing_payments as admin_billing_payments_mod
-from app.api.admin_billing_common import (
-    effective_enrollment_bill_to_fks,
-    enrollment_bill_to_merge_key,
-)
-from app.api.admin_billing_invoice_serializers import parse_optional_invoice_settlement
-from app.db.models import Contact, Enrollment
-from app.db.models.customer_invoice import CustomerInvoice
-from app.db.models.customer_payment import CustomerPayment
+from app.db.models import Contact
 from app.db.models.enums import (
     BillingBillToKind,
-    BillingInvoiceStatus,
-    BillingPaymentDirection,
-    BillingPaymentStatus,
-    EnrollmentStatus,
     ServiceType,
 )
-from app.exceptions import ConflictError, NotFoundError, ValidationError
-from app.services import customer_billing
-
+from app.exceptions import ValidationError
 
 
 def test_family_or_organization_bill_to_display_label() -> None:
-    from app.api.admin_billing_common import family_or_organization_bill_to_display_label
+    from app.api.admin_billing_common import (
+        family_or_organization_bill_to_display_label,
+    )
 
     assert (
         family_or_organization_bill_to_display_label(
@@ -68,18 +46,26 @@ def test_family_or_organization_bill_to_display_label() -> None:
         )
         == "Pat Lee"
     )
-    assert family_or_organization_bill_to_display_label(
-        entity_name="  ",
-        primary_display_name="  ",
-    ) is None
+    assert (
+        family_or_organization_bill_to_display_label(
+            entity_name="  ",
+            primary_display_name="  ",
+        )
+        is None
+    )
 
-def test_compose_enrollment_party_display_name_contact_includes_email_when_known() -> None:
+
+def test_compose_enrollment_party_display_name_contact_includes_email_when_known() -> (
+    None
+):
     from types import SimpleNamespace
 
     from app.api.admin_billing_common import compose_enrollment_party_display_name
     from app.db.models.enums import BillingBillToKind
 
-    contact = SimpleNamespace(first_name="Sam", last_name="Sample", email="sam@example.com")
+    contact = SimpleNamespace(
+        first_name="Sam", last_name="Sample", email="sam@example.com"
+    )
     enrollment = SimpleNamespace(
         bill_to_kind=BillingBillToKind.CONTACT,
         bill_to_contact=None,
@@ -102,7 +88,10 @@ def test_compose_enrollment_party_display_name_contact_includes_email_when_known
         == "Sam Sample \u00b7 sam@example.com"
     )
 
-def test_resolve_bill_to_party_from_invoice_fks_family_uses_primary_contact_only() -> None:
+
+def test_resolve_bill_to_party_from_invoice_fks_family_uses_primary_contact_only() -> (
+    None
+):
     """Family invoices show primary contact as bill-to display name (no family · name line)."""
     from app.api.admin_billing_invoice_draft_helpers import (
         _resolve_bill_to_party_from_invoice_fks,
@@ -139,6 +128,7 @@ def test_resolve_bill_to_party_from_invoice_fks_family_uses_primary_contact_only
     assert inv.bill_to_display_name == "Pat Ng"
     assert inv.bill_to_email == "pat@example.com"
 
+
 def test_resolve_bill_to_party_from_invoice_fks_family_without_primary_name() -> None:
     """When no primary contact name exists, family bill-to omits the family entity label."""
     from app.api.admin_billing_invoice_draft_helpers import (
@@ -170,6 +160,7 @@ def test_resolve_bill_to_party_from_invoice_fks_family_without_primary_name() ->
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_display_name is None
 
+
 def test_build_enrollment_merge_line_description_title_tier_cohort() -> None:
     from app.api.admin_billing_invoice_draft_helpers import (
         _build_enrollment_merge_line_description,
@@ -191,7 +182,10 @@ def test_build_enrollment_merge_line_description_title_tier_cohort() -> None:
         == "Event: Parent Service Premium Spring 2026"
     )
 
-def test_build_enrollment_merge_line_description_prefers_instance_title_and_ticket_tier() -> None:
+
+def test_build_enrollment_merge_line_description_prefers_instance_title_and_ticket_tier() -> (
+    None
+):
     from app.api.admin_billing_invoice_draft_helpers import (
         _build_enrollment_merge_line_description,
     )
@@ -214,12 +208,17 @@ def test_build_enrollment_merge_line_description_prefers_instance_title_and_tick
         == "Event: June Weekend Early bird"
     )
 
-def test_build_enrollment_merge_line_description_dedupes_when_tail_matches_kind() -> None:
+
+def test_build_enrollment_merge_line_description_dedupes_when_tail_matches_kind() -> (
+    None
+):
     from app.api.admin_billing_invoice_draft_helpers import (
         _build_enrollment_merge_line_description,
     )
 
-    svc = SimpleNamespace(title="Event", service_tier=None, service_type=ServiceType.EVENT)
+    svc = SimpleNamespace(
+        title="Event", service_tier=None, service_type=ServiceType.EVENT
+    )
     inst = SimpleNamespace(title="Event", cohort=None, service=svc)
     en = SimpleNamespace(
         instance=inst,
@@ -231,7 +230,10 @@ def test_build_enrollment_merge_line_description_dedupes_when_tail_matches_kind(
         == "Event"
     )
 
-def test_build_enrollment_merge_line_description_same_instance_and_service_title() -> None:
+
+def test_build_enrollment_merge_line_description_same_instance_and_service_title() -> (
+    None
+):
     from app.api.admin_billing_invoice_draft_helpers import (
         _build_enrollment_merge_line_description,
     )
@@ -252,7 +254,10 @@ def test_build_enrollment_merge_line_description_same_instance_and_service_title
         == "Training course: Holiday Workshop Standard Week 1"
     )
 
-def test_build_enrollment_merge_line_description_instance_title_without_service_title() -> None:
+
+def test_build_enrollment_merge_line_description_instance_title_without_service_title() -> (
+    None
+):
     from app.api.admin_billing_invoice_draft_helpers import (
         _build_enrollment_merge_line_description,
     )
@@ -272,6 +277,7 @@ def test_build_enrollment_merge_line_description_instance_title_without_service_
         _build_enrollment_merge_line_description(en)  # type: ignore[arg-type]
         == "Consultation: Drop-in Session Solo"
     )
+
 
 def test_resolve_bill_to_party_from_invoice_fks_organization_two_lines() -> None:
     """Organization invoices store entity and primary contact on separate lines (PDF breaks)."""
@@ -315,6 +321,7 @@ def test_resolve_bill_to_party_from_invoice_fks_organization_two_lines() -> None
     assert inv.bill_to_display_name == "Acme Learning Ltd\nJordan Lee"
     assert inv.bill_to_email == "jordan@example.com"
 
+
 def test_resolve_bill_to_party_from_invoice_fks_partner_uses_legal_name() -> None:
     from app.api.admin_billing_invoice_draft_helpers import (
         _resolve_bill_to_party_from_invoice_fks,
@@ -354,6 +361,7 @@ def test_resolve_bill_to_party_from_invoice_fks_partner_uses_legal_name() -> Non
     )
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_display_name == "Acme Learning Limited\nJordan Lee"
+
 
 def test_resolve_bill_to_party_from_invoice_fks_partner_falls_back_to_name() -> None:
     from app.api.admin_billing_invoice_draft_helpers import (
@@ -395,14 +403,16 @@ def test_resolve_bill_to_party_from_invoice_fks_partner_falls_back_to_name() -> 
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_display_name == "Acme Display\nJordan Lee"
 
-def test_resolve_bill_to_party_from_invoice_fks_contact_without_email_sets_display_name() -> None:
+
+def test_resolve_bill_to_party_from_invoice_fks_contact_without_email_sets_display_name() -> (
+    None
+):
     """Contact bill-to must populate display name even when email is absent (list + PDF)."""
     from types import SimpleNamespace
 
     from app.api.admin_billing_invoice_draft_helpers import (
         _resolve_bill_to_party_from_invoice_fks,
     )
-    from app.db.models import Contact
 
     cid = uuid4()
     contact = SimpleNamespace(email=None, first_name="Pat", last_name="Ng")
@@ -424,11 +434,14 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_without_email_sets_displ
     assert inv.bill_to_display_name == "Pat Ng"
     assert inv.bill_to_email is None
 
-def test_resolve_bill_to_party_from_invoice_fks_contact_includes_location_text() -> None:
+
+def test_resolve_bill_to_party_from_invoice_fks_contact_includes_location_text() -> (
+    None
+):
     from app.api.admin_billing_invoice_draft_helpers import (
         _resolve_bill_to_party_from_invoice_fks,
     )
-    from app.db.models import Contact, Location
+    from app.db.models import Location
 
     cid = uuid4()
     lid = uuid4()
@@ -460,7 +473,10 @@ def test_resolve_bill_to_party_from_invoice_fks_contact_includes_location_text()
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_location_text == "Harbour Studio\n1 Pier\nCentral"
 
-def test_resolve_bill_to_party_from_invoice_fks_family_primary_location_fallback() -> None:
+
+def test_resolve_bill_to_party_from_invoice_fks_family_primary_location_fallback() -> (
+    None
+):
     """When family has no location, use primary contact's linked location.
 
     The family bill-to snapshot intentionally drops ``Location.name`` (venue label) so
@@ -507,7 +523,10 @@ def test_resolve_bill_to_party_from_invoice_fks_family_primary_location_fallback
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_location_text == "99 Road"
 
-def test_resolve_bill_to_party_from_invoice_fks_family_prefers_family_location() -> None:
+
+def test_resolve_bill_to_party_from_invoice_fks_family_prefers_family_location() -> (
+    None
+):
     """Family-level location wins over primary contact location.
 
     The family branch drops ``Location.name`` from the snapshot so the assertion uses a
@@ -558,6 +577,7 @@ def test_resolve_bill_to_party_from_invoice_fks_family_prefers_family_location()
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_location_text == "2 Family Road"
 
+
 def test_resolve_bill_to_party_from_invoice_fks_family_excludes_venue_name() -> None:
     """Family bill-to drops the venue label even when address is empty."""
     from app.api.admin_billing_invoice_draft_helpers import (
@@ -601,6 +621,7 @@ def test_resolve_bill_to_party_from_invoice_fks_family_excludes_venue_name() -> 
     _resolve_bill_to_party_from_invoice_fks(session, inv=inv)  # type: ignore[arg-type]
     assert inv.bill_to_location_text is None
 
+
 def test_bill_to_location_snapshot_text_includes_geo_district_and_country() -> None:
     from app.api.admin_billing_invoice_draft_helpers import (
         _bill_to_location_snapshot_text,
@@ -638,6 +659,7 @@ def test_bill_to_location_snapshot_text_includes_geo_district_and_country() -> N
     out = _bill_to_location_snapshot_text(session, lid)  # type: ignore[arg-type]
     assert out == "Venue\n99 Road\nCentral\nHong Kong"
 
+
 def test_resolve_bill_to_primary_contacts_rejects_too_many_family_ids(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -656,6 +678,7 @@ def test_resolve_bill_to_primary_contacts_rejects_too_many_family_ids(
             "POST",
             "/v1/admin/billing/dashboard/resolve-bill-to-primary-contacts",
         )
+
 
 def test_resolve_bill_to_primary_contacts_returns_family_primary_map(
     api_gateway_event: Any,
@@ -683,7 +706,9 @@ def test_resolve_bill_to_primary_contacts_returns_family_primary_map(
 
         yield _Sess()
 
-    monkeypatch.setattr(admin_billing_dashboard_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_dashboard_mod, "_session_with_audit", _fake_session
+    )
 
     body = {"familyIds": [str(fam_id)]}
     ev = api_gateway_event(

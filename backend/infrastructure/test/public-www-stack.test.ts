@@ -211,7 +211,7 @@ function main(): void {
   assertApiProxyCachePolicies(template);
   assertEachDistributionWwwBehaviors(template);
   assertCloudFrontFunctionUpdatesAreSerialized(template);
-   
+
   console.log(
     "public-www-stack CloudFront cache policy and function-chain assertions passed.",
   );
@@ -220,7 +220,7 @@ function main(): void {
 try {
   main();
 } catch (err) {
-   
+
   console.error(err instanceof Error ? err.message : String(err));
   process.exit(1);
 }

@@ -1282,7 +1282,7 @@ export interface paths {
         };
         /**
          * Persist one poll question answer (direct API path)
-         * @description Upserts a single question answer for a training-site poll session. Used by `apps/training` when the respondent advances to the next question. Answers are stored in the shared DynamoDB table `evolvesprouts-poll-responses` (partition key `POLL#<poll_slug>`, sort key `SESSION#<session_id>#Q#<question_id>`). Re-submitting the same session and question overwrites the prior row. Submissions are rejected with `409` when the facilitator has not enabled the question (`error`: `question_not_open`) or when no questions are open (`poll_not_accepting_answers`). Requires API key; Turnstile is not used on this route.
+         * @description Upserts a single question answer for a training-site poll session. Used by `apps/training` when the respondent advances to the next question. Answers are stored in the shared DynamoDB table `evolvesprouts-poll-responses` (partition key `POLL#<poll_slug>`, sort key `SESSION#<session_id>#Q#<question_id>`). Re-submitting the same session and question overwrites the prior row. Submissions are rejected with `409` when the facilitator has not enabled the question (`error`: `question_not_open`), when no questions are open (`poll_not_accepting_answers`), or when `selectedOption` / `selectedOptions` are not members of the facilitator-published option list for that question (`option_not_allowed`; skipped when control state has no `questionOptions`). Per-session and per-IP write counters in DynamoDB return `429` (`poll_write_rate_limit_exceeded`) when exceeded. Requires API key; Turnstile is not used on this route.
          */
         put: {
             parameters: {
@@ -1328,8 +1328,17 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
-                /** @description Question not open for responses. Body `error` is `question_not_open` or `poll_not_accepting_answers`. */
+                /** @description Question not open for responses, option not allowed, or poll not accepting answers. Body `error` is `question_not_open`, `option_not_allowed`, or `poll_not_accepting_answers`. */
                 409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Poll answer write rate limit exceeded. */
+                429: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -2467,10 +2476,23 @@ export interface components {
         PollControlStatePutRequest: {
             /** @description Question ids currently open to respondents. Omitted or empty means all questions are off (default). */
             enabledQuestionIds?: string[];
+            /** @description Optional canonical question definitions (type and allowed options) published by the facilitator. When present for a question, answer PUT validates `selectedOption` / `selectedOptions` membership. */
+            questionOptions?: {
+                [key: string]: components["schemas"]["PollPublishedQuestionOptions"];
+            };
+        };
+        PollPublishedQuestionOptions: {
+            /** @enum {string} */
+            type: "select" | "multiselect" | "truefalse" | "text" | "email";
+            /** @description Required for `select` and `multiselect`; omitted for other types. */
+            options?: string[];
         };
         PollControlStateResponse: {
             pollSlug: string;
             enabledQuestionIds: string[];
+            questionOptions?: {
+                [key: string]: components["schemas"]["PollPublishedQuestionOptions"];
+            };
             /**
              * Format: date-time
              * @description UTC timestamp when control state was last written.

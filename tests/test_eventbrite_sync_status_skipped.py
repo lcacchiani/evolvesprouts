@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.helpers.db import database_url, libpq_conn_url
+from tests.helpers.db import database_url
 from sqlalchemy import create_engine, text
 
 pytest.importorskip("psycopg", reason="psycopg required for DB integration test")

@@ -7,7 +7,9 @@ from typing import Any
 import pytest
 
 from app.api import admin_billing_allocations as admin_billing_allocations_mod
-from app.api import admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod
+from app.api import (
+    admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod,
+)
 from app.api import admin_billing_export as admin_billing_export_mod
 from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts_mod
 from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod

@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import pytest
 
-from tests.helpers.db import database_url, libpq_conn_url
+from tests.helpers.db import database_url
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

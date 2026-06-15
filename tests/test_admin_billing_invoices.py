@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 from types import SimpleNamespace
@@ -14,36 +14,18 @@ from uuid import UUID, uuid4
 import pytest
 
 from app.api import admin_billing
-from app.api import admin_billing_allocations as admin_billing_allocations_mod
-from app.api import admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod
-from app.api import admin_billing_export as admin_billing_export_mod
-from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts_mod
 from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
 from app.api import admin_billing_invoices as admin_billing_invoices_mod
-from app.api import admin_billing_payment_create as admin_billing_payment_create_mod
-from app.api import admin_billing_payment_update as admin_billing_payment_update_mod
-from app.api import admin_billing_payments as admin_billing_payments_mod
-from app.api.admin_billing_common import (
-    effective_enrollment_bill_to_fks,
-    enrollment_bill_to_merge_key,
-)
 from app.api.admin_billing_invoice_serializers import parse_optional_invoice_settlement
-from app.db.models import Contact, Enrollment
+from app.db.models import Contact
 from app.db.models.customer_invoice import CustomerInvoice
-from app.db.models.customer_payment import CustomerPayment
 from app.db.models.enums import (
     BillingBillToKind,
     BillingInvoiceStatus,
-    BillingPaymentDirection,
-    BillingPaymentStatus,
-    EnrollmentStatus,
-    ServiceType,
 )
-from app.exceptions import ConflictError, NotFoundError, ValidationError
-from app.services import customer_billing
+from app.exceptions import ValidationError
 
 from tests.helpers.billing import patch_billing_sessions
-
 
 
 def test_list_invoices_returns_items_and_cursor(
@@ -97,7 +79,9 @@ def test_list_invoices_returns_items_and_cursor(
         path="/v1/admin/billing/invoices",
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 200
     body = json.loads(r["body"])
     assert len(body["items"]) == 1
@@ -108,6 +92,7 @@ def test_list_invoices_returns_items_and_cursor(
     assert body["items"][0]["paidAt"] is None
     assert body["items"][0]["isPaid"] is False
     assert body["next_cursor"] is None
+
 
 def test_get_invoice_returns_detail_with_lines(
     api_gateway_event: Any,
@@ -191,6 +176,7 @@ def test_get_invoice_returns_detail_with_lines(
     assert body["invoice"]["paidAt"] is None
     assert body["invoice"]["isPaid"] is False
 
+
 def test_delete_draft_invoice_succeeds(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -239,6 +225,7 @@ def test_delete_draft_invoice_succeeds(
     assert body["invoiceId"] == str(inv_id)
     assert body["deleted"] is True
 
+
 def test_delete_draft_invoice_rejects_issued(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -272,6 +259,7 @@ def test_delete_draft_invoice_rejects_issued(
         admin_billing.handle_admin_billing_request(
             ev, "DELETE", f"/v1/admin/billing/invoices/{inv_id}"
         )
+
 
 def test_delete_draft_invoice_rejects_when_allocations_exist(
     api_gateway_event: Any,
@@ -310,6 +298,7 @@ def test_delete_draft_invoice_rejects_when_allocations_exist(
             ev, "DELETE", f"/v1/admin/billing/invoices/{inv_id}"
         )
 
+
 def test_get_invoice_pdf_returns_signed_url(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -336,7 +325,9 @@ def test_get_invoice_pdf_returns_signed_url(
         lambda _session, _inv: "billing/invoices/preview/x.pdf",
     )
 
-    def _fake_download(*, s3_key: str, cache_bust_key: str | None = None) -> dict[str, str]:
+    def _fake_download(
+        *, s3_key: str, cache_bust_key: str | None = None
+    ) -> dict[str, str]:
         assert s3_key == "billing/invoices/preview/x.pdf"
         assert cache_bust_key is not None and cache_bust_key.isdigit()
         return {
@@ -363,6 +354,7 @@ def test_get_invoice_pdf_returns_signed_url(
     assert body["downloadUrl"] == "https://cdn.example.com/signed"
     assert body["expiresAt"] == "2026-12-31T00:00:00+00:00"
 
+
 def test_list_invoices_rejects_invalid_currency_length(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -374,7 +366,10 @@ def test_list_invoices_rejects_invalid_currency_length(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="currency"):
-        admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "GET", "/v1/admin/billing/invoices"
+        )
+
 
 def test_list_invoices_returns_next_cursor_when_has_more(
     api_gateway_event: Any,
@@ -430,11 +425,14 @@ def test_list_invoices_returns_next_cursor_when_has_more(
         query_params={"limit": "1"},
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 200
     body = json.loads(r["body"])
     assert len(body["items"]) == 1
     assert body["next_cursor"] is not None
+
 
 def test_list_invoices_filters_by_currency_and_status(
     api_gateway_event: Any,
@@ -465,12 +463,15 @@ def test_list_invoices_filters_by_currency_and_status(
         query_params={"currency": "HKD", "status": "draft"},
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 200
     assert captured
     stmt_text = str(captured[0]).lower()
     assert "customer_invoices.currency" in stmt_text
     assert "customer_invoices.status" in stmt_text
+
 
 @pytest.mark.parametrize(
     ("settlement", "needles"),
@@ -546,12 +547,15 @@ def test_list_invoices_filters_by_settlement_slice_sql(
         query_params={"settlement": settlement},
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 200
     assert captured
     stmt_text = str(captured[0]).lower()
     for needle in needles:
         assert needle in stmt_text, (settlement, needle, stmt_text[:500])
+
 
 def test_list_invoices_combined_settlement_currency_and_q_sql(
     api_gateway_event: Any,
@@ -582,13 +586,16 @@ def test_list_invoices_combined_settlement_currency_and_q_sql(
         query_params={"settlement": "open", "currency": "HKD", "q": "INV-9"},
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 200
     assert captured
     stmt_text = str(captured[0]).lower()
     assert "customer_invoices.balance_due" in stmt_text
     assert "customer_invoices.currency" in stmt_text
     assert "customer_invoices.invoice_number" in stmt_text
+
 
 def test_list_invoices_applies_free_text_query_param(
     api_gateway_event: Any,
@@ -619,12 +626,15 @@ def test_list_invoices_applies_free_text_query_param(
         query_params={"q": "Acme"},
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "GET", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 200
     assert captured
     stmt_text = str(captured[0]).lower()
     assert "customer_invoices.invoice_number" in stmt_text
     assert "to_char" in stmt_text
+
 
 def test_email_invoice_accepts_comma_separated_recipients(
     api_gateway_event: Any,
@@ -663,6 +673,7 @@ def test_email_invoice_accepts_comma_separated_recipients(
     assert captured["invoice_id"] == inv_id
     assert captured["to_addresses"] == ["a@example.com", "b@example.com"]
 
+
 def test_email_invoice_rejects_invalid_email(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -687,19 +698,23 @@ def test_email_invoice_rejects_invalid_email(
             ev, "POST", f"/v1/admin/billing/invoices/{inv_id}/email"
         )
 
+
 def test_parse_optional_invoice_settlement_accepts_known_values() -> None:
     assert parse_optional_invoice_settlement(None) is None
     assert parse_optional_invoice_settlement("") is None
     assert parse_optional_invoice_settlement("OPEN") == "open"
     assert parse_optional_invoice_settlement("partially_paid") == "partially_paid"
 
+
 def test_parse_optional_invoice_settlement_accepts_no_charge() -> None:
     assert parse_optional_invoice_settlement("no_charge") == "no_charge"
     assert parse_optional_invoice_settlement("NO_CHARGE") == "no_charge"
 
+
 def test_parse_optional_invoice_settlement_accepts_not_completed() -> None:
     assert parse_optional_invoice_settlement("not_completed") == "not_completed"
     assert parse_optional_invoice_settlement("NOT_COMPLETED") == "not_completed"
+
 
 def test_parse_optional_invoice_settlement_rejects_unknown() -> None:
     with pytest.raises(ValidationError) as exc_info:
@@ -707,6 +722,7 @@ def test_parse_optional_invoice_settlement_rejects_unknown() -> None:
     msg = str(exc_info.value)
     assert "settlement" in msg.lower()
     assert "no_charge" in msg
+
 
 def test_list_invoices_rejects_invalid_settlement_query_param(
     api_gateway_event: Any,
@@ -726,7 +742,10 @@ def test_list_invoices_rejects_invalid_settlement_query_param(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="settlement"):
-        admin_billing.handle_admin_billing_request(ev, "GET", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "GET", "/v1/admin/billing/invoices"
+        )
+
 
 def test_void_invoice_calls_recompute_invoice_settlement(
     api_gateway_event: Any,
@@ -769,7 +788,9 @@ def test_void_invoice_calls_recompute_invoice_settlement(
         s.get.side_effect = _get
         yield s
 
-    monkeypatch.setattr(admin_billing_invoices_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoices_mod, "_session_with_audit", _fake_session
+    )
 
     ev = api_gateway_event(
         method="POST",
@@ -782,6 +803,7 @@ def test_void_invoice_calls_recompute_invoice_settlement(
     )
     assert r["statusCode"] == 200
     assert touched == [inv_id]
+
 
 def test_issue_invoice_calls_recompute_invoice_settlement(
     api_gateway_event: Any,
@@ -826,7 +848,9 @@ def test_issue_invoice_calls_recompute_invoice_settlement(
         "next_invoice_number",
         lambda _session: ("INV-SPY-1", 1),
     )
-    monkeypatch.setattr(admin_billing_invoices_mod, "refresh_invoice_pdf", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        admin_billing_invoices_mod, "refresh_invoice_pdf", lambda *_a, **_k: None
+    )
     monkeypatch.setattr(
         admin_billing_invoices_mod,
         "maybe_confirm_enrollments_on_zero_total_invoice_issue",
@@ -853,7 +877,9 @@ def test_issue_invoice_calls_recompute_invoice_settlement(
         s.flush = MagicMock()
         yield s
 
-    monkeypatch.setattr(admin_billing_invoices_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoices_mod, "_session_with_audit", _fake_session
+    )
 
     ev = api_gateway_event(
         method="POST",

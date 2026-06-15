@@ -103,7 +103,7 @@ function assertNewResources(): void {
 function main(): void {
   assertExistingResources();
   assertNewResources();
-   
+
   console.log("OK");
 }
 

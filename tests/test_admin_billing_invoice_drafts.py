@@ -9,41 +9,23 @@ from decimal import Decimal
 from typing import Any
 from types import SimpleNamespace
 from unittest.mock import MagicMock
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 
 from app.api import admin_billing
-from app.api import admin_billing_allocations as admin_billing_allocations_mod
-from app.api import admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod
-from app.api import admin_billing_export as admin_billing_export_mod
 from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts_mod
-from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
 from app.api import admin_billing_invoices as admin_billing_invoices_mod
-from app.api import admin_billing_payment_create as admin_billing_payment_create_mod
-from app.api import admin_billing_payment_update as admin_billing_payment_update_mod
-from app.api import admin_billing_payments as admin_billing_payments_mod
-from app.api.admin_billing_common import (
-    effective_enrollment_bill_to_fks,
-    enrollment_bill_to_merge_key,
-)
-from app.api.admin_billing_invoice_serializers import parse_optional_invoice_settlement
-from app.db.models import Contact, Enrollment
+from app.db.models import Contact
 from app.db.models.customer_invoice import CustomerInvoice
-from app.db.models.customer_payment import CustomerPayment
 from app.db.models.enums import (
     BillingBillToKind,
     BillingInvoiceStatus,
-    BillingPaymentDirection,
-    BillingPaymentStatus,
-    EnrollmentStatus,
-    ServiceType,
 )
-from app.exceptions import ConflictError, NotFoundError, ValidationError
+from app.exceptions import ValidationError
 from app.services import customer_billing
 
 from tests.helpers.billing import patch_billing_sessions
-
 
 
 def test_next_invoice_number_increments_per_year(
@@ -69,6 +51,7 @@ def test_next_invoice_number_increments_per_year(
     assert num.startswith("INV-")
     assert num.count("-") == 2
     assert n_calls["n"] == 2
+
 
 def test_create_invoice_draft_rejects_currency_mismatch(
     api_gateway_event: Any,
@@ -116,6 +99,7 @@ def test_create_invoice_draft_rejects_currency_mismatch(
             ev, "POST", "/v1/admin/billing/invoices"
         )
 
+
 def test_create_invoice_draft_rejects_billto_mismatch(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
@@ -153,7 +137,11 @@ def test_create_invoice_draft_rejects_billto_mismatch(
 
     patch_billing_sessions(monkeypatch, _fake_session)
 
-    body = {"draftKind": "enrollment_merge", "enrollmentIds": [str(e1), str(e2)], "currency": "HKD"}
+    body = {
+        "draftKind": "enrollment_merge",
+        "enrollmentIds": [str(e1), str(e2)],
+        "currency": "HKD",
+    }
     ev = api_gateway_event(
         method="POST",
         path="/v1/admin/billing/invoices",
@@ -164,6 +152,7 @@ def test_create_invoice_draft_rejects_billto_mismatch(
         admin_billing.handle_admin_billing_request(
             ev, "POST", "/v1/admin/billing/invoices"
         )
+
 
 def test_create_invoice_draft_derives_currency_when_omitted(
     api_gateway_event: Any,
@@ -177,9 +166,7 @@ def test_create_invoice_draft_derives_currency_when_omitted(
     fake_en.currency = "USD"
     fake_en.amount_paid = Decimal("10")
     fake_en.instance = MagicMock(title="Inst")
-    fake_en.contact = MagicMock(
-        email="u@example.com", first_name="U", last_name="Ser"
-    )
+    fake_en.contact = MagicMock(email="u@example.com", first_name="U", last_name="Ser")
     fake_en.bill_to_kind = BillingBillToKind.CONTACT
     fake_en.bill_to_contact_id = None
     fake_en.bill_to_family_id = None
@@ -199,7 +186,9 @@ def test_create_invoice_draft_derives_currency_when_omitted(
             return out
 
         s.execute.side_effect = _exec
-        s.get.side_effect = lambda model, pk: fake_inv if model is CustomerInvoice else None
+        s.get.side_effect = (
+            lambda model, pk: fake_inv if model is CustomerInvoice else None
+        )
 
         def _flush() -> None:
             pass
@@ -207,7 +196,9 @@ def test_create_invoice_draft_derives_currency_when_omitted(
         s.flush = _flush
         return (yield s)
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
     monkeypatch.setattr(
         admin_billing_invoice_drafts_mod,
         "_resolve_bill_to_party_for_draft",
@@ -226,10 +217,13 @@ def test_create_invoice_draft_derives_currency_when_omitted(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 201
     payload = json.loads(r["body"])
     assert payload["invoiceId"]
+
 
 def test_create_invoice_draft_rejects_invalid_currency_length(
     api_gateway_event: Any,
@@ -259,9 +253,15 @@ def test_create_invoice_draft_rejects_invalid_currency_length(
         s.execute.side_effect = _exec
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
 
-    body = {"draftKind": "enrollment_merge", "enrollmentIds": [str(eid)], "currency": "US"}
+    body = {
+        "draftKind": "enrollment_merge",
+        "enrollmentIds": [str(eid)],
+        "currency": "US",
+    }
     ev = api_gateway_event(
         method="POST",
         path="/v1/admin/billing/invoices",
@@ -272,6 +272,7 @@ def test_create_invoice_draft_rejects_invalid_currency_length(
         admin_billing.handle_admin_billing_request(
             ev, "POST", "/v1/admin/billing/invoices"
         )
+
 
 def test_create_invoice_draft_currency_empty_string_derives(
     api_gateway_event: Any,
@@ -285,9 +286,7 @@ def test_create_invoice_draft_currency_empty_string_derives(
     fake_en.currency = "HKD"
     fake_en.amount_paid = Decimal("10")
     fake_en.instance = MagicMock(title="Inst")
-    fake_en.contact = MagicMock(
-        email="u@example.com", first_name="U", last_name="Ser"
-    )
+    fake_en.contact = MagicMock(email="u@example.com", first_name="U", last_name="Ser")
     fake_en.bill_to_kind = BillingBillToKind.CONTACT
     fake_en.bill_to_contact_id = None
     fake_en.bill_to_family_id = None
@@ -307,7 +306,9 @@ def test_create_invoice_draft_currency_empty_string_derives(
             return out
 
         s.execute.side_effect = _exec
-        s.get.side_effect = lambda model, pk: fake_inv if model is CustomerInvoice else None
+        s.get.side_effect = (
+            lambda model, pk: fake_inv if model is CustomerInvoice else None
+        )
 
         def _flush() -> None:
             pass
@@ -315,7 +316,9 @@ def test_create_invoice_draft_currency_empty_string_derives(
         s.flush = _flush
         return (yield s)
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
     monkeypatch.setattr(
         admin_billing_invoice_drafts_mod,
         "_resolve_bill_to_party_for_draft",
@@ -327,15 +330,22 @@ def test_create_invoice_draft_currency_empty_string_derives(
         lambda *_a, **_k: MagicMock(log_custom=lambda **_kw: None),
     )
 
-    body = {"draftKind": "enrollment_merge", "enrollmentIds": [str(eid)], "currency": ""}
+    body = {
+        "draftKind": "enrollment_merge",
+        "enrollmentIds": [str(eid)],
+        "currency": "",
+    }
     ev = api_gateway_event(
         method="POST",
         path="/v1/admin/billing/invoices",
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 201
+
 
 def test_create_customized_invoice_draft_rejects_missing_currency(
     api_gateway_event: Any,
@@ -353,7 +363,10 @@ def test_create_customized_invoice_draft_rejects_missing_currency(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="currency"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/invoices"
+        )
+
 
 def test_create_customized_invoice_draft_rejects_contact_not_found(
     api_gateway_event: Any,
@@ -372,7 +385,9 @@ def test_create_customized_invoice_draft_rejects_contact_not_found(
         s.get.side_effect = _get
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
 
     body = {
         "draftKind": "customized_manual",
@@ -387,7 +402,10 @@ def test_create_customized_invoice_draft_rejects_contact_not_found(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="Contact not found"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/invoices"
+        )
+
 
 def test_create_invoice_draft_rejects_enrollment_ids_with_bill_to(
     api_gateway_event: Any,
@@ -406,7 +424,10 @@ def test_create_invoice_draft_rejects_enrollment_ids_with_bill_to(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="billTo must not"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/invoices"
+        )
+
 
 def test_create_invoice_draft_requires_draft_kind(
     api_gateway_event: Any,
@@ -420,7 +441,10 @@ def test_create_invoice_draft_requires_draft_kind(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="draftKind"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/invoices"
+        )
+
 
 def test_create_customized_invoice_draft_rejects_description_over_500(
     api_gateway_event: Any,
@@ -436,10 +460,16 @@ def test_create_customized_invoice_draft_rejects_description_over_500(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: fake_c if model.__name__ == "Contact" and pk == cid else None
+        s.get.side_effect = (
+            lambda model, pk: fake_c
+            if model.__name__ == "Contact" and pk == cid
+            else None
+        )
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
 
     body = {
         "draftKind": "customized_manual",
@@ -454,7 +484,10 @@ def test_create_customized_invoice_draft_rejects_description_over_500(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="500"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/invoices"
+        )
+
 
 def test_create_customized_invoice_draft_rejects_both_tax_amount_and_rate(
     api_gateway_event: Any,
@@ -470,10 +503,16 @@ def test_create_customized_invoice_draft_rejects_both_tax_amount_and_rate(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: fake_c if model.__name__ == "Contact" and pk == cid else None
+        s.get.side_effect = (
+            lambda model, pk: fake_c
+            if model.__name__ == "Contact" and pk == cid
+            else None
+        )
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
 
     body = {
         "draftKind": "customized_manual",
@@ -496,21 +535,30 @@ def test_create_customized_invoice_draft_rejects_both_tax_amount_and_rate(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="not both"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/invoices"
+        )
+
 
 def test_first_present_and_decimal_accepts_numeric_zero() -> None:
-    from app.api.admin_billing_invoice_draft_helpers import _decimal_field, _first_present
+    from app.api.admin_billing_invoice_draft_helpers import (
+        _decimal_field,
+        _first_present,
+    )
 
     raw_ln: dict[str, Any] = {"unitAmount": 0}
     v = _first_present(raw_ln, "unitAmount", "unit_amount")
     assert _decimal_field(v, field="unitAmount") == Decimal("0")
+
 
 def test_create_customized_invoice_draft_rejects_more_than_50_lines(
     api_gateway_event: Any,
     admin_identity: dict[str, str],
 ) -> None:
     cid = uuid4()
-    lines = [{"description": "L", "quantity": "1", "unitAmount": "1"} for _ in range(51)]
+    lines = [
+        {"description": "L", "quantity": "1", "unitAmount": "1"} for _ in range(51)
+    ]
     body = {
         "draftKind": "customized_manual",
         "billTo": {"kind": "contact", "contactId": str(cid)},
@@ -524,7 +572,10 @@ def test_create_customized_invoice_draft_rejects_more_than_50_lines(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="50"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/invoices"
+        )
+
 
 def test_create_customized_invoice_draft_rejects_discount_exceeding_extended(
     api_gateway_event: Any,
@@ -540,10 +591,16 @@ def test_create_customized_invoice_draft_rejects_discount_exceeding_extended(
     @contextmanager
     def _fake_session(_u: str, _r: str | None) -> Any:
         s = MagicMock()
-        s.get.side_effect = lambda model, pk: fake_c if model.__name__ == "Contact" and pk == cid else None
+        s.get.side_effect = (
+            lambda model, pk: fake_c
+            if model.__name__ == "Contact" and pk == cid
+            else None
+        )
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
 
     body = {
         "draftKind": "customized_manual",
@@ -565,7 +622,10 @@ def test_create_customized_invoice_draft_rejects_discount_exceeding_extended(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError, match="discountAmount"):
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/invoices"
+        )
+
 
 def test_create_customized_invoice_draft_tax_rate_rounds_half_up(
     api_gateway_event: Any,
@@ -605,7 +665,9 @@ def test_create_customized_invoice_draft_tax_rate_rounds_half_up(
         s.flush = _flush
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
     monkeypatch.setattr(
         admin_billing_invoice_drafts_mod,
         "_resolve_bill_to_party_from_invoice_fks",
@@ -641,7 +703,9 @@ def test_create_customized_invoice_draft_tax_rate_rounds_half_up(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 201
     assert len(line_kwargs) == 1
     tax_amt = line_kwargs[0]["tax_amount"]
@@ -653,6 +717,7 @@ def test_create_customized_invoice_draft_tax_rate_rounds_half_up(
     )
     assert tax_amt == expected_half_up
     assert expected_half_up != expected_half_even
+
 
 def test_create_invoice_draft_accepts_invoice_date(
     api_gateway_event: Any,
@@ -667,9 +732,7 @@ def test_create_invoice_draft_accepts_invoice_date(
     fake_en.currency = "USD"
     fake_en.amount_paid = Decimal("10")
     fake_en.instance = MagicMock(title="Inst")
-    fake_en.contact = MagicMock(
-        email="u@example.com", first_name="U", last_name="Ser"
-    )
+    fake_en.contact = MagicMock(email="u@example.com", first_name="U", last_name="Ser")
     fake_en.bill_to_kind = BillingBillToKind.CONTACT
     fake_en.bill_to_contact_id = None
     fake_en.bill_to_family_id = None
@@ -694,7 +757,9 @@ def test_create_invoice_draft_accepts_invoice_date(
         s.flush = MagicMock()
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
     monkeypatch.setattr(
         admin_billing_invoice_drafts_mod,
         "_resolve_bill_to_party_for_draft",
@@ -717,9 +782,12 @@ def test_create_invoice_draft_accepts_invoice_date(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 201
     assert saved["inv"].invoice_date == date(2024, 12, 31)
+
 
 def test_create_invoice_draft_accepts_invoice_date_at_upper_bound_in_display_tz(
     api_gateway_event: Any,
@@ -741,9 +809,7 @@ def test_create_invoice_draft_accepts_invoice_date_at_upper_bound_in_display_tz(
     fake_en.currency = "USD"
     fake_en.amount_paid = Decimal("10")
     fake_en.instance = MagicMock(title="Inst")
-    fake_en.contact = MagicMock(
-        email="u@example.com", first_name="U", last_name="Ser"
-    )
+    fake_en.contact = MagicMock(email="u@example.com", first_name="U", last_name="Ser")
     fake_en.bill_to_kind = BillingBillToKind.CONTACT
     fake_en.bill_to_contact_id = None
     fake_en.bill_to_family_id = None
@@ -768,7 +834,9 @@ def test_create_invoice_draft_accepts_invoice_date_at_upper_bound_in_display_tz(
         s.flush = MagicMock()
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
     monkeypatch.setattr(
         admin_billing_invoice_drafts_mod,
         "_resolve_bill_to_party_for_draft",
@@ -792,9 +860,12 @@ def test_create_invoice_draft_accepts_invoice_date_at_upper_bound_in_display_tz(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 201
     assert saved["inv"].invoice_date == fixed_today + timedelta(days=365)
+
 
 def test_create_invoice_draft_defaults_invoice_date_to_today(
     api_gateway_event: Any,
@@ -809,9 +880,7 @@ def test_create_invoice_draft_defaults_invoice_date_to_today(
     fake_en.currency = "USD"
     fake_en.amount_paid = Decimal("10")
     fake_en.instance = MagicMock(title="Inst")
-    fake_en.contact = MagicMock(
-        email="u@example.com", first_name="U", last_name="Ser"
-    )
+    fake_en.contact = MagicMock(email="u@example.com", first_name="U", last_name="Ser")
     fake_en.bill_to_kind = BillingBillToKind.CONTACT
     fake_en.bill_to_contact_id = None
     fake_en.bill_to_family_id = None
@@ -836,7 +905,9 @@ def test_create_invoice_draft_defaults_invoice_date_to_today(
         s.flush = MagicMock()
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
     monkeypatch.setattr(
         admin_billing_invoice_drafts_mod,
         "_resolve_bill_to_party_for_draft",
@@ -855,10 +926,13 @@ def test_create_invoice_draft_defaults_invoice_date_to_today(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 201
     assert saved["inv"].invoice_date is not None
     assert saved["inv"].invoice_date == datetime.now(UTC).date()
+
 
 def test_create_customized_invoice_draft_accepts_invoice_date(
     api_gateway_event: Any,
@@ -886,7 +960,9 @@ def test_create_customized_invoice_draft_accepts_invoice_date(
         s.flush = MagicMock()
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
     monkeypatch.setattr(
         admin_billing_invoice_drafts_mod,
         "_resolve_bill_to_party_from_invoice_fks",
@@ -911,9 +987,12 @@ def test_create_customized_invoice_draft_accepts_invoice_date(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/invoices"
+    )
     assert r["statusCode"] == 201
     assert saved["inv"].invoice_date == date(2024, 6, 15)
+
 
 def test_create_invoice_draft_rejects_invalid_invoice_date(
     api_gateway_event: Any,
@@ -943,7 +1022,9 @@ def test_create_invoice_draft_rejects_invalid_invoice_date(
         s.execute.side_effect = _exec
         yield s
 
-    monkeypatch.setattr(admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_invoice_drafts_mod, "_session_with_audit", _fake_session
+    )
 
     body = {
         "draftKind": "enrollment_merge",
@@ -957,8 +1038,11 @@ def test_create_invoice_draft_rejects_invalid_invoice_date(
         authorizer_context=admin_identity,
     )
     with pytest.raises(ValidationError) as excinfo:
-        admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/invoices")
+        admin_billing.handle_admin_billing_request(
+            ev, "POST", "/v1/admin/billing/invoices"
+        )
     assert getattr(excinfo.value, "field", None) == "invoiceDate"
+
 
 def test_issue_preserves_draft_invoice_date_and_derives_due_date(
     api_gateway_event: Any,
@@ -1014,7 +1098,9 @@ def test_issue_preserves_draft_invoice_date_and_derives_due_date(
         "next_invoice_number",
         lambda _session: ("INV-TEST-1", 1),
     )
-    monkeypatch.setattr(admin_billing_invoices_mod, "refresh_invoice_pdf", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        admin_billing_invoices_mod, "refresh_invoice_pdf", lambda *_a, **_k: None
+    )
     monkeypatch.setattr(
         admin_billing_invoices_mod,
         "recompute_invoice_settlement",
@@ -1037,6 +1123,7 @@ def test_issue_preserves_draft_invoice_date_and_derives_due_date(
     assert r["statusCode"] == 200
     assert inv.invoice_date == date(2024, 3, 10)
     assert inv.due_date == date(2024, 3, 17)
+
 
 def test_issue_legacy_draft_without_invoice_date_uses_snapshot(
     api_gateway_event: Any,
@@ -1104,7 +1191,9 @@ def test_issue_legacy_draft_without_invoice_date_uses_snapshot(
         "next_invoice_number",
         lambda _session: ("INV-TEST-2", 2),
     )
-    monkeypatch.setattr(admin_billing_invoices_mod, "refresh_invoice_pdf", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        admin_billing_invoices_mod, "refresh_invoice_pdf", lambda *_a, **_k: None
+    )
     monkeypatch.setattr(
         admin_billing_invoices_mod,
         "recompute_invoice_settlement",

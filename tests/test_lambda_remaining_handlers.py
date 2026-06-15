@@ -8,7 +8,9 @@ from unittest.mock import MagicMock
 
 
 def _load_lambda_module(relative_path: str, module_name: str) -> Any:
-    module_path = Path(__file__).resolve().parents[1] / "backend" / "lambda" / relative_path
+    module_path = (
+        Path(__file__).resolve().parents[1] / "backend" / "lambda" / relative_path
+    )
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Unable to load module at {module_path}")
@@ -246,7 +248,9 @@ def test_ses_template_manager_create_upserts_templates(monkeypatch: Any) -> None
     client.update_template.assert_not_called()
 
 
-def test_ses_template_manager_create_updates_existing_template(monkeypatch: Any) -> None:
+def test_ses_template_manager_create_updates_existing_template(
+    monkeypatch: Any,
+) -> None:
     handler = _load_lambda_module(
         "ses_template_manager/handler.py",
         "test_ses_template_manager_update",

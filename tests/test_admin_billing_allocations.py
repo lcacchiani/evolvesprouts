@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
-from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 from types import SimpleNamespace
@@ -15,33 +14,10 @@ import pytest
 
 from app.api import admin_billing
 from app.api import admin_billing_allocations as admin_billing_allocations_mod
-from app.api import admin_billing_enrollment_queries as admin_billing_enrollment_queries_mod
-from app.api import admin_billing_export as admin_billing_export_mod
-from app.api import admin_billing_invoice_drafts as admin_billing_invoice_drafts_mod
-from app.api import admin_billing_invoice_queries as admin_billing_invoice_queries_mod
-from app.api import admin_billing_invoices as admin_billing_invoices_mod
-from app.api import admin_billing_payment_create as admin_billing_payment_create_mod
-from app.api import admin_billing_payment_update as admin_billing_payment_update_mod
-from app.api import admin_billing_payments as admin_billing_payments_mod
-from app.api.admin_billing_common import (
-    effective_enrollment_bill_to_fks,
-    enrollment_bill_to_merge_key,
-)
-from app.api.admin_billing_invoice_serializers import parse_optional_invoice_settlement
-from app.db.models import Contact, Enrollment
-from app.db.models.customer_invoice import CustomerInvoice
-from app.db.models.customer_payment import CustomerPayment
 from app.db.models.enums import (
-    BillingBillToKind,
     BillingInvoiceStatus,
-    BillingPaymentDirection,
-    BillingPaymentStatus,
-    EnrollmentStatus,
-    ServiceType,
 )
-from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.services import customer_billing
-
 
 
 def test_create_allocation_calls_recompute_invoice_settlement(
@@ -90,7 +66,9 @@ def test_create_allocation_calls_recompute_invoice_settlement(
         s.get.return_value = _Inv()
         yield s
 
-    monkeypatch.setattr(admin_billing_allocations_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_allocations_mod, "_session_with_audit", _fake_session
+    )
 
     body = {
         "paymentId": str(pay_id),
@@ -104,9 +82,12 @@ def test_create_allocation_calls_recompute_invoice_settlement(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/allocations")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/allocations"
+    )
     assert r["statusCode"] == 201
     assert touched == [inv_id]
+
 
 def test_allocate_no_enrollment_payment_to_customized_invoice(
     api_gateway_event: Any,
@@ -156,7 +137,9 @@ def test_allocate_no_enrollment_payment_to_customized_invoice(
         s.get.return_value = _Inv()
         yield s
 
-    monkeypatch.setattr(admin_billing_allocations_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_allocations_mod, "_session_with_audit", _fake_session
+    )
 
     body = {
         "paymentId": str(pay_id),
@@ -170,9 +153,12 @@ def test_allocate_no_enrollment_payment_to_customized_invoice(
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/allocations")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/allocations"
+    )
     assert r["statusCode"] == 201
     assert touched == [inv_id]
+
 
 def test_create_allocation_triggers_refresh_invoice_pdf_when_invoice_becomes_paid(
     api_gateway_event: Any,
@@ -245,7 +231,9 @@ def test_create_allocation_triggers_refresh_invoice_pdf_when_invoice_becomes_pai
         s.get.return_value = inv
         yield s
 
-    monkeypatch.setattr(admin_billing_allocations_mod, "_session_with_audit", _fake_session)
+    monkeypatch.setattr(
+        admin_billing_allocations_mod, "_session_with_audit", _fake_session
+    )
 
     body = {
         "paymentId": str(pay_id),
@@ -259,7 +247,9 @@ def test_create_allocation_triggers_refresh_invoice_pdf_when_invoice_becomes_pai
         body=json.dumps(body),
         authorizer_context=admin_identity,
     )
-    r = admin_billing.handle_admin_billing_request(ev, "POST", "/v1/admin/billing/allocations")
+    r = admin_billing.handle_admin_billing_request(
+        ev, "POST", "/v1/admin/billing/allocations"
+    )
     assert r["statusCode"] == 201
     assert touched == [inv_id]
     assert refresh_ids == [inv_id]
