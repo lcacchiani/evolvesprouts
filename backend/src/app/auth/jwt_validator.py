@@ -75,9 +75,7 @@ _jwks_client_lock_time: dict[str, float] = {}
 JWKS_CACHE_TTL = 3600  # 1 hour
 
 _COGNITO_TOKEN_USE_ID = "id"  # nosec B105 - Cognito token_use claim value, not a password
-_COGNITO_TOKEN_USE_ACCESS = (
-    "access"  # nosec B105 - Cognito token_use claim value, not a password
-)
+_COGNITO_TOKEN_USE_ACCESS = "access"  # nosec B105 - Cognito token_use claim value, not a password
 
 
 @dataclass
