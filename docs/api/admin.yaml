@@ -3168,7 +3168,10 @@ paths:
         `external_reference`), `counterparty_name_snapshot` (invoice line description or
         invoice snapshot display name), `tax_amount`, `created_by` (payment `confirmed_by`),
         bill-to fields on invoice rows, and Stripe / linkage ids. Pass `exportVersion=1`
-        for the legacy payments+allocations-only shape.
+        for the legacy payments+allocations-only shape. Payment rows are paginated via
+        `limit` and `cursor`; allocations, invoices, invoice lines, and receipts are
+        included only on the first page (`cursor` omitted) up to fixed per-entity caps
+        (10,000 allocations; 5,000 invoices and receipts).
       security:
         - AdminBearerAuth: []
       parameters:

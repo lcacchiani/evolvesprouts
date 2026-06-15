@@ -113,7 +113,10 @@ Cognito ID tokens carry the app client id in the `aud` claim; access tokens use
 `backend/src/app/auth/jwt_validator.py` requires the claim to appear in the
 comma-separated allowlist env var `COGNITO_ALLOWED_CLIENT_IDS`. An empty or
 missing allowlist fails closed (tokens are rejected). Wire the same allowlist on
-admin API Lambdas and Cognito request authorizers via CDK.
+admin API Lambdas and Cognito request authorizers via CDK. Production deploys
+use a single Cognito app client (`EvolvesproutsUserPoolClient` in
+`backend/infrastructure/lib/api-stack.ts`); the reusable `AuthConstruct` in
+`backend/infrastructure/lib/constructs/auth.ts` is not wired into that stack.
 
 ### OTP/Code Generation
 

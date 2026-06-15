@@ -224,20 +224,19 @@ def _should_redact_audit_field(key: str) -> bool:
 
 
 def _redact_audit_value(key: str, value: Any) -> Any:
-    """Mask a single audit value; recurse into dict/JSON snapshots."""
+    """Mask a single audit value; recurse only when the parent key is not PII."""
     if value == _REDACTED_MARKER:
         return value
-    if isinstance(value, Mapping):
-        return {
-            nested_key: (
-                _REDACTED_MARKER
-                if _should_redact_audit_field(str(nested_key))
-                else _redact_audit_value(str(nested_key), nested_value)
-            )
-            for nested_key, nested_value in value.items()
-        }
     if _should_redact_audit_field(key):
         return _REDACTED_MARKER
+    if isinstance(value, Mapping):
+        return {
+            nested_key: _redact_audit_value(str(nested_key), nested_value)
+            for nested_key, nested_value in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        redacted = [_redact_audit_value(key, item) for item in value]
+        return tuple(redacted) if isinstance(value, tuple) else redacted
     return value
 
 
@@ -384,13 +383,7 @@ def _serialize_audit_log(
     emails = email_map or {}
 
     def redact_values(values: dict[str, Any]) -> dict[str, Any]:
-        redacted: dict[str, Any] = {}
-        for key, value in values.items():
-            if _should_redact_audit_field(key):
-                redacted[key] = _redact_audit_value(key, value)
-            else:
-                redacted[key] = value
-        return redacted
+        return {key: _redact_audit_value(key, value) for key, value in values.items()}
 
     user_id_val = entry.user_id
     payload: dict[str, Any] = {

@@ -765,6 +765,99 @@ def test_audit_log_redacts_billing_pii_fields() -> None:
     assert payload["changed_fields"] == ["bill_to_email", "total"]
 
 
+def test_audit_log_redacts_bill_to_snapshot_whole_dict() -> None:
+    """bill_to_snapshot must be fully redacted, not partially scrubbed by nested keys."""
+    entry = AuditLog(
+        id=uuid4(),
+        timestamp=datetime.now(timezone.utc),
+        table_name="customer_invoices",
+        record_id="inv-2",
+        action="UPDATE",
+        user_id="sub-1",
+        request_id="req-2",
+        old_values=None,
+        new_values={
+            "bill_to_snapshot": {
+                "kind": "contact",
+                "display_name": "Jane Client",
+                "email": "jane@example.com",
+                "location_text": "123 Main St, Hong Kong",
+                "snapshot_at": "2026-01-01T00:00:00+00:00",
+                "contact": {
+                    "id": "c-1",
+                    "first_name": "Jane",
+                    "last_name": "Client",
+                    "email": "jane@example.com",
+                },
+                "family": {"id": "f-1", "family_name": "Client Family"},
+                "organization": {"id": "o-1", "name": "Client Org"},
+            },
+            "total": "250.00",
+        },
+        changed_fields=["bill_to_snapshot", "total"],
+        source="trigger",
+        ip_address=None,
+        user_agent=None,
+    )
+    payload = admin_audit_logs._serialize_audit_log(entry)
+    assert payload["new_values"]["bill_to_snapshot"] == "***REDACTED***"
+    assert payload["new_values"]["total"] == "250.00"
+
+
+def test_audit_log_redacts_nested_pii_under_non_pii_keys() -> None:
+    entry = AuditLog(
+        id=uuid4(),
+        timestamp=datetime.now(timezone.utc),
+        table_name="customer_invoices",
+        record_id="inv-3",
+        action="UPDATE",
+        user_id="sub-1",
+        request_id="req-3",
+        old_values=None,
+        new_values={
+            "metadata": {
+                "contact_email": "nested@example.com",
+                "invoice_ref": "INV-100",
+            },
+        },
+        changed_fields=["metadata"],
+        source="trigger",
+        ip_address=None,
+        user_agent=None,
+    )
+    payload = admin_audit_logs._serialize_audit_log(entry)
+    assert payload["new_values"]["metadata"]["contact_email"] == "***REDACTED***"
+    assert payload["new_values"]["metadata"]["invoice_ref"] == "INV-100"
+
+
+def test_audit_log_redacts_pii_inside_lists() -> None:
+    entry = AuditLog(
+        id=uuid4(),
+        timestamp=datetime.now(timezone.utc),
+        table_name="customer_invoices",
+        record_id="inv-4",
+        action="UPDATE",
+        user_id="sub-1",
+        request_id="req-4",
+        old_values=None,
+        new_values={
+            "recipients": [
+                {"name": "Alice", "email": "alice@example.com"},
+                {"name": "Bob", "email": "bob@example.com"},
+            ],
+        },
+        changed_fields=["recipients"],
+        source="trigger",
+        ip_address=None,
+        user_agent=None,
+    )
+    payload = admin_audit_logs._serialize_audit_log(entry)
+    recipients = payload["new_values"]["recipients"]
+    assert recipients[0]["email"] == "***REDACTED***"
+    assert recipients[1]["email"] == "***REDACTED***"
+    assert recipients[0]["name"] == "Alice"
+
+
 def test_cognito_emails_for_subs_uses_request_cache(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

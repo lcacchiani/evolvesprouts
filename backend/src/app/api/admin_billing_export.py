@@ -25,6 +25,10 @@ from app.utils import json_response
 
 _DEFAULT_EXPORT_LIMIT = 1000
 _MAX_EXPORT_LIMIT = 5000
+# Non-payment entities are included once on the first page only (cursor omitted).
+_MAX_ALLOCATION_EXPORT_ROWS = 10000
+_MAX_INVOICE_EXPORT_ROWS = 5000
+_MAX_RECEIPT_EXPORT_ROWS = 5000
 
 
 def _encode_export_cursor(created_at: datetime, payment_id: UUID) -> str:
@@ -70,6 +74,10 @@ def _export_csv(
     cursor = _parse_export_cursor(cursor_raw)
 
     with _session_with_audit(user_sub, request_id) as session:
+        allocs: list[PaymentAllocation] = []
+        invoices: list[CustomerInvoice] = []
+        lines_by_invoice: dict[UUID, list[CustomerInvoiceLine]] = {}
+        receipts: list[CustomerReceipt] = []
         if raw_ver == "1":
             payment_query = select(CustomerPayment).order_by(
                 CustomerPayment.created_at.desc()
@@ -88,11 +96,14 @@ def _export_csv(
             )
             has_more = len(payments) > row_limit
             payments_page = list(payments[:row_limit])
-            allocs = (
-                session.execute(select(PaymentAllocation).limit(row_limit))
-                .scalars()
-                .all()
-            )
+            if cursor is None:
+                allocs = (
+                    session.execute(
+                        select(PaymentAllocation).limit(_MAX_ALLOCATION_EXPORT_ROWS)
+                    )
+                    .scalars()
+                    .all()
+                )
             buf = io.StringIO()
             w = csv.writer(buf)
             w.writerow(
@@ -163,44 +174,48 @@ def _export_csv(
         payments = session.execute(payment_query.limit(row_limit + 1)).scalars().all()
         has_more = len(payments) > row_limit
         payments_page = list(payments[:row_limit])
-        allocs = (
-            session.execute(select(PaymentAllocation).limit(row_limit)).scalars().all()
-        )
-        invoices = (
-            session.execute(
-                select(CustomerInvoice)
-                .order_by(CustomerInvoice.created_at.desc())
-                .limit(row_limit)
-            )
-            .scalars()
-            .all()
-        )
-        inv_ids = [i.id for i in invoices]
-        lines_by_invoice: dict[UUID, list[CustomerInvoiceLine]] = {}
-        if inv_ids:
-            line_rows = (
+        if cursor is None:
+            allocs = (
                 session.execute(
-                    select(CustomerInvoiceLine)
-                    .where(CustomerInvoiceLine.invoice_id.in_(inv_ids))
-                    .order_by(
-                        CustomerInvoiceLine.invoice_id,
-                        CustomerInvoiceLine.line_order,
-                    )
+                    select(PaymentAllocation).limit(_MAX_ALLOCATION_EXPORT_ROWS)
                 )
                 .scalars()
                 .all()
             )
-            for ln in line_rows:
-                lines_by_invoice.setdefault(ln.invoice_id, []).append(ln)
-        receipts = (
-            session.execute(
-                select(CustomerReceipt)
-                .order_by(CustomerReceipt.created_at.desc())
-                .limit(row_limit)
+            invoices = (
+                session.execute(
+                    select(CustomerInvoice)
+                    .order_by(CustomerInvoice.created_at.desc())
+                    .limit(_MAX_INVOICE_EXPORT_ROWS)
+                )
+                .scalars()
+                .all()
             )
-            .scalars()
-            .all()
-        )
+            inv_ids = [i.id for i in invoices]
+            if inv_ids:
+                line_rows = (
+                    session.execute(
+                        select(CustomerInvoiceLine)
+                        .where(CustomerInvoiceLine.invoice_id.in_(inv_ids))
+                        .order_by(
+                            CustomerInvoiceLine.invoice_id,
+                            CustomerInvoiceLine.line_order,
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                for ln in line_rows:
+                    lines_by_invoice.setdefault(ln.invoice_id, []).append(ln)
+            receipts = (
+                session.execute(
+                    select(CustomerReceipt)
+                    .order_by(CustomerReceipt.created_at.desc())
+                    .limit(_MAX_RECEIPT_EXPORT_ROWS)
+                )
+                .scalars()
+                .all()
+            )
 
         def _snap_name(snap: Any) -> str:
             if not snap:

@@ -20,7 +20,6 @@ from app.api.public_form_hooks import (
     send_booking_confirmation_email,  # noqa: F401
 )
 from app.api.public_reservations_intro_call import (
-    _assert_consultation_start_grid_aligned,
     _enforce_intro_call_invariants,
     _resolve_booking_identity,
     _resolve_consultation_or_intro_service,
@@ -28,10 +27,11 @@ from app.api.public_reservations_intro_call import (
 from app.api.public_reservations_persistence import (
     _PUBLIC_RESERVATION_ENROLLMENT_ACTOR,
     _apply_enrollment_bill_to,
-    _consultation_booking_slot_rows,
+    _build_reservation_lead_metadata,
     _create_booking_instance_for_service,
     _generate_booking_instance_slug,
     _persist_session_slots_for_booking_instance,
+    _prepare_consultation_booking_slots,
     _validate_discount_code_redemption_scope,
     _validate_public_bill_to_membership,
 )
@@ -58,11 +58,6 @@ from app.db.repositories.contact import ContactRepository
 from app.db.repositories.sales_lead import SalesLeadRepository
 from app.db.repositories.service_instance import ServiceInstanceRepository
 from app.exceptions import ConflictError, ValidationError
-from app.services.calendar_blockers import (
-    consultation_booking_purpose,
-    raise_if_consultation_reservation_blocked,
-    validate_session_slot_chronology,
-)
 from app.services.customer_billing import record_reservation_customer_payment
 from app.services.intro_call_slots import is_intro_call_slot_available  # noqa: F401
 from app.services.public_form_internal_notifications import (
@@ -175,34 +170,8 @@ def _handle_public_reservation(
                         now=now_utc,
                     )
                 elif booking_system == "consultation-booking":
-                    start_iso = reservation_payload.get("primary_session_start_iso")
-                    if not start_iso:
-                        raise ValidationError(
-                            "primarySessionStartIso is required for consultation bookings",
-                            field="primarySessionStartIso",
-                        )
-                    slot_err = validate_session_slot_chronology(
-                        reservation_payload.get("session_slots")
-                    )
-                    if slot_err == "session_slot_end_before_start":
-                        raise ValidationError(
-                            "Each session slot must end after its start time",
-                            field="sessionSlots",
-                        )
-                    if slot_err == "invalid_session_slot_iso":
-                        raise ValidationError(
-                            "Invalid session slot date format",
-                            field="sessionSlots",
-                        )
-                    _assert_consultation_start_grid_aligned(reservation_payload)
-                    raise_if_consultation_reservation_blocked(
-                        session=session,
-                        purpose=consultation_booking_purpose(),
-                        primary_start_iso=str(start_iso),
-                        session_slots=reservation_payload.get("session_slots"),
-                    )
-                    consultation_slot_rows = _consultation_booking_slot_rows(
-                        reservation_payload
+                    consultation_slot_rows = _prepare_consultation_booking_slots(
+                        session, reservation_payload
                     )
                 _validate_discount_code_redemption_scope(
                     session,
@@ -427,42 +396,6 @@ def _handle_public_reservation(
                                 stripe_pi_idempotent_hit = True
                                 stripe_pi_existing_payment_id = _pay.id
 
-                    lead_metadata: dict[str, object] = {
-                        "payment_method": reservation_payload["payment_method"],
-                        "title": reservation_payload["title"],
-                        "locale": reservation_payload["locale"],
-                    }
-                    if reservation_payload.get("service_key"):
-                        lead_metadata["service_key"] = reservation_payload[
-                            "service_key"
-                        ]
-                    if reservation_payload.get("service_type"):
-                        lead_metadata["service_type"] = reservation_payload[
-                            "service_type"
-                        ]
-                    if reservation_payload.get("service_instance_slug"):
-                        lead_metadata["service_instance_slug"] = reservation_payload[
-                            "service_instance_slug"
-                        ]
-                    if booking_instance_slug_for_lead:
-                        lead_metadata["booking_instance_slug"] = (
-                            booking_instance_slug_for_lead
-                        )
-                    if reservation_payload.get("service_instance_cohort"):
-                        lead_metadata["service_instance_cohort"] = reservation_payload[
-                            "service_instance_cohort"
-                        ]
-                    if reservation_payload.get("booking_system"):
-                        lead_metadata["booking_system"] = reservation_payload[
-                            "booking_system"
-                        ]
-                    if dc_text and str(dc_text).strip():
-                        lead_metadata["discount_code"] = str(dc_text).strip()
-                        if dc_row is not None:
-                            lead_metadata["discount_code_id"] = str(dc_row.id)
-                    ma_meta = reservation_payload.get("marketing_attribution")
-                    if isinstance(ma_meta, dict) and ma_meta:
-                        lead_metadata["marketing_attribution"] = ma_meta
                     lead = SalesLead(
                         contact_id=contact.id,
                         lead_type=LeadType.PROGRAM_ENROLLMENT,
@@ -471,7 +404,12 @@ def _handle_public_reservation(
                     lead_repo.create_with_event(
                         lead,
                         LeadEventType.CREATED,
-                        metadata=lead_metadata,
+                        metadata=_build_reservation_lead_metadata(
+                            reservation_payload,
+                            booking_instance_slug_for_lead=booking_instance_slug_for_lead,
+                            dc_text=dc_text,
+                            dc_row=dc_row,
+                        ),
                     )
                     if created_enrollment_id is not None:
                         audit = AuditService(
@@ -535,7 +473,6 @@ def _handle_public_reservation(
 
 
 __all__ = [
-    "_assert_consultation_start_grid_aligned",
     "_create_booking_instance_for_service",
     "_enforce_intro_call_invariants",
     "_generate_booking_instance_slug",
