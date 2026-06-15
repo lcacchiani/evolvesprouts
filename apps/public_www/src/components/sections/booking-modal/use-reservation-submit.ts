@@ -39,7 +39,7 @@ export interface ReservationSubmitFormState {
   hasPendingReservationAcknowledgement: boolean;
   hasTermsAgreement: boolean;
   marketingOptIn: boolean;
-  captchaToken: string;
+  captchaToken: string | null;
   fpsQrImageDataUrl: string;
 }
 
@@ -310,7 +310,7 @@ function buildReservationPayload(
     locationName: sanitizeSingleLineValue(venueName) || undefined,
     locationAddress: sanitizeSingleLineValue(venueAddress) || undefined,
     primarySessionStartIso:
-      sanitizeSingleLineValue(primarySession?.dateStartTime) || undefined,
+      sanitizeSingleLineValue(primarySession?.dateStartTime ?? '') || undefined,
     primarySessionEndIso:
       sanitizeSingleLineValue(primarySession?.dateEndTime ?? '') || undefined,
     ...(() => {
@@ -484,6 +484,7 @@ export function useReservationSubmit(
       setSubmissionError(context.content.submitErrorMessage);
       return;
     }
+    const turnstileToken = formState.captchaToken;
 
     const reservationPayload = buildReservationPayload(
       formState,
@@ -525,7 +526,7 @@ export function useReservationSubmit(
         request: () =>
           submitReservation(crmApiClient, {
             payload: reservationPayload,
-            turnstileToken: formState.captchaToken,
+            turnstileToken,
           }),
         failureMessage: context.content.submitErrorMessage,
       });

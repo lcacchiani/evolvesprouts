@@ -32,7 +32,7 @@ export function isStripeUnavailable(): boolean {
 }
 
 interface UseStripePaymentIntentOptions {
-  captchaToken: string;
+  captchaToken: string | null;
   clearSubmissionError: () => void;
   cohortId: string;
   content: BookingPaymentModalContent;
