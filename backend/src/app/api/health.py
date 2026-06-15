@@ -12,9 +12,13 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
 
-
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+
+from app.utils.logging import get_logger
+from app.utils.responses import json_response
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -57,18 +61,14 @@ class HealthStatus:
             "healthy": self.healthy,
             "version": self.version,
             "environment": self.environment,
-            "checks": [check.to_dict() for check in self.checks],
         }
 
 
-def check_health(include_details: bool = False) -> HealthStatus:
+def check_health() -> HealthStatus:
     """Perform all health checks and return overall status.
 
-    Args:
-        include_details: Whether to include detailed check information.
-
     Returns:
-        HealthStatus with results of all checks.
+        HealthStatus with minimal public fields (no internal check details).
     """
     checks = [
         _check_database(),
@@ -79,7 +79,7 @@ def check_health(include_details: bool = False) -> HealthStatus:
 
     return HealthStatus(
         healthy=overall_healthy,
-        checks=checks if include_details else [],
+        checks=checks,
         version=os.getenv("APP_VERSION", "unknown"),
         environment=os.getenv("ENVIRONMENT", "unknown"),
     )
@@ -105,13 +105,14 @@ def _check_database() -> HealthCheck:
             latency_ms=latency_ms,
             details={"connection": "ok"},
         )
-    except Exception as e:
+    except Exception:
         latency_ms = (time.perf_counter() - start_time) * 1000
+        logger.exception("Health check database probe failed")
         return HealthCheck(
             name="database",
             healthy=False,
             latency_ms=latency_ms,
-            error=str(e),
+            error="database check failed",
         )
 
 
@@ -134,7 +135,7 @@ def _check_configuration() -> HealthCheck:
         return HealthCheck(
             name="configuration",
             healthy=False,
-            error=f"Missing required variables: {', '.join(missing)}",
+            error="configuration check failed",
         )
 
     return HealthCheck(
@@ -148,25 +149,9 @@ def _check_configuration() -> HealthCheck:
 
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
-    """Lambda handler for health check endpoint.
+    """Lambda handler for health check endpoint."""
+    status = check_health()
 
-    Args:
-        event: API Gateway event.
-        context: Lambda context.
-
-    Returns:
-        API Gateway response with health status.
-    """
-    from app.utils.responses import json_response
-
-    # Check if detailed info is requested (only for internal calls)
-    include_details = (event.get("queryStringParameters", {}) or {}).get(
-        "details"
-    ) == "true"
-
-    status = check_health(include_details=include_details)
-
-    # Return 200 for healthy, 503 for unhealthy
     status_code = 200 if status.healthy else 503
 
     return json_response(status_code, status.to_dict(), event=event)
