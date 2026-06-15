@@ -87,7 +87,7 @@ def test_audit_logs_get_by_id_not_found(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
 
     missing = str(uuid4())
     with pytest.raises(NotFoundError):
@@ -139,7 +139,7 @@ def test_recent_list_cursor_second_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
 
     r1 = admin_audit_logs.handle_admin_audit_logs_request(
         api_gateway_event(
@@ -216,7 +216,7 @@ def test_user_id_filter_cursor_second_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
 
     uid = "user-sub-abc"
     r1 = admin_audit_logs.handle_admin_audit_logs_request(
@@ -287,7 +287,7 @@ def test_table_filter_cursor_second_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
 
     r1 = admin_audit_logs.handle_admin_audit_logs_request(
         api_gateway_event(
@@ -357,7 +357,7 @@ def test_record_id_table_cursor_second_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
 
     rid = "rec-xyz"
     r1 = admin_audit_logs.handle_admin_audit_logs_request(
@@ -426,7 +426,7 @@ def test_table_filter_cursor_passed(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
 
     cur = encode_created_cursor(row.timestamp, row.id)
     assert cur
@@ -472,7 +472,7 @@ def test_next_cursor_null_when_not_full_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
 
     r = admin_audit_logs.handle_admin_audit_logs_request(
         api_gateway_event(
@@ -516,7 +516,7 @@ def test_recent_list_empty_returns_200(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
 
     r = admin_audit_logs.handle_admin_audit_logs_request(
         api_gateway_event(
@@ -579,7 +579,11 @@ def test_email_filter_resolves_sub(
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
     monkeypatch.setattr(admin_audit_logs.aws_proxy, "invoke", fake_invoke)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {"cognito-sub-xyz": "a@b.com"})
+    monkeypatch.setattr(
+        admin_audit_logs,
+        "_cognito_emails_for_subs",
+        lambda _s, **_: {"cognito-sub-xyz": "a@b.com"},
+    )
     monkeypatch.setenv("COGNITO_USER_POOL_ID", "pool-1")
 
     r = admin_audit_logs.handle_admin_audit_logs_request(
@@ -709,7 +713,7 @@ def test_record_history_cursor(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s: {})
+    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
 
     cur = encode_created_cursor(row.timestamp, row.id)
     admin_audit_logs.handle_admin_audit_logs_request(
@@ -726,3 +730,67 @@ def test_record_history_cursor(
     ts, rid = parse_created_cursor(cur)
     assert ts == row.timestamp
     assert rid == row.id
+
+
+def test_audit_log_redacts_billing_pii_fields() -> None:
+    entry = AuditLog(
+        id=uuid4(),
+        timestamp=datetime.now(timezone.utc),
+        table_name="customer_invoices",
+        record_id="inv-1",
+        action="UPDATE",
+        user_id="sub-1",
+        request_id="req-1",
+        old_values={
+            "bill_to_email": "client@example.com",
+            "bill_to_display_name": "Client Name",
+            "status": "draft",
+        },
+        new_values={
+            "bill_to_email": "client@example.com",
+            "bill_to_phone": "+85212345678",
+            "total": "100.00",
+        },
+        changed_fields=["bill_to_email", "total"],
+        source="trigger",
+        ip_address=None,
+        user_agent=None,
+    )
+    payload = admin_audit_logs._serialize_audit_log(entry)
+    assert payload["old_values"]["bill_to_email"] == "***REDACTED***"
+    assert payload["old_values"]["bill_to_display_name"] == "***REDACTED***"
+    assert payload["old_values"]["status"] == "draft"
+    assert payload["new_values"]["bill_to_phone"] == "***REDACTED***"
+    assert payload["new_values"]["total"] == "100.00"
+    assert payload["changed_fields"] == ["bill_to_email", "total"]
+
+
+def test_cognito_emails_for_subs_uses_request_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    def fake_invoke(_svc: str, _action: str, params: dict[str, Any]) -> dict[str, Any]:
+        sub = params["Filter"].split('"')[1]
+        calls.append(sub)
+        return {
+            "Users": [
+                {
+                    "Attributes": [
+                        {"Name": "sub", "Value": sub},
+                        {"Name": "email", "Value": f"{sub}@example.com"},
+                    ],
+                }
+            ],
+        }
+
+    monkeypatch.setattr(admin_audit_logs.aws_proxy, "invoke", fake_invoke)
+    monkeypatch.setenv("COGNITO_USER_POOL_ID", "pool-1")
+    cache: dict[str, str] = {}
+    subs = ["sub-a", "sub-b", "sub-a"]
+    result = admin_audit_logs._cognito_emails_for_subs(subs, cache=cache)
+    assert result == {
+        "sub-a": "sub-a@example.com",
+        "sub-b": "sub-b@example.com",
+    }
+    assert calls == ["sub-a", "sub-b"]

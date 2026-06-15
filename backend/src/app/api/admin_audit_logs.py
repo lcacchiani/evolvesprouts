@@ -30,9 +30,25 @@ from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-AUDIT_REDACTED_FIELDS: frozenset[str] = frozenset(
+# Exact-match secret field names (case-insensitive key lookup).
+AUDIT_SECRET_FIELDS: frozenset[str] = frozenset(
     ("password", "secret", "token", "api_key")
 )
+
+# Explicit PII column names from AUDITABLE_TABLES models (customer_invoices, etc.).
+AUDIT_PII_EXACT_FIELDS: frozenset[str] = frozenset(
+    (
+        "bill_to_display_name",
+        "bill_to_email",
+        "bill_to_location_text",
+        "bill_to_snapshot",
+    )
+)
+
+# Second pass: redact keys whose lowercased name contains any of these substrings.
+_AUDIT_PII_SUBSTRINGS: tuple[str, ...] = ("email", "phone", "address")
+
+_REDACTED_MARKER = "***REDACTED***"
 
 AUDITABLE_TABLES: frozenset[str] = frozenset(
     (
@@ -93,7 +109,11 @@ def _get_audit_log_by_id(
         entry = repo.get_by_id(parsed_id)
         if entry is None:
             raise NotFoundError("audit_log", audit_id)
-        email_map = _cognito_emails_for_subs([entry.user_id] if entry.user_id else [])
+        email_cache: dict[str, str] = {}
+        email_map = _cognito_emails_for_subs(
+            [entry.user_id] if entry.user_id else [],
+            cache=email_cache,
+        )
         return json_response(
             200, _serialize_audit_log(entry, email_map=email_map), event=event
         )
@@ -156,14 +176,22 @@ def _cognito_attr(attributes: Any, key: str) -> str | None:
     return None
 
 
-def _cognito_emails_for_subs(subs: list[str]) -> dict[str, str]:
+def _cognito_emails_for_subs(
+    subs: list[str],
+    *,
+    cache: dict[str, str] | None = None,
+) -> dict[str, str]:
     """Best-effort map Cognito sub -> email for display (empty on failure)."""
     user_pool_id = os.getenv("COGNITO_USER_POOL_ID")
     if not user_pool_id or not subs:
         return {}
     out: dict[str, str] = {}
+    email_cache = cache if cache is not None else {}
     for sub in subs:
         if not sub or '"' in sub:
+            continue
+        if sub in email_cache:
+            out[sub] = email_cache[sub]
             continue
         try:
             response = aws_proxy.invoke(
@@ -182,8 +210,35 @@ def _cognito_emails_for_subs(subs: list[str]) -> dict[str, str]:
             continue
         email = _cognito_attr(users[0].get("Attributes", []), "email")
         if email:
+            email_cache[sub] = email
             out[sub] = email
     return out
+
+
+def _should_redact_audit_field(key: str) -> bool:
+    """Return True when an audit old/new_values key should be masked."""
+    lowered = key.lower()
+    if lowered in AUDIT_SECRET_FIELDS or lowered in AUDIT_PII_EXACT_FIELDS:
+        return True
+    return any(sub in lowered for sub in _AUDIT_PII_SUBSTRINGS)
+
+
+def _redact_audit_value(key: str, value: Any) -> Any:
+    """Mask a single audit value; recurse into dict/JSON snapshots."""
+    if value == _REDACTED_MARKER:
+        return value
+    if isinstance(value, Mapping):
+        return {
+            nested_key: (
+                _REDACTED_MARKER
+                if _should_redact_audit_field(str(nested_key))
+                else _redact_audit_value(str(nested_key), nested_value)
+            )
+            for nested_key, nested_value in value.items()
+        }
+    if _should_redact_audit_field(key):
+        return _REDACTED_MARKER
+    return value
 
 
 def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, Any]:
@@ -297,7 +352,8 @@ def _list_audit_logs(event: Mapping[str, Any], *, actor_sub: str) -> dict[str, A
     )
 
     distinct_subs = sorted({r.user_id for r in trimmed if r.user_id})
-    email_map = _cognito_emails_for_subs(distinct_subs)
+    email_cache: dict[str, str] = {}
+    email_map = _cognito_emails_for_subs(distinct_subs, cache=email_cache)
 
     next_cursor: str | None = None
     if has_more and trimmed:
@@ -330,8 +386,8 @@ def _serialize_audit_log(
     def redact_values(values: dict[str, Any]) -> dict[str, Any]:
         redacted: dict[str, Any] = {}
         for key, value in values.items():
-            if key.lower() in AUDIT_REDACTED_FIELDS:
-                redacted[key] = "***REDACTED***"
+            if _should_redact_audit_field(key):
+                redacted[key] = _redact_audit_value(key, value)
             else:
                 redacted[key] = value
         return redacted
