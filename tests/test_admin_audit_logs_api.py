@@ -62,7 +62,9 @@ def test_audit_logs_rejects_unknown_table(
 
 
 def test_audit_logs_get_by_id_not_found(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class _Session:
         def __init__(self, *_args: object, **_kwargs: object) -> None:
@@ -87,7 +89,9 @@ def test_audit_logs_get_by_id_not_found(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
+    monkeypatch.setattr(
+        admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {}
+    )
 
     missing = str(uuid4())
     with pytest.raises(NotFoundError):
@@ -103,7 +107,9 @@ def test_audit_logs_get_by_id_not_found(
 
 
 def test_recent_list_cursor_second_page(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     t1 = datetime(2024, 1, 2, tzinfo=timezone.utc)
     t2 = datetime(2024, 1, 1, tzinfo=timezone.utc)
@@ -139,7 +145,9 @@ def test_recent_list_cursor_second_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
+    monkeypatch.setattr(
+        admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {}
+    )
 
     r1 = admin_audit_logs.handle_admin_audit_logs_request(
         api_gateway_event(
@@ -180,7 +188,9 @@ def test_recent_list_cursor_second_page(
 
 
 def test_user_id_filter_cursor_second_page(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     t1 = datetime(2024, 2, 2, tzinfo=timezone.utc)
     t2 = datetime(2024, 2, 1, tzinfo=timezone.utc)
@@ -216,7 +226,9 @@ def test_user_id_filter_cursor_second_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
+    monkeypatch.setattr(
+        admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {}
+    )
 
     uid = "user-sub-abc"
     r1 = admin_audit_logs.handle_admin_audit_logs_request(
@@ -251,7 +263,9 @@ def test_user_id_filter_cursor_second_page(
 
 
 def test_table_filter_cursor_second_page(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     t1 = datetime(2024, 3, 2, tzinfo=timezone.utc)
     t2 = datetime(2024, 3, 1, tzinfo=timezone.utc)
@@ -287,7 +301,9 @@ def test_table_filter_cursor_second_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
+    monkeypatch.setattr(
+        admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {}
+    )
 
     r1 = admin_audit_logs.handle_admin_audit_logs_request(
         api_gateway_event(
@@ -307,7 +323,11 @@ def test_table_filter_cursor_second_page(
         api_gateway_event(
             method="GET",
             path="/v1/admin/audit-logs",
-            query_params={"limit": "1", "table": "assets", "cursor": body1["next_cursor"]},
+            query_params={
+                "limit": "1",
+                "table": "assets",
+                "cursor": body1["next_cursor"],
+            },
             authorizer_context=admin_identity,
         ),
         "GET",
@@ -321,7 +341,9 @@ def test_table_filter_cursor_second_page(
 
 
 def test_record_id_table_cursor_second_page(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     t1 = datetime(2024, 4, 2, tzinfo=timezone.utc)
     t2 = datetime(2024, 4, 1, tzinfo=timezone.utc)
@@ -357,7 +379,9 @@ def test_record_id_table_cursor_second_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
+    monkeypatch.setattr(
+        admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {}
+    )
 
     rid = "rec-xyz"
     r1 = admin_audit_logs.handle_admin_audit_logs_request(
@@ -397,7 +421,9 @@ def test_record_id_table_cursor_second_page(
 
 
 def test_table_filter_cursor_passed(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     row = _row()
     calls: list[dict[str, Any]] = []
@@ -426,7 +452,9 @@ def test_table_filter_cursor_passed(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
+    monkeypatch.setattr(
+        admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {}
+    )
 
     cur = encode_created_cursor(row.timestamp, row.id)
     assert cur
@@ -445,7 +473,9 @@ def test_table_filter_cursor_passed(
 
 
 def test_next_cursor_null_when_not_full_page(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     row = _row()
 
@@ -472,7 +502,9 @@ def test_next_cursor_null_when_not_full_page(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
+    monkeypatch.setattr(
+        admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {}
+    )
 
     r = admin_audit_logs.handle_admin_audit_logs_request(
         api_gateway_event(
@@ -489,7 +521,9 @@ def test_next_cursor_null_when_not_full_page(
 
 
 def test_recent_list_empty_returns_200(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Regression: empty result must not IndexError when building next_cursor."""
 
@@ -516,7 +550,9 @@ def test_recent_list_empty_returns_200(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
+    monkeypatch.setattr(
+        admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {}
+    )
 
     r = admin_audit_logs.handle_admin_audit_logs_request(
         api_gateway_event(
@@ -534,7 +570,9 @@ def test_recent_list_empty_returns_200(
 
 
 def test_email_filter_resolves_sub(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     resolved_sub = "cognito-sub-xyz"
     row = _row(user=resolved_sub)
@@ -605,7 +643,9 @@ def test_email_filter_resolves_sub(
 
 
 def test_email_filter_no_users_returns_empty(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     def fake_invoke(_svc: str, _action: str, _params: dict[str, Any]) -> dict[str, Any]:
         return {"Users": []}
@@ -684,7 +724,9 @@ def test_invalid_email_rejected(
 
 
 def test_record_history_cursor(
-    api_gateway_event: Any, admin_identity: dict[str, str], monkeypatch: pytest.MonkeyPatch
+    api_gateway_event: Any,
+    admin_identity: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     row = _row()
     calls: list[dict[str, Any]] = []
@@ -713,7 +755,9 @@ def test_record_history_cursor(
     monkeypatch.setattr(admin_audit_logs, "Session", _Session)
     monkeypatch.setattr(admin_audit_logs, "get_engine", lambda: object())
     monkeypatch.setattr(admin_audit_logs, "AuditLogRepository", _Repo)
-    monkeypatch.setattr(admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {})
+    monkeypatch.setattr(
+        admin_audit_logs, "_cognito_emails_for_subs", lambda _s, **_: {}
+    )
 
     cur = encode_created_cursor(row.timestamp, row.id)
     admin_audit_logs.handle_admin_audit_logs_request(
@@ -855,7 +899,9 @@ def test_audit_log_redacts_pii_inside_lists() -> None:
     recipients = payload["new_values"]["recipients"]
     assert recipients[0]["email"] == "***REDACTED***"
     assert recipients[1]["email"] == "***REDACTED***"
-    assert recipients[0]["name"] == "Alice"
+    # Personal names are PII and must be masked too (substring match on "name").
+    assert recipients[0]["name"] == "***REDACTED***"
+    assert recipients[1]["name"] == "***REDACTED***"
 
 
 def test_cognito_emails_for_subs_uses_request_cache(

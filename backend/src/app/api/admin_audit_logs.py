@@ -46,7 +46,9 @@ AUDIT_PII_EXACT_FIELDS: frozenset[str] = frozenset(
 )
 
 # Second pass: redact keys whose lowercased name contains any of these substrings.
-_AUDIT_PII_SUBSTRINGS: tuple[str, ...] = ("email", "phone", "address")
+# Includes "name" so personal names (display_name, first_name, family_name, etc.)
+# in nested JSON snapshots are masked even under non-PII parent keys.
+_AUDIT_PII_SUBSTRINGS: tuple[str, ...] = ("email", "phone", "address", "name")
 
 _REDACTED_MARKER = "***REDACTED***"
 
