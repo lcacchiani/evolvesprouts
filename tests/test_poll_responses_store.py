@@ -76,6 +76,29 @@ def test_check_poll_write_rate_limit_uses_new_bucket_each_hour(
     assert second_sk.endswith("#W#2")
 
 
+def test_poll_answer_payload_unchanged_detects_matching_select() -> None:
+    existing = {
+        "selectedOption": "Parent",
+        "updatedAt": "2026-06-01T12:00:00Z",
+    }
+    assert store.poll_answer_payload_unchanged(
+        existing,
+        question_type="select",
+        selected_option="Parent",
+        selected_options=None,
+        boolean_answer=None,
+        free_text=None,
+    )
+    assert not store.poll_answer_payload_unchanged(
+        existing,
+        question_type="select",
+        selected_option="Professional",
+        selected_options=None,
+        boolean_answer=None,
+        free_text=None,
+    )
+
+
 def test_clear_poll_answers_deletes_rate_limit_rows(
     mock_env: Any,
 ) -> None:

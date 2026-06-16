@@ -1008,6 +1008,8 @@ paths:
         Answers are stored in the shared DynamoDB table `evolvesprouts-poll-responses`
         (partition key `POLL#<poll_slug>`, sort key `SESSION#<session_id>#Q#<question_id>`).
         Re-submitting the same session and question overwrites the prior row.
+        Identical re-submits (same answer payload) return `200` without a new
+        DynamoDB write and do not consume the per-session write counter.
         Submissions are rejected with `409` when the facilitator has not enabled
         the question (`error`: `question_not_open`), when no questions are open
         (`poll_not_accepting_answers`), or when `selectedOption` /

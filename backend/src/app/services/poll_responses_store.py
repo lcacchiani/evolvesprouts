@@ -73,6 +73,68 @@ def _now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def get_poll_answer_item(
+    *,
+    poll_slug: str,
+    session_id: str,
+    question_id: str,
+) -> dict[str, Any] | None:
+    """Return the stored answer row for one session/question, if any."""
+    table = _get_table()
+    key = {
+        "pk": _partition_key(poll_slug=poll_slug),
+        "sk": _sort_key(session_id=session_id, question_id=question_id),
+    }
+    try:
+        item = table.get_item(Key=key).get("Item")
+    except ClientError:
+        logger.exception(
+            "Failed to load poll answer",
+            extra={
+                "poll_slug": poll_slug,
+                "question_id": question_id,
+            },
+        )
+        raise AppError(
+            "Failed to load poll answer",
+            status_code=500,
+        ) from None
+    return item if isinstance(item, dict) else None
+
+
+def poll_answer_payload_unchanged(
+    existing: Mapping[str, Any],
+    *,
+    question_type: str,
+    selected_option: str | None = None,
+    selected_options: list[str] | None = None,
+    boolean_answer: bool | None = None,
+    free_text: str | None = None,
+) -> bool:
+    """True when a PUT body matches the persisted answer payload (idempotent re-submit)."""
+    normalized_type = question_type.strip().lower()
+    if normalized_type == "select":
+        stored = existing.get("selectedOption")
+        return isinstance(stored, str) and stored == selected_option
+    if normalized_type == "multiselect":
+        stored = existing.get("selectedOptions")
+        if not isinstance(stored, list):
+            return False
+        stored_options = [
+            str(value).strip()
+            for value in stored
+            if isinstance(value, str) and str(value).strip()
+        ]
+        return stored_options == (selected_options or [])
+    if normalized_type == "truefalse":
+        stored = existing.get("booleanAnswer")
+        return isinstance(stored, bool) and stored is boolean_answer
+    if normalized_type in ("text", "email"):
+        stored = existing.get("freeText")
+        return isinstance(stored, str) and stored == free_text
+    return False
+
+
 def upsert_poll_answer(
     *,
     poll_slug: str,

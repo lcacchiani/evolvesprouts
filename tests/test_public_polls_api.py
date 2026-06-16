@@ -709,6 +709,47 @@ def test_put_poll_answer_rejects_rate_limited_session(
     table.put_item.assert_not_called()
 
 
+def test_put_poll_answer_idempotent_resubmit_skips_rate_limit_and_write(
+    api_gateway_event: Any,
+    mock_env: Any,
+) -> None:
+    session_id = "550e8400-e29b-41d4-a716-446655440000"
+    answer_sk = f"SESSION#{session_id}#Q#role"
+    table = MagicMock()
+    table.get_item.side_effect = lambda Key, **_kwargs: (
+        _poll_control_item("role")
+        if Key["sk"] == "CONTROL"
+        else {
+            "Item": {
+                "pk": "POLL#workshop-food-jun-26",
+                "sk": answer_sk,
+                "selectedOption": "Parent",
+                "updatedAt": "2026-06-01T12:00:00Z",
+            }
+        }
+    )
+    table.update_item.side_effect = _rate_limit_conditional_failure
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    body = {
+        "sessionId": session_id,
+        "questionId": "role",
+        "questionType": "select",
+        "selectedOption": "Parent",
+    }
+    resp = pp.handle_public_polls_request(
+        _event(api_gateway_event, body=body),
+        "PUT",
+        "/www/v1/polls/workshop-food-jun-26/answers",
+    )
+    assert resp["statusCode"] == 200
+    payload = json.loads(resp["body"])
+    assert payload["updatedAt"] == "2026-06-01T12:00:00Z"
+    table.update_item.assert_not_called()
+    table.put_item.assert_not_called()
+
+
 def _rate_limit_conditional_failure(*_args: Any, **_kwargs: Any) -> None:
     from botocore.exceptions import ClientError
 

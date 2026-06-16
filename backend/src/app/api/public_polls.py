@@ -13,8 +13,10 @@ from app.exceptions import ConflictError, RateLimitError, ValidationError
 from app.services.poll_responses_store import (
     aggregate_poll_question_results,
     check_poll_write_rate_limit,
+    get_poll_answer_item,
     get_poll_control_state,
     list_poll_answers_for_session,
+    poll_answer_payload_unchanged,
     put_poll_control_state,
     upsert_poll_answer,
 )
@@ -385,6 +387,34 @@ def _handle_put_poll_answer(
         )
     except ConflictError as exc:
         return json_response(exc.status_code, exc.to_dict(), event=event)
+
+    existing_answer = get_poll_answer_item(
+        poll_slug=poll_slug,
+        session_id=normalized["session_id"],
+        question_id=normalized["question_id"],
+    )
+    if (
+        existing_answer is not None
+        and isinstance(existing_answer.get("updatedAt"), str)
+        and poll_answer_payload_unchanged(
+            existing_answer,
+            question_type=normalized["question_type"],
+            selected_option=normalized.get("selected_option"),
+            selected_options=normalized.get("selected_options"),
+            boolean_answer=normalized.get("boolean_answer"),
+            free_text=normalized.get("free_text"),
+        )
+    ):
+        return json_response(
+            200,
+            {
+                "pollSlug": poll_slug,
+                "sessionId": normalized["session_id"],
+                "questionId": normalized["question_id"],
+                "updatedAt": existing_answer["updatedAt"],
+            },
+            event=event,
+        )
 
     try:
         check_poll_write_rate_limit(
