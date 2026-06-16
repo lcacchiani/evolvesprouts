@@ -870,12 +870,12 @@ def test_bulk_schema_prompt_is_simplified_and_handles_single_invoice() -> None:
     permit single-invoice documents (one-element array)."""
     prompt = parser._bulk_schema_prompt()
     assert "single-element array" in prompt
-    assert "card statement" not in prompt, (
-        "removed verbose example that nudged the model into empty responses"
-    )
-    assert "Include every billable row" not in prompt, (
-        "removed aggressive instruction that correlated with empty model output"
-    )
+    assert (
+        "card statement" not in prompt
+    ), "removed verbose example that nudged the model into empty responses"
+    assert (
+        "Include every billable row" not in prompt
+    ), "removed aggressive instruction that correlated with empty model output"
     assert "skip blank pages" not in prompt
 
 
@@ -1188,9 +1188,9 @@ def test_openrouter_chat_completion_honors_retry_after_header(
     )
 
     assert len(call_log) == 2
-    assert sleep_calls == [2.0], (
-        "expected the Retry-After value (2s) to be used as the backoff"
-    )
+    assert sleep_calls == [
+        2.0
+    ], "expected the Retry-After value (2s) to be used as the backoff"
 
 
 def test_retry_delay_seconds_caps_excessive_retry_after() -> None:
@@ -1212,9 +1212,7 @@ def test_envelope_error_code_returns_none_for_non_json_or_no_error() -> None:
     assert parser._envelope_error_code("not json") is None
     assert parser._envelope_error_code("{}") is None
     assert parser._envelope_error_code('{"error":"plain string"}') is None
-    assert (
-        parser._envelope_error_code('{"error":{"message":"x","code":429}}') == 429
-    )
+    assert parser._envelope_error_code('{"error":{"message":"x","code":429}}') == 429
 
 
 def test_parse_bulk_expense_invoices_recovers_via_single_when_bulk_returns_empty(

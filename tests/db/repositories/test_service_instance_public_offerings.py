@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-import os
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+
+from tests.helpers.db import database_url
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -30,11 +31,6 @@ from app.db.models.service_instance import InstanceSessionSlot
 from app.db.repositories.service_instance import ServiceInstanceRepository
 
 
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
-
-
 def _sqlalchemy_engine_url(url: str) -> str:
     """Use psycopg v3; bare ``postgresql://`` defaults to psycopg2 in SQLAlchemy."""
     if url.startswith("postgresql+") or url.startswith("postgres+"):
@@ -46,9 +42,9 @@ def _sqlalchemy_engine_url(url: str) -> str:
     return url
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_list_public_offerings_omits_empty_slug_instances() -> None:
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -181,10 +177,10 @@ def test_list_public_offerings_omits_empty_slug_instances() -> None:
         assert inst_slug in ids
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_list_public_offerings_includes_recent_finished_events_only() -> None:
     """Finished ``event`` instances within 90 days stay on the public feed."""
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)

@@ -68,4 +68,6 @@ def test_picker_label_includes_primary_contact_name(
 
     assert response["statusCode"] == 200
     body = json.loads(response["body"])
-    assert body["items"] == [{"id": str(fam_id), "label": "Smith Family \u00b7 Jane Primary"}]
+    assert body["items"] == [
+        {"id": str(fam_id), "label": "Smith Family \u00b7 Jane Primary"}
+    ]

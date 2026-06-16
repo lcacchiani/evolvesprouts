@@ -379,7 +379,9 @@ def test_virtual_clears_location_and_url_even_with_coords() -> None:
 
 def test_physical_coord_location_url() -> None:
     service = _event_service()
-    loc = SimpleNamespace(name="V", address="A", lat=Decimal("22.3"), lng=Decimal("114.1"))
+    loc = SimpleNamespace(
+        name="V", address="A", lat=Decimal("22.3"), lng=Decimal("114.1")
+    )
     inst = _minimal_instance(service)
     inst.session_slots[0].location = loc
     out = public_events._serialize_public_event(inst, enrollment_counts={})
@@ -566,9 +568,7 @@ def test_spaces_left_enrollments_ge_max_still_zero() -> None:
 def test_max_capacity_with_enrollments() -> None:
     service = _event_service()
     inst = _minimal_instance(service, max_capacity=8)
-    out = public_events._serialize_public_event(
-        inst, enrollment_counts={inst.id: 10}
-    )
+    out = public_events._serialize_public_event(inst, enrollment_counts={inst.id: 10})
     assert out["spaces_total"] == 8
     assert out["spaces_left"] == 0
 

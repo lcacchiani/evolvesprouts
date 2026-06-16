@@ -8,19 +8,15 @@ and the same ``starts_at``; exactly one slot row may exist.
 
 from __future__ import annotations
 
-import os
 from datetime import UTC, datetime, timedelta
 
 import pytest
+
+from tests.helpers.db import database_url
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import IntegrityError
 
 pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
-
-
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
 
 
 def _sqlalchemy_engine_url(url: str) -> str:
@@ -33,10 +29,10 @@ def _sqlalchemy_engine_url(url: str) -> str:
     return url
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_intro_call_purpose_service_slot_unique_starts_at_rejects_duplicate() -> None:
     """Second insert with same ``(purpose_service_id, starts_at)`` raises IntegrityError."""
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
 
@@ -138,10 +134,10 @@ def test_intro_call_purpose_service_slot_unique_starts_at_rejects_duplicate() ->
                 )
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_intro_call_carrier_slot_blocks_child_booking_at_same_start() -> None:
     """Slot on the intro tier row shares ``purpose_service_id`` with child bookings."""
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
 

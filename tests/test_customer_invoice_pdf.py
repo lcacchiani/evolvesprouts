@@ -514,7 +514,9 @@ def test_invoice_pdf_versions_distinct() -> None:
     )
 
 
-def test_paid_watermark_present_when_paid_at_set(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_paid_watermark_present_when_paid_at_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _base_invoice_env(monkeypatch)
     inv = SimpleNamespace(
         invoice_number="W-1",
@@ -534,7 +536,9 @@ def test_paid_watermark_present_when_paid_at_set(monkeypatch: pytest.MonkeyPatch
     assert "PAID" in _pdf_text(pdf)
 
 
-def test_paid_watermark_absent_when_paid_at_none(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_paid_watermark_absent_when_paid_at_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _base_invoice_env(monkeypatch)
     inv = SimpleNamespace(
         invoice_number="W-2",
@@ -935,7 +939,9 @@ def test_organization_bill_to_two_line_display_renders(
         due_date=date(2026, 1, 8),
         status=BillingInvoiceStatus.ISSUED,
     )
-    text = _pdf_text(render_invoice_pdf(invoice=inv, lines=[_inv_line()], preview=False))
+    text = _pdf_text(
+        render_invoice_pdf(invoice=inv, lines=[_inv_line()], preview=False)
+    )
     assert "Acme Learning Limited" in text
     assert "Jordan Lee" in text
 

@@ -66,7 +66,8 @@ def test_maybe_confirm_on_allocation_skips_non_issued() -> None:
         id=uuid4(),
     )
     bec.maybe_confirm_enrollments_on_positive_invoice_payment_allocation(
-        session, inv  # type: ignore[arg-type]
+        session,
+        inv,  # type: ignore[arg-type]
     )
     session.scalars.assert_not_called()
 
@@ -79,7 +80,8 @@ def test_maybe_confirm_on_allocation_skips_zero_total() -> None:
         id=uuid4(),
     )
     bec.maybe_confirm_enrollments_on_positive_invoice_payment_allocation(
-        session, inv  # type: ignore[arg-type]
+        session,
+        inv,  # type: ignore[arg-type]
     )
     session.scalars.assert_not_called()
 

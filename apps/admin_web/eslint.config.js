@@ -43,6 +43,6 @@ module.exports = [
     },
   },
   {
-    ignores: ['node_modules/**', 'e2e/**', 'playwright.config.ts'],
+    ignores: ['node_modules/**', 'e2e/**', 'playwright.config.ts', 'coverage/**'],
   },
 ];

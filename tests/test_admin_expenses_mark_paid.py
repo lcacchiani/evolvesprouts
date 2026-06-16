@@ -15,7 +15,9 @@ from app.exceptions import ValidationError
 
 def _expense_mock(**kwargs: object) -> MagicMock:
     expense = MagicMock()
-    expense.vendor_id = kwargs.get("vendor_id", UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    expense.vendor_id = kwargs.get(
+        "vendor_id", UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+    )
     expense.invoice_date = kwargs.get("invoice_date", date(2026, 1, 15))
     expense.currency = kwargs.get("currency", "HKD")
     expense.total = kwargs.get("total", Decimal("10.00"))

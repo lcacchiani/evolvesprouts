@@ -10,12 +10,15 @@ from app.services.mailchimp import add_subscriber_with_tag
 def test_subscribe_to_marketing_skips_empty_email(monkeypatch: Any) -> None:
     logger = MagicMock()
     monkeypatch.setattr(ms, "run_with_retry", MagicMock())
-    assert ms.subscribe_to_marketing(
-        email="",
-        first_name="A",
-        tag_name="t",
-        logger=logger,
-    ) is False
+    assert (
+        ms.subscribe_to_marketing(
+            email="",
+            first_name="A",
+            tag_name="t",
+            logger=logger,
+        )
+        is False
+    )
     ms.run_with_retry.assert_not_called()
 
 

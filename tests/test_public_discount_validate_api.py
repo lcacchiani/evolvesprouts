@@ -70,9 +70,7 @@ def test_public_discount_validate_rejects_non_post(
 ) -> None:
     event = api_gateway_event(method="GET", path="/v1/discounts/validate")
 
-    response = public_discount_validate.handle_public_discount_validate(
-        event, "GET"
-    )
+    response = public_discount_validate.handle_public_discount_validate(event, "GET")
 
     assert response["statusCode"] == 405
 

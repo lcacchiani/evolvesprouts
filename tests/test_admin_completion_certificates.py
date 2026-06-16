@@ -33,8 +33,8 @@ def test_build_certificate_body_text_with_partner() -> None:
 def test_render_completion_certificate_pdf_escapes_special_characters() -> None:
     pdf = render_completion_certificate_pdf(
         CompletionCertificatePdfContext(
-            recipient_display_name='Alex & Co <test>',
-            program_title='Program <title> & more',
+            recipient_display_name="Alex & Co <test>",
+            program_title="Program <title> & more",
             participation_date=date(2026, 6, 14),
             trading_name="Evolve Sprouts",
             partner_display_name=None,
@@ -49,7 +49,9 @@ def test_render_completion_certificate_pdf_escapes_special_characters() -> None:
     assert pdf.startswith(b"%PDF")
 
 
-def test_store_pdf_requires_assets_bucket_when_required(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_store_pdf_requires_assets_bucket_when_required(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.delenv("ASSETS_BUCKET_NAME", raising=False)
     with pytest.raises(AppError, match="Assets bucket is not configured"):
         store_pdf_in_assets_bucket(

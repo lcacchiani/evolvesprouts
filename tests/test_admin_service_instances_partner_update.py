@@ -153,7 +153,9 @@ def test_update_instance_skips_repository_update_instance_after_partner_reconcil
         "extract_identity",
         lambda _event: _admin_identity(),
     )
-    monkeypatch.setattr(admin_service_instances, "set_audit_context", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        admin_service_instances, "set_audit_context", lambda *_a, **_k: None
+    )
     monkeypatch.setattr(admin_service_instances, "parse_body", _fake_parse_body)
     monkeypatch.setattr(
         admin_service_instances,

@@ -32,9 +32,9 @@ during a transition period (both send), then removed in a follow-up.
 
 | Flow | Frontend form | Backend handler |
 |------|--------------|----------------|
-| Contact Us | `contact-us-form.tsx` / `contact-us-form-fields.tsx` | `public_legacy_proxy.py` → `handle_legacy_contact_us` |
+| Contact Us | `contact-us-form.tsx` / `contact-us-form-fields.tsx` | `public_contact.py` |
 | Media download | `media-form.tsx` | `public_media.py` → SNS → `media_processor/handler.py` |
-| Booking (events, consultations, MBA) | `reservation-form.tsx` / `reservation-form-fields.tsx` | `public_legacy_proxy.py` → `handle_legacy_reservations` |
+| Booking (events, consultations, MBA) | `reservation-form.tsx` / `reservation-form-fields.tsx` | `public_reservations.py` |
 
 ### Out of scope
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   emptyFormAnswerState,
@@ -9,7 +9,13 @@ import {
 } from '@/components/forms/form-answer-state';
 import { FormQuestionField } from '@/components/forms/form-question-field';
 import type { FormContent, FormsCommonContent } from '@/content/form-types';
+import { formatProgressLabel } from '@/lib/format-template';
 import { getOrCreateFormSessionId } from '@/lib/form-session';
+import {
+  loadFormProgress,
+  mergeStoredAnswers,
+  saveFormProgress,
+} from '@/lib/form-session-storage';
 import { FormApiError, persistFormAnswer } from '@/lib/forms-api';
 
 export interface FormWizardProps {
@@ -18,6 +24,7 @@ export interface FormWizardProps {
 }
 
 export function FormWizard({ form, common }: FormWizardProps) {
+  const sessionId = useMemo(() => getOrCreateFormSessionId(form.slug), [form.slug]);
   const [stepIndex, setStepIndex] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -25,8 +32,29 @@ export function FormWizard({ form, common }: FormWizardProps) {
   const [answersByQuestionId, setAnswersByQuestionId] = useState<
     Record<string, FormAnswerState>
   >({});
+  const [hasHydrated, setHasHydrated] = useState(false);
 
-  const sessionId = useMemo(() => getOrCreateFormSessionId(form.slug), [form.slug]);
+  useEffect(() => {
+    const stored = loadFormProgress(form.slug, sessionId);
+    if (stored) {
+      // Client-only resume from sessionStorage after mount.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate wizard state once per session
+      setAnswersByQuestionId(mergeStoredAnswers(stored.answersByQuestionId));
+      setStepIndex(stored.stepIndex);
+    }
+    setHasHydrated(true);
+  }, [form.slug, sessionId]);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+    saveFormProgress(form.slug, sessionId, {
+      stepIndex,
+      answersByQuestionId,
+    });
+  }, [answersByQuestionId, form.slug, hasHydrated, sessionId, stepIndex]);
+
   const questions = form.questions;
   const totalSteps = questions.length;
   const resolvedStepIndex = totalSteps === 0 ? 0 : Math.min(stepIndex, totalSteps - 1);
@@ -35,11 +63,11 @@ export function FormWizard({ form, common }: FormWizardProps) {
     ? (answersByQuestionId[currentQuestion.id] ?? emptyFormAnswerState())
     : emptyFormAnswerState();
 
-  const progressLabel = formatProgressLabel({
-    template: common.a11y.progressTemplate,
-    current: totalSteps === 0 ? 0 : resolvedStepIndex + 1,
-    total: totalSteps,
-  });
+  const progressLabel = formatProgressLabel(
+    common.a11y.progressTemplate,
+    totalSteps === 0 ? 0 : resolvedStepIndex + 1,
+    totalSteps,
+  );
 
   if (isComplete || totalSteps === 0) {
     return (
@@ -148,18 +176,4 @@ function resolvePersistErrorMessage(error: unknown, common: FormsCommonContent):
     return common.errors.missingApiConfig;
   }
   return common.errors.persistFailed;
-}
-
-function formatProgressLabel({
-  template,
-  current,
-  total,
-}: {
-  template: string;
-  current: number;
-  total: number;
-}): string {
-  return template
-    .replace('{current}', String(current))
-    .replace('{total}', String(total));
 }

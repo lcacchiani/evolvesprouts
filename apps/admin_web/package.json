@@ -11,7 +11,8 @@
     "generate:admin-api-types": "openapi-typescript ../../docs/api/admin.yaml -o src/types/generated/admin-api.generated.ts",
     "check:admin-api-types": "node ./scripts/check-admin-api-types.mjs",
     "lint": "npm run check:admin-api-types && eslint --max-warnings=0 .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "amazon-cognito-identity-js": "^6.3.16",
@@ -34,6 +35,7 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.17",
     "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.8",
     "autoprefixer": "^10.5.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.9",

@@ -10,7 +10,9 @@ from app.exceptions import ValidationError
 from app.services.bulk_expense_import_events import enqueue_bulk_expense_import_job
 
 
-def test_enqueue_bulk_expense_import_requires_queue_url(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_enqueue_bulk_expense_import_requires_queue_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.delenv("BULK_EXPENSE_IMPORT_QUEUE_URL", raising=False)
     with pytest.raises(ValidationError, match="queue is not configured"):
         enqueue_bulk_expense_import_job(uuid4())

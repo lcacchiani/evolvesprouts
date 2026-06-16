@@ -6,7 +6,10 @@ from uuid import UUID
 
 import pytest
 
-from app.api.admin_services_payloads import parse_create_service_payload, parse_update_service_payload
+from app.api.admin_services_payloads import (
+    parse_create_service_payload,
+    parse_update_service_payload,
+)
 from app.exceptions import ValidationError
 
 

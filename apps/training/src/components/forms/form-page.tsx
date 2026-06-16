@@ -1,5 +1,6 @@
 import { FormWizard } from '@/components/forms/form-wizard';
 import type { FormContent, FormsCommonContent } from '@/content/form-types';
+import { SITE_COMMON } from '@/content/site-types';
 import { getPublicWwwHomeUrl } from '@/lib/public-www-url';
 
 export interface FormPageProps {
@@ -14,7 +15,7 @@ export function FormPage({ form, common }: FormPageProps) {
     // eslint-disable-next-line @next/next/no-img-element -- static SVG from /public/images
     <img
       src='/images/evolvesprouts-logo.svg'
-      alt='Evolve Sprouts'
+      alt={SITE_COMMON.a11y.logoLabel}
       className='mx-auto h-28 w-auto'
     />
   );
@@ -27,7 +28,7 @@ export function FormPage({ form, common }: FormPageProps) {
             <a
               href={publicWwwHomeUrl}
               className='inline-block rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900'
-              aria-label='Go to the Evolve Sprouts website'
+              aria-label={SITE_COMMON.a11y.websiteLinkLabel}
             >
               {logo}
             </a>

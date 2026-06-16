@@ -26,7 +26,9 @@ def test_payment_intent_rejects_non_post(api_gateway_event: Any) -> None:
     assert json.loads(response["body"]) == {"error": "Method not allowed"}
 
 
-def test_payment_intent_requires_turnstile_header(api_gateway_event: Any, monkeypatch: Any) -> None:
+def test_payment_intent_requires_turnstile_header(
+    api_gateway_event: Any, monkeypatch: Any
+) -> None:
     event = api_gateway_event(
         method="POST",
         path="/v1/reservations/payment-intent",
@@ -141,7 +143,9 @@ def test_payment_intent_rejects_non_object_json_body(
     )
 
     assert response["statusCode"] == 400
-    assert json.loads(response["body"]) == {"error": "Request body must be a JSON object"}
+    assert json.loads(response["body"]) == {
+        "error": "Request body must be a JSON object"
+    }
 
 
 def test_payment_intent_returns_client_secret_on_success(

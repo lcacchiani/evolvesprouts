@@ -95,7 +95,9 @@ def test_put_form_answer_persists_rating(api_gateway_event: Any, mock_env: Any) 
     assert item["ratingValue"] == 4
 
 
-def test_put_form_answer_persists_multiselect(api_gateway_event: Any, mock_env: Any) -> None:
+def test_put_form_answer_persists_multiselect(
+    api_gateway_event: Any, mock_env: Any
+) -> None:
     table = MagicMock()
     table.get_item.return_value = {"Item": None}
     store.configure_table_for_tests(table)
@@ -117,7 +119,9 @@ def test_put_form_answer_persists_multiselect(api_gateway_event: Any, mock_env: 
     assert item["selectedOptions"] == ["Mealtime scripts", "Practical tips"]
 
 
-def test_put_form_answer_persists_consent(api_gateway_event: Any, mock_env: Any) -> None:
+def test_put_form_answer_persists_consent(
+    api_gateway_event: Any, mock_env: Any
+) -> None:
     table = MagicMock()
     table.get_item.return_value = {"Item": None}
     store.configure_table_for_tests(table)
@@ -141,7 +145,9 @@ def test_put_form_answer_persists_consent(api_gateway_event: Any, mock_env: Any)
     assert item["freeText"] == "Year 3"
 
 
-def test_put_form_answer_rejects_truefalse(api_gateway_event: Any, mock_env: Any) -> None:
+def test_put_form_answer_rejects_truefalse(
+    api_gateway_event: Any, mock_env: Any
+) -> None:
     table = MagicMock()
     store.configure_table_for_tests(table)
     mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")

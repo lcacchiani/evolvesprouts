@@ -9,11 +9,14 @@ from urllib.parse import parse_qs, urlparse
 
 from app.api.admin_request import parse_body
 from app.api.validators import validate_email
-from app.exceptions import ConflictError, ValidationError
+from app.exceptions import ConflictError, RateLimitError, ValidationError
 from app.services.poll_responses_store import (
     aggregate_poll_question_results,
+    check_poll_write_rate_limit,
+    get_poll_answer_item,
     get_poll_control_state,
     list_poll_answers_for_session,
+    poll_answer_payload_unchanged,
     put_poll_control_state,
     upsert_poll_answer,
 )
@@ -206,47 +209,124 @@ def _handle_put_poll_control(
         return json_response(exc.status_code, exc.to_dict(), event=event)
 
     try:
-        enabled_question_ids = _validate_control_body(body)
+        control_payload = _validate_control_body(body)
     except ValidationError as exc:
         return json_response(exc.status_code, exc.to_dict(), event=event)
 
     result = put_poll_control_state(
         poll_slug=poll_slug,
-        enabled_question_ids=enabled_question_ids,
+        enabled_question_ids=control_payload["enabled_question_ids"],
+        question_options=control_payload.get("question_options"),
     )
     logger.info(
         "Updated poll control state",
         extra={
             "poll_slug": poll_slug,
-            "enabled_count": len(enabled_question_ids),
+            "enabled_count": len(control_payload["enabled_question_ids"]),
         },
     )
     return json_response(200, result, event=event)
 
 
-def _validate_control_body(body: Mapping[str, Any]) -> list[str]:
+def _validate_control_body(body: Mapping[str, Any]) -> dict[str, Any]:
     raw = body.get("enabledQuestionIds")
     if raw is None:
-        return []
-    if not isinstance(raw, list):
+        enabled: list[str] = []
+    elif not isinstance(raw, list):
         raise ValidationError("enabledQuestionIds must be an array")
-    enabled: list[str] = []
-    seen: set[str] = set()
-    for value in raw:
-        if not isinstance(value, str):
-            raise ValidationError("enabledQuestionIds entries must be strings")
-        normalized = value.strip()
-        if not normalized:
+    else:
+        enabled = []
+        seen: set[str] = set()
+        for value in raw:
+            if not isinstance(value, str):
+                raise ValidationError("enabledQuestionIds entries must be strings")
+            normalized = value.strip()
+            if not normalized:
+                continue
+            if not _QUESTION_ID_PATTERN.match(normalized):
+                raise ValidationError(
+                    "enabledQuestionIds entries must be kebab-case identifiers"
+                )
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            enabled.append(normalized)
+
+    question_options = _validate_question_options_body(body.get("questionOptions"))
+    payload: dict[str, Any] = {"enabled_question_ids": enabled}
+    if question_options is not None:
+        payload["question_options"] = question_options
+    return payload
+
+
+def _validate_question_options_body(
+    raw: Any,
+) -> dict[str, dict[str, Any]] | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise ValidationError("questionOptions must be an object")
+    parsed: dict[str, dict[str, Any]] = {}
+    for question_id, entry in raw.items():
+        if not isinstance(question_id, str):
+            raise ValidationError("questionOptions keys must be strings")
+        normalized_id = question_id.strip()
+        if not normalized_id:
             continue
-        if not _QUESTION_ID_PATTERN.match(normalized):
+        if not _QUESTION_ID_PATTERN.match(normalized_id):
+            raise ValidationError("questionOptions keys must be kebab-case identifiers")
+        if not isinstance(entry, dict):
+            raise ValidationError("questionOptions entries must be objects")
+        question_type = entry.get("type")
+        if not isinstance(question_type, str):
+            raise ValidationError("questionOptions.type is required")
+        normalized_type = question_type.strip().lower()
+        if normalized_type not in _AGGREGATABLE_TYPES:
             raise ValidationError(
-                "enabledQuestionIds entries must be kebab-case identifiers"
+                "questionOptions.type must be select, multiselect, truefalse, text, or email"
             )
-        if normalized in seen:
-            continue
-        seen.add(normalized)
-        enabled.append(normalized)
-    return enabled
+        options_raw = entry.get("options")
+        options: list[str] | None = None
+        if options_raw is not None:
+            if not isinstance(options_raw, list):
+                raise ValidationError("questionOptions.options must be an array")
+            options = []
+            seen_options: set[str] = set()
+            for value in options_raw:
+                if not isinstance(value, str):
+                    raise ValidationError(
+                        "questionOptions.options must contain strings"
+                    )
+                option = value.strip()
+                if not option:
+                    raise ValidationError(
+                        "questionOptions.options must not contain empty strings"
+                    )
+                if len(option) > _MAX_SELECTED_OPTION:
+                    raise ValidationError(
+                        f"questionOptions.options entries must be at most {_MAX_SELECTED_OPTION} characters"
+                    )
+                if option in seen_options:
+                    continue
+                seen_options.add(option)
+                options.append(option)
+            if normalized_type in _SELECT_TYPES and not options:
+                raise ValidationError(
+                    "questionOptions.options is required for select questions"
+                )
+            if normalized_type in _MULTISELECT_TYPES and not options:
+                raise ValidationError(
+                    "questionOptions.options is required for multiselect questions"
+                )
+        elif normalized_type in (_SELECT_TYPES | _MULTISELECT_TYPES):
+            raise ValidationError(
+                "questionOptions.options is required for select and multiselect questions"
+            )
+        parsed[normalized_id] = {
+            "type": normalized_type,
+            "options": options,
+        }
+    return parsed or None
 
 
 def _handle_get_poll_session_answers(
@@ -300,7 +380,51 @@ def _handle_put_poll_answer(
         error = ConflictError("question_not_open")
         return json_response(error.status_code, error.to_dict(), event=event)
 
-    result = upsert_poll_answer(**normalized)
+    try:
+        _validate_answer_against_published_options(
+            normalized=normalized,
+            control=control,
+        )
+    except ConflictError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
+
+    existing_answer = get_poll_answer_item(
+        poll_slug=poll_slug,
+        session_id=normalized["session_id"],
+        question_id=normalized["question_id"],
+    )
+    if (
+        existing_answer is not None
+        and isinstance(existing_answer.get("updatedAt"), str)
+        and poll_answer_payload_unchanged(
+            existing_answer,
+            question_type=normalized["question_type"],
+            selected_option=normalized.get("selected_option"),
+            selected_options=normalized.get("selected_options"),
+            boolean_answer=normalized.get("boolean_answer"),
+            free_text=normalized.get("free_text"),
+        )
+    ):
+        return json_response(
+            200,
+            {
+                "pollSlug": poll_slug,
+                "sessionId": normalized["session_id"],
+                "questionId": normalized["question_id"],
+                "updatedAt": existing_answer["updatedAt"],
+            },
+            event=event,
+        )
+
+    try:
+        check_poll_write_rate_limit(
+            poll_slug=poll_slug,
+            session_id=normalized["session_id"],
+        )
+    except RateLimitError as exc:
+        return json_response(exc.status_code, exc.to_dict(), event=event)
+
+    result = upsert_poll_answer(**normalized, existing_item=existing_answer)
     logger.info(
         "Persisted poll answer",
         extra={
@@ -318,6 +442,43 @@ def _handle_put_poll_answer(
         },
         event=event,
     )
+
+
+def _validate_answer_against_published_options(
+    *,
+    normalized: Mapping[str, Any],
+    control: Mapping[str, Any],
+) -> None:
+    raw_options = control.get("questionOptions")
+    if not isinstance(raw_options, dict) or not raw_options:
+        return
+
+    question_id = str(normalized.get("question_id") or "")
+    published = raw_options.get(question_id)
+    if not isinstance(published, dict):
+        return
+
+    question_type = normalized.get("question_type")
+    if question_type in _SELECT_TYPES:
+        allowed = published.get("options")
+        if not isinstance(allowed, list) or not allowed:
+            return
+        selected = normalized.get("selected_option")
+        if not isinstance(selected, str) or selected not in allowed:
+            raise ConflictError("option_not_allowed")
+        return
+
+    if question_type in _MULTISELECT_TYPES:
+        allowed = published.get("options")
+        if not isinstance(allowed, list) or not allowed:
+            return
+        allowed_set = set(allowed)
+        selected_options = normalized.get("selected_options")
+        if not isinstance(selected_options, list):
+            return
+        for option in selected_options:
+            if option not in allowed_set:
+                raise ConflictError("option_not_allowed")
 
 
 def _validate_put_body(

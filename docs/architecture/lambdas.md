@@ -43,14 +43,15 @@ their primary responsibilities.
   `/v1/forms/{form_slug}/answers` (PUT; API key; persists training form answers to DynamoDB
   `evolvesprouts-poll-responses`; same contract as `/www/v1/forms/{form_slug}/answers`),
   `/v1/polls/{poll_slug}/answers` (GET lists answers for `sessionId`; PUT upserts one answer;
-  API key; DynamoDB `evolvesprouts-poll-responses`; same contract as
+  API key; DynamoDB `evolvesprouts-poll-responses`; validates options when control state
+  publishes `questionOptions`; per-session hourly write rate limits; same contract as
   `/www/v1/polls/{poll_slug}/answers`),
   `/v1/polls/{poll_slug}/questions/{question_id}/results` (GET; API key; live aggregates for
   `select` / `truefalse` questions and free-text lists for `text` / `email`; same contract as
   `/www/v1/polls/.../results`),
   `/v1/polls/{poll_slug}/control` (GET, PUT; API key; facilitator toggles for which questions
-  respondents may answer; stored at DynamoDB sort key `CONTROL`; default is all off;
-  same contract as `/www/v1/polls/{poll_slug}/control`),
+  respondents may answer and optional `questionOptions` for answer validation; stored at DynamoDB
+  sort key `CONTROL`; default is all off; same contract as `/www/v1/polls/{poll_slug}/control`),
   `/v1/admin/geographic-areas`,
   `/v1/mailchimp/webhook` (GET/POST),
   `/v1/admin/locations/*` (including `GET /v1/admin/locations?exclude_addresses=true`

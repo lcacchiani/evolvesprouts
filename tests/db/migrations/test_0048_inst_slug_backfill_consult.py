@@ -11,16 +11,11 @@ from uuid import UUID
 
 import pytest
 
-psycopg = pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
+from tests.helpers.db import database_url, libpq_conn_url
 
-
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
-
-
-def _libpq_conn_url(url: str) -> str:
-    return url.replace("postgresql+psycopg://", "postgresql://", 1)
+psycopg = pytest.importorskip(
+    "psycopg", reason="psycopg required for DB integration test"
+)
 
 
 def _repo_root() -> Path:
@@ -32,7 +27,7 @@ def _alembic_ini() -> Path:
 
 
 def _run_alembic(*args: str) -> subprocess.CompletedProcess[str]:
-    env = {**os.environ, "DATABASE_URL": _database_url() or ""}
+    env = {**os.environ, "DATABASE_URL": database_url() or ""}
     cmd = [sys.executable, "-m", "alembic", "-c", str(_alembic_ini()), *args]
     proc = subprocess.run(
         cmd,
@@ -49,11 +44,11 @@ def _run_alembic(*args: str) -> subprocess.CompletedProcess[str]:
     return proc
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_0048_backfills_null_consultation_instance_slug() -> None:
-    url = _database_url()
+    url = database_url()
     assert url is not None
-    conn_url = _libpq_conn_url(url)
+    conn_url = libpq_conn_url(url)
 
     cons_svc = UUID("21111111-1111-1111-1111-111111114808")
     cons_inst = UUID("31111111-1111-1111-1111-111111114808")
@@ -68,7 +63,9 @@ def test_0048_backfills_null_consultation_instance_slug() -> None:
             (cons_inst,),
         )
         conn.execute("DELETE FROM service_instances WHERE id = %s", (cons_inst,))
-        conn.execute("DELETE FROM consultation_details WHERE service_id = %s", (cons_svc,))
+        conn.execute(
+            "DELETE FROM consultation_details WHERE service_id = %s", (cons_svc,)
+        )
         conn.execute("DELETE FROM services WHERE id = %s", (cons_svc,))
 
         conn.execute(

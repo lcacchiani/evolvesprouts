@@ -106,7 +106,9 @@ def test_handle_admin_leads_dispatches_note_creation(
         "extract_identity",
         lambda _: _build_admin_identity(admin_identity),
     )
-    monkeypatch.setattr(admin_leads, "_create_lead_note", lambda *_args, **_kwargs: marker)
+    monkeypatch.setattr(
+        admin_leads, "_create_lead_note", lambda *_args, **_kwargs: marker
+    )
     lead_id = str(uuid4())
 
     response = admin_leads.handle_admin_leads_request(
@@ -118,8 +120,12 @@ def test_handle_admin_leads_dispatches_note_creation(
     assert response is marker
 
 
-def test_parse_lead_filters_defaults_to_standard_admin_limit(api_gateway_event: Any) -> None:
-    filters = parse_lead_filters(api_gateway_event(method="GET", path="/v1/admin/leads"))
+def test_parse_lead_filters_defaults_to_standard_admin_limit(
+    api_gateway_event: Any,
+) -> None:
+    filters = parse_lead_filters(
+        api_gateway_event(method="GET", path="/v1/admin/leads")
+    )
 
     assert filters["limit"] == 25
 

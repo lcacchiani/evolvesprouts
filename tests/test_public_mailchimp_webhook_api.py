@@ -174,7 +174,9 @@ def _patch_contact_lookup(
                     return contact
             return None
 
-    monkeypatch.setattr("app.api.public_mailchimp_webhook.Session", lambda _engine: _FakeSession())
+    monkeypatch.setattr(
+        "app.api.public_mailchimp_webhook.Session", lambda _engine: _FakeSession()
+    )
     monkeypatch.setattr("app.api.public_mailchimp_webhook.get_engine", lambda: object())
     monkeypatch.setattr(
         "app.api.public_mailchimp_webhook.ContactRepository",

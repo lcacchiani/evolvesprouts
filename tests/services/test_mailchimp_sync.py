@@ -158,4 +158,7 @@ def test_remove_skips_staging_even_with_mailchimp_env(monkeypatch: Any) -> None:
         side_effect=AssertionError("archive_subscriber must not run in staging"),
     ):
         log = MagicMock()
-        assert remove_contact_from_mailchimp(email="a@example.com", logger=log) == "skipped"
+        assert (
+            remove_contact_from_mailchimp(email="a@example.com", logger=log)
+            == "skipped"
+        )

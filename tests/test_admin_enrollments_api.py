@@ -61,11 +61,15 @@ def test_create_enrollment_rejects_invalid_or_exhausted_discount_code(
             pass
 
         def create_enrollment(self, _enrollment: Any) -> Any:
-            raise AssertionError("create_enrollment should not run for invalid discount code")
+            raise AssertionError(
+                "create_enrollment should not run for invalid discount code"
+            )
 
     monkeypatch.setattr(admin_enrollments, "Session", _SessionCtx)
     monkeypatch.setattr(admin_enrollments, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_enrollments, "set_audit_context", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        admin_enrollments, "set_audit_context", lambda *_args, **_kwargs: None
+    )
     monkeypatch.setattr(admin_enrollments, "parse_body", lambda _event: {})
     monkeypatch.setattr(
         admin_enrollments,
@@ -96,7 +100,9 @@ def test_create_enrollment_rejects_invalid_or_exhausted_discount_code(
 
     with pytest.raises(ValidationError, match="Discount code is invalid"):
         admin_enrollments._create_enrollment(
-            api_gateway_event(method="POST", path="/v1/admin/services/x/instances/y/enrollments"),
+            api_gateway_event(
+                method="POST", path="/v1/admin/services/x/instances/y/enrollments"
+            ),
             instance_id=instance_id,
             actor_sub="test-admin-sub-12345",
         )
@@ -154,7 +160,9 @@ def test_create_enrollment_with_discount_code_calls_validate_and_increment(
 
     monkeypatch.setattr(admin_enrollments, "Session", _SessionCtx)
     monkeypatch.setattr(admin_enrollments, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_enrollments, "set_audit_context", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        admin_enrollments, "set_audit_context", lambda *_args, **_kwargs: None
+    )
     monkeypatch.setattr(
         admin_enrollments,
         "batch_enrollment_party_display_names",
@@ -207,7 +215,10 @@ def test_create_enrollment_with_discount_code_calls_validate_and_increment(
     monkeypatch.setattr(
         admin_enrollments,
         "serialize_enrollment",
-        lambda e, **_kwargs: {"id": "new-1", "discount_code_id": str(e.discount_code_id)},
+        lambda e, **_kwargs: {
+            "id": "new-1",
+            "discount_code_id": str(e.discount_code_id),
+        },
     )
     _patch_enrollment_discount_scope_ok(monkeypatch)
 
@@ -215,7 +226,12 @@ def test_create_enrollment_with_discount_code_calls_validate_and_increment(
         api_gateway_event(
             method="POST",
             path="/v1/admin/services/x/instances/y/enrollments",
-            body=json.dumps({"contact_id": str(contact_id), "discount_code_id": str(discount_code_id)}),
+            body=json.dumps(
+                {
+                    "contact_id": str(contact_id),
+                    "discount_code_id": str(discount_code_id),
+                }
+            ),
         ),
         instance_id=instance_id,
         actor_sub="test-admin-sub-12345",
@@ -227,7 +243,9 @@ def test_create_enrollment_with_discount_code_calls_validate_and_increment(
     assert created_holder["amount_paid"] is None
 
 
-def test_update_enrollment_discount_swaps_usage_counts(monkeypatch: Any, api_gateway_event: Any) -> None:
+def test_update_enrollment_discount_swaps_usage_counts(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
     target_instance_id = uuid4()
     enrollment_id = uuid4()
     old_dc = uuid4()
@@ -306,7 +324,10 @@ def test_update_enrollment_discount_swaps_usage_counts(monkeypatch: Any, api_gat
     monkeypatch.setattr(
         admin_enrollments,
         "serialize_enrollment",
-        lambda e, **_kwargs: {"id": str(enrollment_id), "discount_code_id": str(e.discount_code_id)},
+        lambda e, **_kwargs: {
+            "id": str(enrollment_id),
+            "discount_code_id": str(e.discount_code_id),
+        },
     )
     _patch_enrollment_discount_scope_ok(monkeypatch)
 
@@ -326,7 +347,9 @@ def test_update_enrollment_discount_swaps_usage_counts(monkeypatch: Any, api_gat
 
 
 def test_parse_update_enrollment_payload_accepts_enrolled_at() -> None:
-    parsed = parse_update_enrollment_payload({"enrolled_at": "2026-05-01T08:30:00+00:00"})
+    parsed = parse_update_enrollment_payload(
+        {"enrolled_at": "2026-05-01T08:30:00+00:00"}
+    )
     assert parsed["enrolled_at"].year == 2026
     assert parsed["enrolled_at"].month == 5
     assert parsed["enrolled_at"].day == 1
@@ -375,14 +398,20 @@ class _FakeScalarResult:
         return self._rows
 
 
-def test_promote_contact_enrollment_to_family_updates_row(monkeypatch: Any, api_gateway_event: Any) -> None:
+def test_promote_contact_enrollment_to_family_updates_row(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
     target_instance_id = uuid4()
     enrollment_id = uuid4()
     contact_uuid = uuid4()
     family_id = uuid4()
     member_id = uuid4()
-    family_row = SimpleNamespace(id=family_id, relationship_type=RelationshipType.PROSPECT)
-    member_contact = SimpleNamespace(id=member_id, relationship_type=RelationshipType.PROSPECT)
+    family_row = SimpleNamespace(
+        id=family_id, relationship_type=RelationshipType.PROSPECT
+    )
+    member_contact = SimpleNamespace(
+        id=member_id, relationship_type=RelationshipType.PROSPECT
+    )
 
     class _MutableEnrollment:
         instance_id = target_instance_id
@@ -487,7 +516,9 @@ def test_promote_contact_enrollment_to_family_updates_row(monkeypatch: Any, api_
         api_gateway_event(
             method="PATCH",
             path="/v1/admin/services/x/instances/y/enrollments/z",
-            body=json.dumps({"promote_to_family_id": str(family_id), "status": "registered"}),
+            body=json.dumps(
+                {"promote_to_family_id": str(family_id), "status": "registered"}
+            ),
         ),
         instance_id=target_instance_id,
         enrollment_id=enrollment_id,
@@ -505,7 +536,9 @@ def test_promote_contact_enrollment_to_family_updates_row(monkeypatch: Any, api_
     assert member_contact.relationship_type == RelationshipType.CLIENT
 
 
-def test_delete_enrollment_decrements_discount_usage(monkeypatch: Any, api_gateway_event: Any) -> None:
+def test_delete_enrollment_decrements_discount_usage(
+    monkeypatch: Any, api_gateway_event: Any
+) -> None:
     target_instance_id = uuid4()
     enrollment_id = uuid4()
     dc_id = uuid4()
@@ -557,7 +590,9 @@ def test_delete_enrollment_decrements_discount_usage(monkeypatch: Any, api_gatew
     monkeypatch.setattr(admin_enrollments, "DiscountCodeRepository", _FakeDiscountRepo)
 
     resp = admin_enrollments._delete_enrollment(
-        api_gateway_event(method="DELETE", path="/v1/admin/services/x/instances/y/enrollments/z"),
+        api_gateway_event(
+            method="DELETE", path="/v1/admin/services/x/instances/y/enrollments/z"
+        ),
         instance_id=target_instance_id,
         enrollment_id=enrollment_id,
         actor_sub="test-admin-sub-12345",

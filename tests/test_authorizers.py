@@ -20,7 +20,9 @@ def test_extract_bearer_token_supports_bearer_and_raw_values() -> None:
 
 
 def test_extract_organization_ids_handles_list_and_csv_claims() -> None:
-    assert extract_organization_ids({"custom:organization_ids": [" org-1 ", "org-2"]}) == {
+    assert extract_organization_ids(
+        {"custom:organization_ids": [" org-1 ", "org-2"]}
+    ) == {
         "org-1",
         "org-2",
     }
@@ -31,9 +33,7 @@ def test_extract_organization_ids_handles_list_and_csv_claims() -> None:
 
 
 def test_build_iam_policy_broadens_allow_resource_by_default() -> None:
-    method_arn = (
-        "arn:aws:execute-api:ap-southeast-1:123456789012:api-id/prod/GET/v1/assets/public"
-    )
+    method_arn = "arn:aws:execute-api:ap-southeast-1:123456789012:api-id/prod/GET/v1/assets/public"
     policy = build_iam_policy("Allow", method_arn, "user-1", {"group": "admin"})
 
     statement = policy["policyDocument"]["Statement"][0]
@@ -43,9 +43,7 @@ def test_build_iam_policy_broadens_allow_resource_by_default() -> None:
 
 
 def test_build_iam_policy_keeps_exact_resource_when_broadening_disabled() -> None:
-    method_arn = (
-        "arn:aws:execute-api:ap-southeast-1:123456789012:api-id/prod/GET/v1/assets/public"
-    )
+    method_arn = "arn:aws:execute-api:ap-southeast-1:123456789012:api-id/prod/GET/v1/assets/public"
     policy = build_iam_policy(
         "Allow",
         method_arn,

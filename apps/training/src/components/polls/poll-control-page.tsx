@@ -11,7 +11,7 @@ export interface PollControlPageProps {
 
 export function PollControlPage({ poll, common }: PollControlPageProps) {
   const { enabledQuestionIds, isLoading, errorMessage, isQuestionEnabled, toggleQuestion } =
-    usePollControlState({ pollSlug: poll.slug, allowWrites: true });
+    usePollControlState({ pollSlug: poll.slug, questions: poll.questions, allowWrites: true });
 
   const bannerMessage = resolveBannerMessage(errorMessage, common);
 

@@ -22,7 +22,9 @@ def test_mailchimp_logs_error_body_on_member_upsert_failure(monkeypatch: Any) ->
     monkeypatch.setattr(mailchimp, "http_invoke", fake_http_invoke)
     recorded: list[tuple[str, dict[str, Any]]] = []
 
-    def capture_warning(msg: str, *, extra: dict[str, Any] | None = None, **_kw: Any) -> None:
+    def capture_warning(
+        msg: str, *, extra: dict[str, Any] | None = None, **_kw: Any
+    ) -> None:
         recorded.append((msg, extra or {}))
 
     monkeypatch.setattr(mailchimp.logger, "warning", capture_warning)
@@ -48,7 +50,10 @@ def test_mailchimp_logs_error_body_on_tag_apply_failure(monkeypatch: Any) -> Non
 
     def fake_http_invoke(**kwargs: Any) -> dict[str, Any]:
         if kwargs.get("method") == "PUT":
-            return {"status": 200, "body": '{"id":"sub-1","email_address":"a@example.com"}'}
+            return {
+                "status": 200,
+                "body": '{"id":"sub-1","email_address":"a@example.com"}',
+            }
         return {
             "status": 403,
             "body": '{"title":"Forbidden","detail":"User does not have access","status":403}',
@@ -57,7 +62,9 @@ def test_mailchimp_logs_error_body_on_tag_apply_failure(monkeypatch: Any) -> Non
     monkeypatch.setattr(mailchimp, "http_invoke", fake_http_invoke)
     recorded: list[tuple[str, dict[str, Any]]] = []
 
-    def capture_warning(msg: str, *, extra: dict[str, Any] | None = None, **_kw: Any) -> None:
+    def capture_warning(
+        msg: str, *, extra: dict[str, Any] | None = None, **_kw: Any
+    ) -> None:
         recorded.append((msg, extra or {}))
 
     monkeypatch.setattr(mailchimp.logger, "warning", capture_warning)
@@ -98,7 +105,10 @@ def test_mailchimp_member_payload_includes_merge_fields(monkeypatch: Any) -> Non
     assert len(captured) == 1
     payload = json.loads(captured[0])
     assert payload["merge_fields"]["FNAME"] == "A"
-    assert payload["merge_fields"]["MMDLURL"] == "https://example.com/v1/assets/share/TOKEN"
+    assert (
+        payload["merge_fields"]["MMDLURL"]
+        == "https://example.com/v1/assets/share/TOKEN"
+    )
 
 
 def test_trigger_customer_journey_posts_correct_url_and_body(monkeypatch: Any) -> None:
@@ -138,7 +148,9 @@ def test_trigger_customer_journey_logs_and_raises_on_failure(monkeypatch: Any) -
     )
     recorded: list[tuple[str, dict[str, Any]]] = []
 
-    def capture_warning(msg: str, *, extra: dict[str, Any] | None = None, **_kw: Any) -> None:
+    def capture_warning(
+        msg: str, *, extra: dict[str, Any] | None = None, **_kw: Any
+    ) -> None:
         recorded.append((msg, extra or {}))
 
     monkeypatch.setattr(mailchimp.logger, "warning", capture_warning)
@@ -168,7 +180,9 @@ def test_mailchimp_truncates_long_error_body_in_logs(monkeypatch: Any) -> None:
     )
     recorded: list[dict[str, Any]] = []
 
-    def capture_warning(_msg: str, *, extra: dict[str, Any] | None = None, **_kw: Any) -> None:
+    def capture_warning(
+        _msg: str, *, extra: dict[str, Any] | None = None, **_kw: Any
+    ) -> None:
         recorded.append(extra or {})
 
     monkeypatch.setattr(mailchimp.logger, "warning", capture_warning)

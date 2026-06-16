@@ -18,7 +18,7 @@ We take security seriously. If you discover a security vulnerability in this pro
    - Click **Report a vulnerability**
    - Fill out the vulnerability report form
 
-Alternatively, you can email the maintainers directly (add email if applicable).
+That private reporting channel is the preferred contact path for this repository.
 
 ### What to Include
 

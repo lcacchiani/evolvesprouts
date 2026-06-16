@@ -9,7 +9,10 @@ from app.api import public_form_hooks as plc
 
 
 def test_mailchimp_tag_for_contact_signup_intent() -> None:
-    assert plc.mailchimp_tag_for_contact_signup_intent(None) == plc.TAG_PUBLIC_WWW_CONTACT_INQUIRY
+    assert (
+        plc.mailchimp_tag_for_contact_signup_intent(None)
+        == plc.TAG_PUBLIC_WWW_CONTACT_INQUIRY
+    )
     assert (
         plc.mailchimp_tag_for_contact_signup_intent("contact_inquiry")
         == plc.TAG_PUBLIC_WWW_CONTACT_INQUIRY
@@ -43,7 +46,10 @@ def test_mailchimp_booking_tag_from_payload() -> None:
         )
         == "public-www-booking-customer-used"
     )
-    assert plc.mailchimp_booking_tag_from_payload({}) == "public-www-booking-customer-unknown"
+    assert (
+        plc.mailchimp_booking_tag_from_payload({})
+        == "public-www-booking-customer-unknown"
+    )
 
 
 @pytest.mark.parametrize(
@@ -64,7 +70,9 @@ def test_run_contact_us_post_success_routes_marketing_tag(
     def _fake_maybe_subscribe(**kwargs: Any) -> None:
         captured.update(kwargs)
 
-    monkeypatch.setattr(plc, "maybe_subscribe_contact_us_marketing", _fake_maybe_subscribe)
+    monkeypatch.setattr(
+        plc, "maybe_subscribe_contact_us_marketing", _fake_maybe_subscribe
+    )
     monkeypatch.setattr(plc, "send_contact_confirmation_email", MagicMock())
     monkeypatch.setattr(plc, "send_sales_form_recap_email", MagicMock())
     support_mock = MagicMock()
@@ -159,7 +167,9 @@ def test_run_reservation_post_success_hooks_passes_dynamic_tag_to_booking_market
         }
     )
 
-    assert captured.get("tag_name") == "public-www-booking-customer-easter-2026-instance"
+    assert (
+        captured.get("tag_name") == "public-www-booking-customer-easter-2026-instance"
+    )
 
 
 def test_mailchimp_tag_intro_call_booking() -> None:

@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from sqlalchemy.exc import IntegrityError
 
-from app.api.admin_services_integrity import is_services_service_key_tier_unique_violation
+from app.api.admin_services_integrity import (
+    is_services_service_key_tier_unique_violation,
+)
 
 
-def _make_integrity_error(*, constraint_name: str | None, message: str) -> IntegrityError:
+def _make_integrity_error(
+    *, constraint_name: str | None, message: str
+) -> IntegrityError:
     class _Diag:
         def __init__(self, name: str | None) -> None:
             self.constraint_name = name
@@ -46,7 +50,7 @@ def test_service_key_tier_violation_message_fallback_rejects_instance_slug_const
     exc_ok = _make_integrity_error(
         constraint_name=None,
         message=(
-            'duplicate key value violates unique constraint '
+            "duplicate key value violates unique constraint "
             '"services_service_key_tier_unique_idx"'
         ),
     )

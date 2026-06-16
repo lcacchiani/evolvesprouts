@@ -7,7 +7,12 @@ from uuid import UUID, uuid4
 
 from app.api.instance_capacity_status import bulk_reconcile_instance_capacity_status
 from app.db.models import ServiceInstance
-from app.db.models.enums import InstanceStatus, ServiceDeliveryMode, ServiceStatus, ServiceType
+from app.db.models.enums import (
+    InstanceStatus,
+    ServiceDeliveryMode,
+    ServiceStatus,
+    ServiceType,
+)
 
 
 def _minimal_instance(

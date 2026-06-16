@@ -12,7 +12,9 @@ from app.imports.entities._legacy_event_common import LegacyLabel
 from app.imports.entities.labels import LabelsImporter
 
 
-def test_apply_inserts_and_case_insensitive_reuse(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_apply_inserts_and_case_insensitive_reuse(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from app.imports.entities import labels as mod
 
     monkeypatch.setattr(mod.refs, "record_mapping", MagicMock())
@@ -86,7 +88,6 @@ def test_unknown_entity_description(monkeypatch: pytest.MonkeyPatch) -> None:
     rows = [LegacyLabel(legacy_id=8, name="X", entity="age_band", deleted_at=None)]
     importer = LabelsImporter()
     from dataclasses import replace
-
 
     base = importer.resolve_context(session, dry_run=False)
     ctx = replace(base, existing_import_keys=frozenset())

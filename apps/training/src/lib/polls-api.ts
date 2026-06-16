@@ -1,10 +1,10 @@
 import type { PollQuestion } from '@/content/poll-types';
 import type { QuestionAnswerState } from '@/components/polls/poll-answer-state';
-
-const API_BASE_URL_ENV = 'NEXT_PUBLIC_API_BASE_URL';
-const API_KEY_ENV = 'NEXT_PUBLIC_TRAINING_API_KEY';
-const API_KEY_FALLBACK_ENV = 'NEXT_PUBLIC_WWW_CRM_API_KEY';
-const WWW_PREFIX = '/www';
+import type { PublishedQuestionOptions } from '@/lib/poll-question-options';
+import {
+  normalizeTrainingApiBaseUrl,
+  resolveTrainingApiConfig,
+} from '@/lib/training-api-config';
 
 export interface PersistPollAnswerInput {
   pollSlug: string;
@@ -29,15 +29,7 @@ export class PollApiError extends Error {
 export function resolvePollApiConfig():
   | { baseUrl: string; apiKey: string }
   | null {
-  const apiKey =
-    process.env[API_KEY_ENV]?.trim() ||
-    process.env[API_KEY_FALLBACK_ENV]?.trim() ||
-    '';
-  const baseUrl = normalizePollApiBaseUrl(process.env[API_BASE_URL_ENV]?.trim() ?? '');
-  if (!apiKey || !baseUrl) {
-    return null;
-  }
-  return { baseUrl, apiKey };
+  return resolveTrainingApiConfig();
 }
 
 export interface PollQuestionResultsBucket {
@@ -57,7 +49,13 @@ export interface PollQuestionResults {
 export interface PollControlState {
   pollSlug: string;
   enabledQuestionIds: string[];
+  questionOptions?: Record<string, PublishedQuestionOptions>;
   updatedAt?: string;
+}
+
+export interface PersistPollControlStateInput {
+  enabledQuestionIds: string[];
+  questionOptions?: Record<string, PublishedQuestionOptions>;
 }
 
 export interface PollSessionAnswerItem {
@@ -144,7 +142,7 @@ export async function fetchPollControlState(pollSlug: string): Promise<PollContr
 
 export async function persistPollControlState(
   pollSlug: string,
-  enabledQuestionIds: string[],
+  input: PersistPollControlStateInput,
 ): Promise<PollControlState> {
   const config = resolvePollApiConfig();
   if (!config) {
@@ -152,13 +150,19 @@ export async function persistPollControlState(
   }
 
   const endpointPath = `${config.baseUrl}/v1/polls/${encodeURIComponent(pollSlug)}/control`;
+  const body: Record<string, unknown> = {
+    enabledQuestionIds: input.enabledQuestionIds,
+  };
+  if (input.questionOptions) {
+    body.questionOptions = input.questionOptions;
+  }
   const response = await fetch(endpointPath, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',
       'x-api-key': config.apiKey,
     },
-    body: JSON.stringify({ enabledQuestionIds }),
+    body: JSON.stringify(body),
     cache: 'no-store',
   });
 
@@ -230,7 +234,7 @@ async function readPollApiErrorCode(response: Response): Promise<string | null> 
   }
 }
 
-function buildPersistBody(input: PersistPollAnswerInput): Record<string, unknown> {
+export function buildPersistBody(input: PersistPollAnswerInput): Record<string, unknown> {
   const base = {
     pollSlug: input.pollSlug,
     sessionId: input.sessionId,
@@ -265,21 +269,4 @@ function buildPersistBody(input: PersistPollAnswerInput): Record<string, unknown
   };
 }
 
-function normalizePollApiBaseUrl(raw: string): string {
-  if (!raw) {
-    return '';
-  }
-  if (raw === WWW_PREFIX || raw.startsWith(`${WWW_PREFIX}/`)) {
-    return WWW_PREFIX;
-  }
-  try {
-    const parsed = new URL(raw);
-    const pathname = parsed.pathname.replace(/\/$/, '') || '';
-    if (pathname !== WWW_PREFIX) {
-      return '';
-    }
-    return `${parsed.origin}${WWW_PREFIX}`;
-  } catch {
-    return '';
-  }
-}
+export { normalizeTrainingApiBaseUrl as normalizePollApiBaseUrl };

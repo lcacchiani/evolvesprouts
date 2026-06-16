@@ -101,7 +101,9 @@ def test_orphan_next_offset_when_full_page(
     monkeypatch.setenv("MAILCHIMP_LIST_ID", "list1")
     monkeypatch.setenv("MAILCHIMP_SERVER_PREFIX", "us12")
 
-    members = [{"email_address": f"u{i}@example.com", "status": "subscribed"} for i in range(3)]
+    members = [
+        {"email_address": f"u{i}@example.com", "status": "subscribed"} for i in range(3)
+    ]
     monkeypatch.setattr(mcm, "iter_audience_members", _fake_iter(members))
 
     class _FakeSession:

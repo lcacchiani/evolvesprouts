@@ -87,7 +87,9 @@ def test_update_partial_note_only_calls_flush_with_note_change(
     )
     repo = MagicMock()
     repo.get_by_id.return_value = row
-    monkeypatch.setattr(cal_blocks, "CalendarManualBlockRepository", MagicMock(return_value=repo))
+    monkeypatch.setattr(
+        cal_blocks, "CalendarManualBlockRepository", MagicMock(return_value=repo)
+    )
     audit = MagicMock()
     monkeypatch.setattr(cal_blocks, "AuditService", MagicMock(return_value=audit))
 
@@ -125,7 +127,9 @@ def test_delete_calls_audit_delete(
     repo = MagicMock()
     repo.get_by_id.return_value = row
     repo.delete_by_id.return_value = True
-    monkeypatch.setattr(cal_blocks, "CalendarManualBlockRepository", MagicMock(return_value=repo))
+    monkeypatch.setattr(
+        cal_blocks, "CalendarManualBlockRepository", MagicMock(return_value=repo)
+    )
     audit = MagicMock()
     monkeypatch.setattr(cal_blocks, "AuditService", MagicMock(return_value=audit))
 

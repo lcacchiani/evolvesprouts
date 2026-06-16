@@ -47,7 +47,9 @@ def test_delete_bulk_import_job_removes_row_for_creator(
     monkeypatch.setattr(admin_expenses, "BulkExpenseImportJobRepository", _FakeBulkRepo)
     monkeypatch.setattr(admin_expenses, "Session", lambda _engine: _FakeSessionCtx())
     monkeypatch.setattr(admin_expenses, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_expenses, "set_audit_context", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        admin_expenses, "set_audit_context", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr(admin_expenses, "request_id", lambda _e: "req-1")
     monkeypatch.setattr(
         admin_expenses,
@@ -92,7 +94,9 @@ def test_delete_bulk_import_job_returns_404_when_missing(
     monkeypatch.setattr(admin_expenses, "BulkExpenseImportJobRepository", _FakeBulkRepo)
     monkeypatch.setattr(admin_expenses, "Session", lambda _engine: _FakeSessionCtx())
     monkeypatch.setattr(admin_expenses, "get_engine", lambda: object())
-    monkeypatch.setattr(admin_expenses, "set_audit_context", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        admin_expenses, "set_audit_context", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr(admin_expenses, "request_id", lambda _e: "req-1")
     monkeypatch.setattr(
         admin_expenses,

@@ -100,7 +100,9 @@ def test_media_request_publishes_to_sns(
 
     fake_sns_client = _FakeSnsClient()
     monkeypatch.setenv("DEPLOYMENT_STAGE", "production")
-    monkeypatch.setenv("MEDIA_REQUEST_TOPIC_ARN", "arn:aws:sns:ap-southeast-1:123:topic")
+    monkeypatch.setenv(
+        "MEDIA_REQUEST_TOPIC_ARN", "arn:aws:sns:ap-southeast-1:123:topic"
+    )
     monkeypatch.setattr(
         "app.api.assets.public_media_assets.verify_turnstile_token",
         lambda *_args, **_kwargs: True,
@@ -115,12 +117,16 @@ def test_media_request_publishes_to_sns(
     assert response["statusCode"] == 202
     assert json.loads(response["body"]) == {"message": "Request accepted"}
     assert len(fake_sns_client.calls) == 1
-    assert fake_sns_client.calls[0]["TopicArn"] == "arn:aws:sns:ap-southeast-1:123:topic"
+    assert (
+        fake_sns_client.calls[0]["TopicArn"] == "arn:aws:sns:ap-southeast-1:123:topic"
+    )
 
     published_message = json.loads(fake_sns_client.calls[0]["Message"])
     assert published_message["event_type"] == "media_request.submitted"
     assert published_message["first_name"] == "Ida"
     assert published_message["email"] == "ida@example.com"
-    assert published_message["resource_key"] == "public-website-" + "patience-free-guide"
+    assert (
+        published_message["resource_key"] == "public-website-" + "patience-free-guide"
+    )
     assert published_message["marketing_opt_in"] is False
     assert published_message["locale"] == "en"

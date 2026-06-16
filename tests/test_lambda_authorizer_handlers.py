@@ -8,7 +8,9 @@ from app.auth import authorizer_utils
 
 
 def _load_lambda_module(relative_path: str, module_name: str) -> Any:
-    module_path = Path(__file__).resolve().parents[1] / "backend" / "lambda" / relative_path
+    module_path = (
+        Path(__file__).resolve().parents[1] / "backend" / "lambda" / relative_path
+    )
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Unable to load module at {module_path}")

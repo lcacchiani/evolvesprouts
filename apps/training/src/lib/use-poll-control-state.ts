@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { PollQuestion } from '@/content/poll-types';
+import { buildQuestionOptionsMap } from '@/lib/poll-question-options';
 import {
   fetchPollControlState,
   persistPollControlState,
@@ -12,6 +14,8 @@ const CONTROL_POLL_MS = 2500;
 
 export interface UsePollControlStateOptions {
   pollSlug: string;
+  /** Poll question definitions used to publish canonical options to the backend. */
+  questions?: readonly PollQuestion[];
   /** When false, only polls GET (participant view). Default true for facilitator. */
   allowWrites?: boolean;
 }
@@ -28,6 +32,7 @@ export interface UsePollControlStateResult {
 
 export function usePollControlState({
   pollSlug,
+  questions = [],
   allowWrites = true,
 }: UsePollControlStateOptions): UsePollControlStateResult {
   const [enabledQuestionIds, setEnabledQuestionIds] = useState<ReadonlySet<string>>(
@@ -36,6 +41,11 @@ export function usePollControlState({
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const enabledRef = useRef(enabledQuestionIds);
+  const questionOptions = useRef(buildQuestionOptionsMap(questions));
+
+  useEffect(() => {
+    questionOptions.current = buildQuestionOptionsMap(questions);
+  }, [questions]);
 
   useEffect(() => {
     enabledRef.current = enabledQuestionIds;
@@ -112,7 +122,10 @@ export function usePollControlState({
       setErrorMessage(null);
 
       try {
-        const state = await persistPollControlState(pollSlug, nextIds);
+        const state = await persistPollControlState(pollSlug, {
+          enabledQuestionIds: nextIds,
+          questionOptions: questionOptions.current,
+        });
         applyState(state.enabledQuestionIds);
       } catch (error) {
         setEnabledQuestionIds(previous);

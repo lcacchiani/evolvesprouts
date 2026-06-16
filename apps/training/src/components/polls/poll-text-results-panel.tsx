@@ -1,18 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import type { PollQuestion, PollsCommonContent } from '@/content/poll-types';
+import { POLL_PANEL_CLASS } from '@/components/polls/poll-panel-styles';
 import {
-  fetchPollQuestionResults,
-  PollApiError,
-  type PollQuestionResults,
-} from '@/lib/polls-api';
-
-const LIVE_RESULTS_POLL_MS = 3000;
-
-const POLL_PANEL_CLASS =
-  'flex flex-col gap-3 rounded-inner border es-border-panel-soft es-bg-surface-muted p-4';
+  formatTotalResponses,
+  usePollQuestionResults,
+} from '@/lib/use-poll-question-results';
 
 export interface PollTextResultsPanelProps {
   pollSlug: string;
@@ -25,46 +18,15 @@ export function PollTextResultsPanel({
   question,
   common,
 }: PollTextResultsPanelProps) {
-  const [results, setResults] = useState<PollQuestionResults | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const enabled = question.type === 'text' || question.type === 'email';
+  const { results, errorMessage } = usePollQuestionResults({
+    pollSlug,
+    question,
+    common,
+    enabled,
+  });
 
-  useEffect(() => {
-    if (question.type !== 'text' && question.type !== 'email') {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function loadResults(): Promise<void> {
-      try {
-        const next = await fetchPollQuestionResults({
-          pollSlug,
-          questionId: question.id,
-          questionType: question.type,
-        });
-        if (!cancelled) {
-          setResults(next);
-          setErrorMessage(null);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setErrorMessage(resolveLoadErrorMessage(error, common));
-        }
-      }
-    }
-
-    void loadResults();
-    const intervalId = window.setInterval(() => {
-      void loadResults();
-    }, LIVE_RESULTS_POLL_MS);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, [common, pollSlug, question]);
-
-  if (question.type !== 'text' && question.type !== 'email') {
+  if (!enabled) {
     return null;
   }
 
@@ -101,15 +63,4 @@ export function PollTextResultsPanel({
       )}
     </section>
   );
-}
-
-function formatTotalResponses(template: string, total: number): string {
-  return template.replace('{total}', String(total));
-}
-
-function resolveLoadErrorMessage(error: unknown, common: PollsCommonContent): string {
-  if (error instanceof PollApiError && error.statusCode === 0) {
-    return common.errors.missingApiConfig;
-  }
-  return common.errors.resultsLoadFailed;
 }

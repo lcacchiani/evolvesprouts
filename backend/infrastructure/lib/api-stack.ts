@@ -1726,6 +1726,7 @@ export class ApiStack extends cdk.Stack {
       pointInTimeRecoverySpecification: {
         pointInTimeRecoveryEnabled: true,
       },
+      timeToLiveAttribute: "expiresAt",
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
@@ -2931,6 +2932,9 @@ export class ApiStack extends cdk.Stack {
 
     // ---------------------------------------------------------------------
     // API Routes
+    // CI: scripts/check-cdk-admin-api-routes.mjs parses this section using
+    // the markers above/below and `addResource(...)` call style. Keep those
+    // anchors and patterns stable, or update the script in the same change.
     // ---------------------------------------------------------------------
 
     // Health check endpoint (IAM auth)

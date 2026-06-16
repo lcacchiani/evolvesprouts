@@ -16,10 +16,14 @@ def test_list_sales_recap_recipient_emails_empty_without_env(monkeypatch: Any) -
 
 def test_list_sales_recap_recipient_emails_collects_pages(monkeypatch: Any) -> None:
     monkeypatch.setenv("COGNITO_USER_POOL_ID", "pool-1")
-    monkeypatch.setenv("AWS_PROXY_FUNCTION_ARN", "arn:aws:lambda:us-east-1:1:function:proxy")
+    monkeypatch.setenv(
+        "AWS_PROXY_FUNCTION_ARN", "arn:aws:lambda:us-east-1:1:function:proxy"
+    )
     monkeypatch.setenv("ADMIN_GROUP", "admin")
 
-    def _fake_invoke(_service: str, _action: str, params: dict[str, Any]) -> dict[str, Any]:
+    def _fake_invoke(
+        _service: str, _action: str, params: dict[str, Any]
+    ) -> dict[str, Any]:
         if "NextToken" not in params:
             return {
                 "Users": [
@@ -45,7 +49,9 @@ def test_list_sales_recap_recipient_emails_collects_pages(monkeypatch: Any) -> N
     assert n.list_sales_recap_recipient_emails() == ["a@example.com", "b@example.com"]
 
 
-def test_send_contact_inquiry_support_email_skips_without_config(monkeypatch: Any) -> None:
+def test_send_contact_inquiry_support_email_skips_without_config(
+    monkeypatch: Any,
+) -> None:
     monkeypatch.delenv("SUPPORT_EMAIL", raising=False)
     monkeypatch.delenv("SES_SENDER_EMAIL", raising=False)
     mock_send = MagicMock()
@@ -83,7 +89,9 @@ def test_send_contact_inquiry_support_email_sends(monkeypatch: Any) -> None:
 
 def test_send_sales_form_recap_required_raises_without_sender(monkeypatch: Any) -> None:
     monkeypatch.delenv("SES_SENDER_EMAIL", raising=False)
-    monkeypatch.setattr(n, "list_sales_recap_recipient_emails", lambda: ["a@example.com"])
+    monkeypatch.setattr(
+        n, "list_sales_recap_recipient_emails", lambda: ["a@example.com"]
+    )
     with pytest.raises(RuntimeError, match="SES_SENDER_EMAIL"):
         n.send_sales_form_recap_email(
             form_title="X",
@@ -92,7 +100,9 @@ def test_send_sales_form_recap_required_raises_without_sender(monkeypatch: Any) 
         )
 
 
-def test_send_sales_form_recap_required_raises_without_recipients(monkeypatch: Any) -> None:
+def test_send_sales_form_recap_required_raises_without_recipients(
+    monkeypatch: Any,
+) -> None:
     monkeypatch.setenv("SES_SENDER_EMAIL", "noreply@example.com")
     monkeypatch.setattr(n, "list_sales_recap_recipient_emails", lambda: [])
     with pytest.raises(RuntimeError, match="No sales recap recipients"):
@@ -105,14 +115,18 @@ def test_send_sales_form_recap_required_raises_without_recipients(monkeypatch: A
 
 def test_send_sales_form_recap_optional_swallows_send_failure(monkeypatch: Any) -> None:
     monkeypatch.setenv("SES_SENDER_EMAIL", "noreply@example.com")
-    monkeypatch.setattr(n, "list_sales_recap_recipient_emails", lambda: ["a@example.com"])
+    monkeypatch.setattr(
+        n, "list_sales_recap_recipient_emails", lambda: ["a@example.com"]
+    )
 
     def _boom(**_kwargs: Any) -> None:
         raise RuntimeError("ses down")
 
     log_mock = MagicMock()
     monkeypatch.setattr(n, "send_email", _boom)
-    monkeypatch.setattr("app.services.public_form_internal_notifications.logger", log_mock)
+    monkeypatch.setattr(
+        "app.services.public_form_internal_notifications.logger", log_mock
+    )
     n.send_sales_form_recap_email(
         form_title="X",
         body_lines=["line"],
@@ -121,9 +135,13 @@ def test_send_sales_form_recap_optional_swallows_send_failure(monkeypatch: Any) 
     log_mock.exception.assert_called_once()
 
 
-def test_send_sales_form_recap_uses_run_with_retry_when_configured(monkeypatch: Any) -> None:
+def test_send_sales_form_recap_uses_run_with_retry_when_configured(
+    monkeypatch: Any,
+) -> None:
     monkeypatch.setenv("SES_SENDER_EMAIL", "noreply@example.com")
-    monkeypatch.setattr(n, "list_sales_recap_recipient_emails", lambda: ["a@example.com"])
+    monkeypatch.setattr(
+        n, "list_sales_recap_recipient_emails", lambda: ["a@example.com"]
+    )
     retry_calls: list[Any] = []
 
     def _fake_retry(op: Any, *args: Any, **kwargs: Any) -> None:

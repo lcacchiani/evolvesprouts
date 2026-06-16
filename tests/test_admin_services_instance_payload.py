@@ -10,10 +10,13 @@ from app.exceptions import ValidationError
 
 
 def test_parse_optional_external_url_accepts_http_https() -> None:
-    assert parse_optional_external_url("  https://example.com/path  ", "external_url") == (
-        "https://example.com/path"
+    assert parse_optional_external_url(
+        "  https://example.com/path  ", "external_url"
+    ) == ("https://example.com/path")
+    assert (
+        parse_optional_external_url("http://a.example/x", "external_url")
+        == "http://a.example/x"
     )
-    assert parse_optional_external_url("http://a.example/x", "external_url") == "http://a.example/x"
 
 
 def test_parse_optional_external_url_rejects_non_http_scheme() -> None:

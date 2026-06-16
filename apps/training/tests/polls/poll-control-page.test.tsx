@@ -48,7 +48,18 @@ describe('PollControlPage', () => {
     await user.click(roleToggle);
 
     await waitFor(() => {
-      expect(pollsApi.persistPollControlState).toHaveBeenCalledWith(poll.slug, ['role']);
+      expect(pollsApi.persistPollControlState).toHaveBeenCalledWith(
+        poll.slug,
+        expect.objectContaining({
+          enabledQuestionIds: ['role'],
+          questionOptions: expect.objectContaining({
+            role: expect.objectContaining({
+              type: 'select',
+              options: expect.any(Array),
+            }),
+          }),
+        }),
+      );
     });
   });
 });

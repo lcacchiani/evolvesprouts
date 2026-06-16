@@ -98,20 +98,28 @@ def test_rebook_scenario_cooldown_anchors_to_second_booking_not_first() -> None:
     second_book = first_book + timedelta(days=35)
     day38 = second_book + timedelta(days=3)
 
-    assert intro_call_cooldown_blocks_from_last_booked_at(
-        prior_last_booked_at=second_book,
-        now=day38,
-        cooldown_days=30,
-    ) is True
+    assert (
+        intro_call_cooldown_blocks_from_last_booked_at(
+            prior_last_booked_at=second_book,
+            now=day38,
+            cooldown_days=30,
+        )
+        is True
+    )
 
-    assert intro_call_cooldown_blocks_from_last_booked_at(
-        prior_last_booked_at=first_book,
-        now=day38,
-        cooldown_days=30,
-    ) is False
+    assert (
+        intro_call_cooldown_blocks_from_last_booked_at(
+            prior_last_booked_at=first_book,
+            now=day38,
+            cooldown_days=30,
+        )
+        is False
+    )
 
 
-def test_contact_upsert_does_not_overwrite_reservation_source_json_on_second_call() -> None:
+def test_contact_upsert_does_not_overwrite_reservation_source_json_on_second_call() -> (
+    None
+):
     """Regression: intro-call JSON source_detail must not replace prior reservation JSON."""
     from types import SimpleNamespace
     from unittest.mock import MagicMock

@@ -2,6 +2,7 @@
 
 import type { PollQuestion, PollsCommonContent } from '@/content/poll-types';
 import type { QuestionAnswerState } from '@/components/polls/poll-answer-state';
+import { slugifyOption } from '@/lib/slugify-option';
 
 export interface PollQuestionFieldProps {
   question: PollQuestion;
@@ -84,30 +85,36 @@ export function PollQuestionField({
         </fieldset>
       ) : null}
       {question.type === 'truefalse' ? (
-        <div
-          role='radiogroup'
-          aria-labelledby={headingId}
-          className='flex flex-wrap gap-2'
-        >
-          <button
-            type='button'
-            role='radio'
-            aria-checked={answer.trueFalseValue === true}
-            className={trueFalseButtonClass(answer.trueFalseValue === true)}
-            onClick={() => onAnswerChange({ trueFalseValue: true })}
+        <fieldset aria-labelledby={headingId} className='flex flex-wrap gap-2'>
+          <label
+            htmlFor={`${question.id}-true`}
+            className={`poll-option-label flex cursor-pointer items-center gap-2 rounded-inner border px-4 py-2 es-bg-surface-white ${answer.trueFalseValue === true ? 'poll-option-label--selected' : ''}`}
           >
-            {common.truefalse.trueLabel}
-          </button>
-          <button
-            type='button'
-            role='radio'
-            aria-checked={answer.trueFalseValue === false}
-            className={trueFalseButtonClass(answer.trueFalseValue === false)}
-            onClick={() => onAnswerChange({ trueFalseValue: false })}
+            <input
+              id={`${question.id}-true`}
+              type='radio'
+              name={question.id}
+              className='es-accent-brand es-focus-ring h-4 w-4 shrink-0'
+              checked={answer.trueFalseValue === true}
+              onChange={() => onAnswerChange({ trueFalseValue: true })}
+            />
+            <span className='es-text-body text-base'>{common.truefalse.trueLabel}</span>
+          </label>
+          <label
+            htmlFor={`${question.id}-false`}
+            className={`poll-option-label flex cursor-pointer items-center gap-2 rounded-inner border px-4 py-2 es-bg-surface-white ${answer.trueFalseValue === false ? 'poll-option-label--selected' : ''}`}
           >
-            {common.truefalse.falseLabel}
-          </button>
-        </div>
+            <input
+              id={`${question.id}-false`}
+              type='radio'
+              name={question.id}
+              className='es-accent-brand es-focus-ring h-4 w-4 shrink-0'
+              checked={answer.trueFalseValue === false}
+              onChange={() => onAnswerChange({ trueFalseValue: false })}
+            />
+            <span className='es-text-body text-base'>{common.truefalse.falseLabel}</span>
+          </label>
+        </fieldset>
       ) : null}
       {question.type === 'text' ? (
         <textarea
@@ -129,20 +136,6 @@ export function PollQuestionField({
       ) : null}
     </div>
   );
-}
-
-function trueFalseButtonClass(isSelected: boolean): string {
-  const base = 'es-btn es-btn--selection es-focus-ring px-4 py-2 text-sm';
-  return isSelected
-    ? `${base} es-btn--state-active`
-    : `${base} es-btn--state-inactive`;
-}
-
-function slugifyOption(option: string): string {
-  return option
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
 }
 
 function toggleMultiselectOption(

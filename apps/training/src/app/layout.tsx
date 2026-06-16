@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
 import './globals.css';
+import { SITE_COMMON } from '@/content/site-types';
 
 const lato = Lato({
   subsets: ['latin'],
@@ -23,7 +24,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'Evolve Sprouts Training',
+  title: SITE_COMMON.metadata.title,
   icons: {
     icon: '/images/evolvesprouts-logo.svg',
     shortcut: '/images/evolvesprouts-logo.svg',

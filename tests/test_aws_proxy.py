@@ -37,9 +37,7 @@ def test_handle_http_rejects_disallowed_urls(monkeypatch: Any) -> None:
 
 def test_handle_http_injects_default_user_agent(monkeypatch: Any) -> None:
     """When no User-Agent header is supplied, the proxy adds a default one."""
-    monkeypatch.setenv(
-        "ALLOWED_HTTP_URLS", "https://api.example.com/"
-    )
+    monkeypatch.setenv("ALLOWED_HTTP_URLS", "https://api.example.com/")
     aws_proxy._ALLOWED_HTTP_URLS = None
 
     captured_headers: dict[str, str] = {}
@@ -82,9 +80,7 @@ def test_handle_http_injects_default_user_agent(monkeypatch: Any) -> None:
 
 def test_handle_http_preserves_caller_user_agent(monkeypatch: Any) -> None:
     """When the caller provides a User-Agent, the proxy does not override it."""
-    monkeypatch.setenv(
-        "ALLOWED_HTTP_URLS", "https://api.example.com/"
-    )
+    monkeypatch.setenv("ALLOWED_HTTP_URLS", "https://api.example.com/")
     aws_proxy._ALLOWED_HTTP_URLS = None
 
     captured_headers: dict[str, str] = {}

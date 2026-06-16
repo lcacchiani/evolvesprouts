@@ -91,9 +91,7 @@ def test_serialize_admin_tag_marks_system_names() -> None:
         archived_at=None,
     )
     session = object()
-    payload = admin_tags._serialize_admin_tag(
-        session, tag, usage_by_id={tag_id: 1}
-    )
+    payload = admin_tags._serialize_admin_tag(session, tag, usage_by_id={tag_id: 1})
     assert payload["is_system"] is True
     assert payload["usage_count"] == 1
 

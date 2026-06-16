@@ -200,7 +200,9 @@ def test_inserts_contact_without_membership_when_parent_unmapped(
     mod.refs.record_mapping.assert_called_once()
 
 
-def test_resolve_context_contacts_no_required_mapping(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resolve_context_contacts_no_required_mapping(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """``families`` / ``organizations`` are optional; empty refs do not raise."""
     from app.imports import refs as refs_mod
 

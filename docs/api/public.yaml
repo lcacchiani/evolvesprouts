@@ -1008,10 +1008,18 @@ paths:
         Answers are stored in the shared DynamoDB table `evolvesprouts-poll-responses`
         (partition key `POLL#<poll_slug>`, sort key `SESSION#<session_id>#Q#<question_id>`).
         Re-submitting the same session and question overwrites the prior row.
+        Identical re-submits (same answer payload) return `200` without a new
+        DynamoDB write and do not consume the per-session write counter.
         Submissions are rejected with `409` when the facilitator has not enabled
-        the question (`error`: `question_not_open`) or when no questions are open
-        (`poll_not_accepting_answers`). Requires API key; Turnstile is not used
-        on this route.
+        the question (`error`: `question_not_open`), when no questions are open
+        (`poll_not_accepting_answers`), or when `selectedOption` /
+        `selectedOptions` are not members of the facilitator-published option
+        list for that question (`option_not_allowed`; skipped when control state
+        has no `questionOptions`). Per-session write counters in DynamoDB use a
+        fixed one-hour bucket (`RATELIMIT#SESSION#<session_id>#W#<epoch//3600>`)
+        and return `429` (`poll_write_rate_limit_exceeded`) when exceeded; stale
+        buckets are garbage-collected via TTL on `expiresAt` (lazy deletion).
+        Requires API key; Turnstile is not used on this route.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -1039,8 +1047,15 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "409":
           description: >
-            Question not open for responses. Body `error` is `question_not_open`
-            or `poll_not_accepting_answers`.
+            Question not open for responses, option not allowed, or poll not
+            accepting answers. Body `error` is `question_not_open`,
+            `option_not_allowed`, or `poll_not_accepting_answers`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Poll answer write rate limit exceeded.
           content:
             application/json:
               schema:
@@ -2730,6 +2745,33 @@ components:
           description: >
             Question ids currently open to respondents. Omitted or empty means
             all questions are off (default).
+        questionOptions:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/PollPublishedQuestionOptions"
+          description: >
+            Optional canonical question definitions (type and allowed options)
+            published by the facilitator. When present for a question, answer
+            PUT validates `selectedOption` / `selectedOptions` membership.
+    PollPublishedQuestionOptions:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - select
+            - multiselect
+            - truefalse
+            - text
+            - email
+        options:
+          type: array
+          items:
+            type: string
+          description: >
+            Required for `select` and `multiselect`; omitted for other types.
     PollControlStateResponse:
       type: object
       required:
@@ -2742,6 +2784,10 @@ components:
           type: array
           items:
             type: string
+        questionOptions:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/PollPublishedQuestionOptions"
         updatedAt:
           type: string
           format: date-time

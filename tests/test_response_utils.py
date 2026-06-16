@@ -25,7 +25,8 @@ def test_validate_content_type_requires_header_for_post_with_body() -> None:
     }
 
     with pytest.raises(
-        ValidationError, match="Content-Type header is required for requests with a body"
+        ValidationError,
+        match="Content-Type header is required for requests with a body",
     ):
         validate_content_type(event)
 

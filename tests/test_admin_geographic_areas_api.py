@@ -10,7 +10,9 @@ def test_handle_admin_geographic_areas_dispatches_list_route(
     api_gateway_event: Any,
 ) -> None:
     marker = {"statusCode": 200, "body": "{}"}
-    monkeypatch.setattr(admin_geographic_areas, "_list_geographic_areas", lambda _: marker)
+    monkeypatch.setattr(
+        admin_geographic_areas, "_list_geographic_areas", lambda _: marker
+    )
 
     response = admin_geographic_areas.handle_admin_geographic_areas_request(
         api_gateway_event(method="GET", path="/v1/admin/geographic-areas"),

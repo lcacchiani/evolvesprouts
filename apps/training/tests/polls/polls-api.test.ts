@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  buildPersistBody,
   fetchPollControlState,
   fetchPollQuestionResults,
   fetchPollSessionAnswers,
+  persistPollAnswer,
   persistPollControlState,
   PollApiError,
   resolvePollApiConfig,
@@ -158,7 +160,9 @@ describe('poll control API', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    await persistPollControlState('workshop-food-jun-26', ['myth1']);
+    await persistPollControlState('workshop-food-jun-26', {
+      enabledQuestionIds: ['myth1'],
+    });
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/www/v1/polls/workshop-food-jun-26/control',
@@ -166,6 +170,74 @@ describe('poll control API', () => {
         method: 'PUT',
         body: JSON.stringify({ enabledQuestionIds: ['myth1'] }),
       }),
+    );
+  });
+});
+
+describe('persistPollAnswer', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it('builds select persist body', () => {
+    const body = buildPersistBody({
+      pollSlug: 'workshop-food-jun-26',
+      sessionId: '550e8400-e29b-41d4-a716-446655440000',
+      question: {
+        id: 'role',
+        type: 'select',
+        screen: 'Screen',
+        question: 'Q?',
+        showAnswer: false,
+        showResults: false,
+        options: ['Parent'],
+      },
+      answer: {
+        selectedOption: 'Parent',
+        selectedOptions: [],
+        trueFalseValue: null,
+        freeText: '',
+      },
+    });
+    expect(body).toEqual({
+      pollSlug: 'workshop-food-jun-26',
+      sessionId: '550e8400-e29b-41d4-a716-446655440000',
+      questionId: 'role',
+      questionType: 'select',
+      selectedOption: 'Parent',
+    });
+  });
+
+  it('persists poll answer', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', '/www');
+    vi.stubEnv('NEXT_PUBLIC_TRAINING_API_KEY', 'poll-key');
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await persistPollAnswer({
+      pollSlug: 'workshop-food-jun-26',
+      sessionId: '550e8400-e29b-41d4-a716-446655440000',
+      question: {
+        id: 'role',
+        type: 'select',
+        screen: 'Screen',
+        question: 'Q?',
+        showAnswer: false,
+        showResults: false,
+        options: ['Parent'],
+      },
+      answer: {
+        selectedOption: 'Parent',
+        selectedOptions: [],
+        trueFalseValue: null,
+        freeText: '',
+      },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/www/v1/polls/workshop-food-jun-26/answers',
+      expect.objectContaining({ method: 'PUT' }),
     );
   });
 });

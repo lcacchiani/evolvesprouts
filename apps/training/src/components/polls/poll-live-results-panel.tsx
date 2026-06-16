@@ -1,18 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import type { PollQuestion, PollsCommonContent } from '@/content/poll-types';
+import { POLL_PANEL_CLASS } from '@/components/polls/poll-panel-styles';
 import {
-  fetchPollQuestionResults,
-  type PollQuestionResults,
-  PollApiError,
-} from '@/lib/polls-api';
-
-const LIVE_RESULTS_POLL_MS = 3000;
-
-const POLL_PANEL_CLASS =
-  'flex flex-col gap-3 rounded-inner border es-border-panel-soft es-bg-surface-muted p-4';
+  formatCountLabel,
+  formatTotalResponses,
+  usePollQuestionResults,
+} from '@/lib/use-poll-question-results';
 
 export interface PollLiveResultsPanelProps {
   pollSlug: string;
@@ -25,54 +19,18 @@ export function PollLiveResultsPanel({
   question,
   common,
 }: PollLiveResultsPanelProps) {
-  const [results, setResults] = useState<PollQuestionResults | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const enabled =
+    question.type === 'select' ||
+    question.type === 'multiselect' ||
+    question.type === 'truefalse';
+  const { results, errorMessage } = usePollQuestionResults({
+    pollSlug,
+    question,
+    common,
+    enabled,
+  });
 
-  useEffect(() => {
-    if (
-      question.type !== 'select' &&
-      question.type !== 'multiselect' &&
-      question.type !== 'truefalse'
-    ) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function loadResults(): Promise<void> {
-      try {
-        const next = await fetchPollQuestionResults({
-          pollSlug,
-          questionId: question.id,
-          questionType: question.type,
-        });
-        if (!cancelled) {
-          setResults(next);
-          setErrorMessage(null);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setErrorMessage(resolveLoadErrorMessage(error, common));
-        }
-      }
-    }
-
-    void loadResults();
-    const intervalId = window.setInterval(() => {
-      void loadResults();
-    }, LIVE_RESULTS_POLL_MS);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, [common, pollSlug, question]);
-
-  if (
-    question.type !== 'select' &&
-    question.type !== 'multiselect' &&
-    question.type !== 'truefalse'
-  ) {
+  if (!enabled) {
     return null;
   }
 
@@ -116,7 +74,7 @@ export function PollLiveResultsPanel({
 
 function mergeResultBuckets(
   question: PollQuestion,
-  results: PollQuestionResults | null,
+  results: { buckets?: Array<{ label: string; count: number }> } | null,
 ): Array<{ label: string; count: number }> {
   const counts = new Map<string, number>();
   for (const bucket of results?.buckets ?? []) {
@@ -150,19 +108,4 @@ function resolveBucketLabel(
     }
   }
   return label;
-}
-
-function formatTotalResponses(template: string, total: number): string {
-  return template.replace('{total}', String(total));
-}
-
-function formatCountLabel(template: string, count: number): string {
-  return template.replace('{count}', String(count));
-}
-
-function resolveLoadErrorMessage(error: unknown, common: PollsCommonContent): string {
-  if (error instanceof PollApiError && error.statusCode === 0) {
-    return common.errors.missingApiConfig;
-  }
-  return common.errors.resultsLoadFailed;
 }

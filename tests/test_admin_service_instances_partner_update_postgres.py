@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
-import os
 from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+
+from tests.helpers.db import database_url
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
-from app.api.admin_service_instance_partners import reconcile_instance_partner_organizations
+from app.api.admin_service_instance_partners import (
+    reconcile_instance_partner_organizations,
+)
 from app.db.models import (
     EventDetails,
     EventTicketTier,
@@ -33,12 +36,9 @@ from app.db.models.enums import (
 from app.db.repositories.location import LocationRepository
 from app.db.repositories.service_instance import ServiceInstanceRepository
 
-psycopg = pytest.importorskip("psycopg", reason="psycopg required for DB integration test")
-
-
-def _database_url() -> str | None:
-    url = os.getenv("TEST_DATABASE_URL", "").strip()
-    return url or None
+psycopg = pytest.importorskip(
+    "psycopg", reason="psycopg required for DB integration test"
+)
 
 
 def _sqlalchemy_engine_url(url: str) -> str:
@@ -52,10 +52,10 @@ def _sqlalchemy_engine_url(url: str) -> str:
     return url
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_reconcile_partner_links_after_selectinload_commit_succeeds() -> None:
     """Mirrors admin PUT path: loaded instance + bulk reconcile + commit (no session.add)."""
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -192,16 +192,18 @@ def test_reconcile_partner_links_after_selectinload_commit_succeeds() -> None:
                 ServiceInstancePartnerOrganization.organization_id,
                 ServiceInstancePartnerOrganization.sort_order,
             )
-            .where(ServiceInstancePartnerOrganization.service_instance_id == instance_id)
+            .where(
+                ServiceInstancePartnerOrganization.service_instance_id == instance_id
+            )
             .order_by(ServiceInstancePartnerOrganization.sort_order.asc())
         ).all()
         assert [r[0] for r in rows] == [org_b, org_a]
         assert [r[1] for r in rows] == [0, 1]
 
 
-@pytest.mark.skipif(_database_url() is None, reason="TEST_DATABASE_URL not set")
+@pytest.mark.skipif(database_url() is None, reason="TEST_DATABASE_URL not set")
 def test_location_repository_two_partners_same_venue_distinct_ids() -> None:
-    url = _database_url()
+    url = database_url()
     assert url is not None
     engine = create_engine(_sqlalchemy_engine_url(url))
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -263,7 +265,9 @@ def test_location_repository_two_partners_same_venue_distinct_ids() -> None:
 
     with SessionLocal() as session:
         repo = LocationRepository(session)
-        pairs = repo.active_partner_organization_id_label_pairs_by_location_ids([loc_id])
+        pairs = repo.active_partner_organization_id_label_pairs_by_location_ids(
+            [loc_id]
+        )
         assert loc_id in pairs
         ids_and_labels = pairs[loc_id]
         assert {oid for oid, _ in ids_and_labels} == {org_a, org_b}

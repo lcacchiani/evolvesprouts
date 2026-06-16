@@ -56,7 +56,9 @@ def test_returns_default_when_neither_set(monkeypatch: pytest.MonkeyPatch) -> No
     assert public_www_config.get_public_www("BUSINESS_NAME", default="X") == "X"
 
 
-def test_whitespace_env_falls_through_to_secret(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_whitespace_env_falls_through_to_secret(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("PUBLIC_WWW_BUSINESS_NAME", "   ")
     monkeypatch.setenv(
         "PUBLIC_WWW_CONFIG_SECRET_ARN",
@@ -84,7 +86,10 @@ def test_secret_fetch_failure_returns_default(monkeypatch: pytest.MonkeyPatch) -
 
     monkeypatch.setattr(public_www_config, "get_secret_json", _boom)
 
-    assert public_www_config.get_public_www("BUSINESS_NAME", default="fallback") == "fallback"
+    assert (
+        public_www_config.get_public_www("BUSINESS_NAME", default="fallback")
+        == "fallback"
+    )
 
 
 def test_secret_payload_missing_key_returns_default(
@@ -126,6 +131,5 @@ def test_real_secret_json_round_trip(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert public_www_config.get_public_www("BASE_URL") == "https://www.example.com"
     assert (
-        public_www_config.get_public_www("BUSINESS_ADDRESS")
-        == "Suite 1\r\n123 Main St"
+        public_www_config.get_public_www("BUSINESS_ADDRESS") == "Suite 1\r\n123 Main St"
     )

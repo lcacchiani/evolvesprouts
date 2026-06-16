@@ -113,7 +113,9 @@ def test_apply_venues_dry_run_no_commit(monkeypatch: pytest.MonkeyPatch) -> None
     assert loc_tbl["values"]["area_id"] == str(area)
     assert loc_tbl["values"]["name"] == "  Foo Bar  "
     assert loc_tbl["values"]["address"] == "1 St"
-    ref_tbl = next(t for t in rd["target"]["tables"] if t["table"] == "legacy_import_refs")
+    ref_tbl = next(
+        t for t in rd["target"]["tables"] if t["table"] == "legacy_import_refs"
+    )
     assert ref_tbl["values"]["new_id"] is None
     assert (
         stats.preview[0]
@@ -161,7 +163,9 @@ def test_apply_venues_inserts_and_commits(monkeypatch: pytest.MonkeyPatch) -> No
     assert stats.inserted == 1
     assert len(stats.row_details) == 1
     ref_tbl = next(
-        t for t in stats.row_details[0]["target"]["tables"] if t["table"] == "legacy_import_refs"
+        t
+        for t in stats.row_details[0]["target"]["tables"]
+        if t["table"] == "legacy_import_refs"
     )
     assert ref_tbl["values"]["new_id"] == str(assigned_id)
     session.add.assert_called_once()
@@ -204,7 +208,9 @@ def test_apply_venues_skips_duplicate_case_insensitive(
     session.add.assert_not_called()
 
 
-def test_apply_venues_skips_excluded_legacy_key(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_apply_venues_skips_excluded_legacy_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from app.imports.entities import venues as mod
 
     hk = uuid.uuid4()
@@ -337,7 +343,9 @@ def test_apply_venues_skips_when_district_id_without_label_or_map(
 def test_hk_country_missing_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.imports.entities import venues as mod
 
-    monkeypatch.setattr(mod, "_hk_country_id", lambda _s: (_ for _ in ()).throw(RuntimeError("no HK")))
+    monkeypatch.setattr(
+        mod, "_hk_country_id", lambda _s: (_ for _ in ()).throw(RuntimeError("no HK"))
+    )
 
     session = MagicMock()
     session.execute.return_value.all.return_value = []

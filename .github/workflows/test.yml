@@ -83,7 +83,7 @@ jobs:
           npm ci
           npm run validate:content
           npm run lint
-          npm run test
+          npm run test:coverage
           npm run audit:assets
           npm run build
 
@@ -128,7 +128,7 @@ jobs:
         run: |
           npm ci
           npm run lint
-          npm run test
+          npm run test:coverage
           npm run build
 
   test-flutter:
@@ -177,7 +177,7 @@ jobs:
       - name: Run Node tests
         run: |
           set -e
-          for dir in apps/admin_web apps/training packages/react_ui packages/api_client_ts; do
+          for dir in apps/admin_web; do
             if [ -f "$dir/package.json" ]; then
               echo "Testing Node in $dir"
               if [ -f "$dir/package-lock.json" ]; then
@@ -185,7 +185,7 @@ jobs:
               else
                 (cd "$dir" && npm install)
               fi
-              (cd "$dir" && npm run test --if-present)
+              (cd "$dir" && npm run test:coverage --if-present)
             else
               echo "Skipping missing $dir"
             fi
@@ -253,7 +253,20 @@ jobs:
             echo "No Python tests found"
             exit 0
           fi
-          python -m pytest tests backend
+          python -m pytest tests backend \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=1
+
+      - name: Upload Python coverage report
+        uses: actions/upload-artifact@v7
+        if: always()
+        continue-on-error: true
+        with:
+          name: python-coverage
+          path: coverage.xml
+          retention-days: 14
 
   test-infrastructure:
     name: Test Infrastructure
