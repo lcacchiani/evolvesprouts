@@ -44,7 +44,7 @@ their primary responsibilities.
   `evolvesprouts-poll-responses`; same contract as `/www/v1/forms/{form_slug}/answers`),
   `/v1/polls/{poll_slug}/answers` (GET lists answers for `sessionId`; PUT upserts one answer;
   API key; DynamoDB `evolvesprouts-poll-responses`; validates options when control state
-  publishes `questionOptions`; per-session/per-IP write rate limits; same contract as
+  publishes `questionOptions`; per-session hourly write rate limits; same contract as
   `/www/v1/polls/{poll_slug}/answers`),
   `/v1/polls/{poll_slug}/questions/{question_id}/results` (GET; API key; live aggregates for
   `select` / `truefalse` questions and free-text lists for `text` / `email`; same contract as

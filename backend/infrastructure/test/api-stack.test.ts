@@ -135,6 +135,30 @@ function assertPollResponsesTableUsesCustomerManagedKms(template: Template): voi
   }
 }
 
+function assertPollResponsesTableHasExpiresAtTtl(template: Template): void {
+  const tables = template.findResources("AWS::DynamoDB::Table");
+  const pollTable = Object.entries(tables).find(([logicalId]) =>
+    logicalId.includes("PollResponsesTable"),
+  );
+  if (!pollTable) {
+    throw new Error("Expected PollResponsesTable AWS::DynamoDB::Table resource");
+  }
+  const [logicalId, resource] = pollTable;
+  const ttl = (resource.Properties ?? {}).TimeToLiveSpecification as
+    | Record<string, unknown>
+    | undefined;
+  if (!ttl || ttl.Enabled !== true) {
+    throw new Error(
+      `PollResponsesTable ${logicalId}: expected TimeToLiveSpecification.Enabled=true`,
+    );
+  }
+  if (ttl.AttributeName !== "expiresAt") {
+    throw new Error(
+      `PollResponsesTable ${logicalId}: expected TimeToLiveSpecification.AttributeName=expiresAt; got ${String(ttl.AttributeName)}`,
+    );
+  }
+}
+
 function assertCognitoClientAllowlistWiring(template: Template): void {
   // There must be exactly one Cognito app client. JWT validation is fail-closed
   // and the allowlist (COGNITO_ALLOWED_CLIENT_IDS) is wired to this single
@@ -182,6 +206,7 @@ function main(): void {
   assertGatewayResponsesHaveNoBodyTemplates(template);
   assertStageHasCheckovCkv120Suppression(template);
   assertPollResponsesTableUsesCustomerManagedKms(template);
+  assertPollResponsesTableHasExpiresAtTtl(template);
   assertCognitoClientAllowlistWiring(template);
 
   console.log("api-stack API Gateway stage cache assertions passed.");

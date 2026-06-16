@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   emptyFormAnswerState,
@@ -32,7 +32,7 @@ export function FormWizard({ form, common }: FormWizardProps) {
   const [answersByQuestionId, setAnswersByQuestionId] = useState<
     Record<string, FormAnswerState>
   >({});
-  const hasHydratedRef = useRef(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
     const stored = loadFormProgress(form.slug, sessionId);
@@ -42,25 +42,18 @@ export function FormWizard({ form, common }: FormWizardProps) {
       setAnswersByQuestionId(mergeStoredAnswers(stored.answersByQuestionId));
       setStepIndex(stored.stepIndex);
     }
-    hasHydratedRef.current = true;
+    setHasHydrated(true);
   }, [form.slug, sessionId]);
 
   useEffect(() => {
-    if (!hasHydratedRef.current) {
+    if (!hasHydrated) {
       return;
     }
     saveFormProgress(form.slug, sessionId, {
       stepIndex,
       answersByQuestionId,
     });
-  }, [answersByQuestionId, form.slug, sessionId, stepIndex]);
-
-  useEffect(() => {
-    saveFormProgress(form.slug, sessionId, {
-      stepIndex,
-      answersByQuestionId,
-    });
-  }, [answersByQuestionId, form.slug, sessionId, stepIndex]);
+  }, [answersByQuestionId, form.slug, hasHydrated, sessionId, stepIndex]);
 
   const questions = form.questions;
   const totalSteps = questions.length;

@@ -1013,8 +1013,10 @@ paths:
         (`poll_not_accepting_answers`), or when `selectedOption` /
         `selectedOptions` are not members of the facilitator-published option
         list for that question (`option_not_allowed`; skipped when control state
-        has no `questionOptions`). Per-session and per-IP write counters in
-        DynamoDB return `429` (`poll_write_rate_limit_exceeded`) when exceeded.
+        has no `questionOptions`). Per-session write counters in DynamoDB use a
+        fixed one-hour bucket (`RATELIMIT#SESSION#<session_id>#W#<epoch//3600>`)
+        and return `429` (`poll_write_rate_limit_exceeded`) when exceeded; stale
+        buckets are garbage-collected via TTL on `expiresAt` (lazy deletion).
         Requires API key; Turnstile is not used on this route.
       security:
         - ApiKeyAuth: []

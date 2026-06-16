@@ -26,10 +26,13 @@ _SK_QUESTION_SEP = "#Q#"
 _SK_CONTROL = "CONTROL"
 _SK_RATELIMIT_PREFIX = "RATELIMIT#"
 
-# Per-session and per-IP write caps for poll answer PUTs (rolling window via TTL).
+_QUESTION_ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
+# Per-session write cap for poll answer PUTs (fixed one-hour window via sort-key bucket).
 _SESSION_WRITE_LIMIT = 120
-_IP_WRITE_LIMIT = 300
-_RATE_LIMIT_TTL_SECONDS = 3600
+_RATE_LIMIT_WINDOW_SECONDS = 3600
+# TTL on expiresAt garbage-collects stale buckets; deletion is lazy (not window timing).
+_RATE_LIMIT_TTL_SECONDS = _RATE_LIMIT_WINDOW_SECONDS * 2
 
 _dynamodb = None
 _table = None
@@ -180,7 +183,24 @@ def _parse_question_options(
     return parsed or None
 
 
-_QUESTION_ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+def _rate_limit_window_id(*, now_epoch: int) -> int:
+    return now_epoch // _RATE_LIMIT_WINDOW_SECONDS
+
+
+def _rate_limit_sort_key(*, session_id: str, window_id: int) -> str:
+    return f"{_SK_RATELIMIT_PREFIX}SESSION#{session_id}#W#{window_id}"
+
+
+def _is_respondent_data_item(item: Mapping[str, Any]) -> bool:
+    """Answer rows and rate-limit counters; excludes facilitator CONTROL row."""
+    sk = item.get("sk")
+    if not isinstance(sk, str):
+        return False
+    if sk == _SK_CONTROL:
+        return False
+    if sk.startswith(_SK_RATELIMIT_PREFIX):
+        return True
+    return sk.startswith(_SK_PREFIX)
 
 
 def aggregate_poll_question_results(
@@ -364,52 +384,44 @@ def check_poll_write_rate_limit(
     *,
     poll_slug: str,
     session_id: str,
-    client_ip: str | None,
 ) -> None:
-    """Reject excessive poll answer writes per session and per client IP."""
+    """Reject excessive poll answer writes per session within the current hour bucket."""
     table = _get_table()
     now_epoch = int(time.time())
+    window_id = _rate_limit_window_id(now_epoch=now_epoch)
     expires_at = now_epoch + _RATE_LIMIT_TTL_SECONDS
-    scopes: list[tuple[str, int]] = [
-        (f"SESSION#{session_id}", _SESSION_WRITE_LIMIT),
-    ]
-    normalized_ip = (client_ip or "").strip()
-    if normalized_ip:
-        scopes.append((f"IP#{normalized_ip}", _IP_WRITE_LIMIT))
-
-    for scope_key, limit in scopes:
-        key = {
-            "pk": _partition_key(poll_slug=poll_slug),
-            "sk": f"{_SK_RATELIMIT_PREFIX}{scope_key}",
-        }
-        try:
-            table.update_item(
-                Key=key,
-                UpdateExpression=(
-                    "ADD writeCount :inc SET expiresAt = :expires, updatedAt = :updated"
-                ),
-                ConditionExpression=(
-                    "attribute_not_exists(writeCount) OR writeCount < :limit"
-                ),
-                ExpressionAttributeValues={
-                    ":inc": 1,
-                    ":expires": expires_at,
-                    ":updated": _now_iso(),
-                    ":limit": limit,
-                },
-            )
-        except ClientError as exc:
-            error_code = exc.response.get("Error", {}).get("Code")
-            if error_code == "ConditionalCheckFailedException":
-                raise RateLimitError("poll_write_rate_limit_exceeded") from None
-            logger.exception(
-                "Failed to update poll write rate limit counter",
-                extra={"poll_slug": poll_slug, "scope": scope_key},
-            )
-            raise AppError(
-                "Failed to enforce poll write rate limit",
-                status_code=500,
-            ) from None
+    key = {
+        "pk": _partition_key(poll_slug=poll_slug),
+        "sk": _rate_limit_sort_key(session_id=session_id, window_id=window_id),
+    }
+    try:
+        table.update_item(
+            Key=key,
+            UpdateExpression=(
+                "ADD writeCount :inc SET expiresAt = :expires, updatedAt = :updated"
+            ),
+            ConditionExpression=(
+                "attribute_not_exists(writeCount) OR writeCount < :limit"
+            ),
+            ExpressionAttributeValues={
+                ":inc": 1,
+                ":expires": expires_at,
+                ":updated": _now_iso(),
+                ":limit": _SESSION_WRITE_LIMIT,
+            },
+        )
+    except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code")
+        if error_code == "ConditionalCheckFailedException":
+            raise RateLimitError("poll_write_rate_limit_exceeded") from None
+        logger.exception(
+            "Failed to update poll write rate limit counter",
+            extra={"poll_slug": poll_slug, "session_id": session_id},
+        )
+        raise AppError(
+            "Failed to enforce poll write rate limit",
+            status_code=500,
+        ) from None
 
 
 def _count_boolean_answers(items: list[dict[str, Any]], *, expected: bool) -> int:
@@ -560,13 +572,13 @@ def clear_poll_answers(*, poll_slug: str) -> int:
             status_code=500,
         ) from None
 
-    answer_items = [item for item in items if _is_poll_answer_item(item)]
-    if not answer_items:
+    clearable_items = [item for item in items if _is_respondent_data_item(item)]
+    if not clearable_items:
         return 0
 
     try:
         with table.batch_writer() as batch:
-            for item in answer_items:
+            for item in clearable_items:
                 batch.delete_item(
                     Key={
                         "pk": item["pk"],
@@ -583,7 +595,7 @@ def clear_poll_answers(*, poll_slug: str) -> int:
             status_code=500,
         ) from None
 
-    return len(answer_items)
+    return len(clearable_items)
 
 
 def _extract_poll_slug_from_item(item: Mapping[str, Any]) -> str | None:

@@ -18,7 +18,6 @@ from app.services.poll_responses_store import (
     put_poll_control_state,
     upsert_poll_answer,
 )
-from app.services.turnstile import extract_client_ip
 from app.utils import json_response
 from app.utils.logging import get_logger
 from app.utils.public_slug import PUBLIC_INSTANCE_SLUG_PATTERN
@@ -391,7 +390,6 @@ def _handle_put_poll_answer(
         check_poll_write_rate_limit(
             poll_slug=poll_slug,
             session_id=normalized["session_id"],
-            client_ip=extract_client_ip(event),
         )
     except RateLimitError as exc:
         return json_response(exc.status_code, exc.to_dict(), event=event)
