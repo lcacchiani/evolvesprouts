@@ -99,6 +99,47 @@ def test_poll_answer_payload_unchanged_detects_matching_select() -> None:
     )
 
 
+def test_poll_answer_payload_unchanged_treats_multiselect_order_as_idempotent() -> None:
+    existing = {
+        "selectedOptions": ["Alpha", "Beta"],
+        "updatedAt": "2026-06-01T12:00:00Z",
+    }
+    assert store.poll_answer_payload_unchanged(
+        existing,
+        question_type="multiselect",
+        selected_option=None,
+        selected_options=["Beta", "Alpha"],
+        boolean_answer=None,
+        free_text=None,
+    )
+
+
+def test_upsert_poll_answer_reuses_existing_item_without_get_item(
+    mock_env: Any,
+) -> None:
+    table = MagicMock()
+    store.configure_table_for_tests(table)
+    mock_env(POLL_RESPONSES_TABLE_NAME="evolvesprouts-poll-responses")
+
+    existing = {
+        "pk": "POLL#workshop-food-jun-26",
+        "sk": "SESSION#550e8400-e29b-41d4-a716-446655440000#Q#role",
+        "createdAt": "2026-06-01T11:00:00Z",
+    }
+    store.upsert_poll_answer(
+        poll_slug="workshop-food-jun-26",
+        session_id="550e8400-e29b-41d4-a716-446655440000",
+        question_id="role",
+        question_type="select",
+        selected_option="Parent",
+        existing_item=existing,
+    )
+
+    table.get_item.assert_not_called()
+    item = table.put_item.call_args.kwargs["Item"]
+    assert item["createdAt"] == "2026-06-01T11:00:00Z"
+
+
 def test_clear_poll_answers_deletes_rate_limit_rows(
     mock_env: Any,
 ) -> None:

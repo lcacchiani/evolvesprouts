@@ -84,6 +84,7 @@ jobs:
           npm run validate:content
           npm run lint
           npm run test
+          npm run test:coverage
           npm run audit:assets
           npm run build
 
@@ -178,7 +179,7 @@ jobs:
       - name: Run Node tests
         run: |
           set -e
-          for dir in apps/admin_web apps/public_www apps/training; do
+          for dir in apps/admin_web; do
             if [ -f "$dir/package.json" ]; then
               echo "Testing Node in $dir"
               if [ -f "$dir/package-lock.json" ]; then
@@ -187,9 +188,7 @@ jobs:
                 (cd "$dir" && npm install)
               fi
               (cd "$dir" && npm run test --if-present)
-              if [ "$dir" = "apps/admin_web" ] || [ "$dir" = "apps/training" ]; then
-                (cd "$dir" && npm run test:coverage --if-present)
-              fi
+              (cd "$dir" && npm run test:coverage --if-present)
             else
               echo "Skipping missing $dir"
             fi

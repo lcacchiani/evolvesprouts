@@ -32,6 +32,7 @@
     "generate:public-api-types": "openapi-typescript ../../docs/api/public.yaml -o src/types/generated/public-api.generated.ts",
     "check:public-api-types": "node ./scripts/check-public-api-types.mjs",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "audit:deps:prod": "npm audit --omit=dev --audit-level=high"
   },

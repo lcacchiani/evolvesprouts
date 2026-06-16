@@ -424,7 +424,7 @@ def _handle_put_poll_answer(
     except RateLimitError as exc:
         return json_response(exc.status_code, exc.to_dict(), event=event)
 
-    result = upsert_poll_answer(**normalized)
+    result = upsert_poll_answer(**normalized, existing_item=existing_answer)
     logger.info(
         "Persisted poll answer",
         extra={

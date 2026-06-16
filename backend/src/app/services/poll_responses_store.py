@@ -125,7 +125,8 @@ def poll_answer_payload_unchanged(
             for value in stored
             if isinstance(value, str) and str(value).strip()
         ]
-        return stored_options == (selected_options or [])
+        submitted_options = selected_options or []
+        return sorted(stored_options) == sorted(submitted_options)
     if normalized_type == "truefalse":
         stored = existing.get("booleanAnswer")
         return isinstance(stored, bool) and stored is boolean_answer
@@ -145,6 +146,7 @@ def upsert_poll_answer(
     selected_options: list[str] | None = None,
     boolean_answer: bool | None = None,
     free_text: str | None = None,
+    existing_item: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Persist one question answer; overwrites prior value for the same session/question."""
     table = _get_table()
@@ -171,7 +173,9 @@ def upsert_poll_answer(
         item["freeText"] = free_text
 
     try:
-        existing = table.get_item(Key=key).get("Item")
+        existing = existing_item
+        if existing is None:
+            existing = table.get_item(Key=key).get("Item")
         if existing and existing.get("createdAt"):
             item["createdAt"] = existing["createdAt"]
         else:
