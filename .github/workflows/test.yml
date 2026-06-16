@@ -185,7 +185,6 @@ jobs:
               else
                 (cd "$dir" && npm install)
               fi
-              (cd "$dir" && npm run test --if-present)
               (cd "$dir" && npm run test:coverage --if-present)
             else
               echo "Skipping missing $dir"
