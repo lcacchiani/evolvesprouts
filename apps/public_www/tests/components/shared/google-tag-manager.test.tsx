@@ -86,4 +86,19 @@ describe('GoogleTagManager', () => {
 
     expect(document.querySelector(GTM_REMOTE_SCRIPT_SELECTOR)).toBeNull();
   });
+
+  it('does not inject GTM runtime script when the GTM id contains unexpected characters', () => {
+    document.documentElement.setAttribute(
+      'data-gtm-id',
+      'GTM-ABC"><img src=x onerror=alert(1)>',
+    );
+    document.documentElement.setAttribute(
+      'data-gtm-allowed-hosts',
+      'localhost, www.example.com',
+    );
+
+    runInitGtmScript();
+
+    expect(document.querySelector(GTM_REMOTE_SCRIPT_SELECTOR)).toBeNull();
+  });
 });
