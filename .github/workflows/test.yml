@@ -83,7 +83,6 @@ jobs:
           npm ci
           npm run validate:content
           npm run lint
-          npm run test
           npm run test:coverage
           npm run audit:assets
           npm run build
@@ -129,7 +128,6 @@ jobs:
         run: |
           npm ci
           npm run lint
-          npm run test
           npm run test:coverage
           npm run build
 
