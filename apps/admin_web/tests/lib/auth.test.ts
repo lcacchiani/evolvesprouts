@@ -29,6 +29,38 @@ async function loadAuthModule() {
   return import('@/lib/auth');
 }
 
+const TOKEN_STORAGE_KEY = 'admin_auth_tokens';
+
+/**
+ * Loads the auth module together with the secure-storage helpers from the same
+ * module registry so encrypt/decrypt share the same in-memory key, then returns
+ * helpers for seeding and reading the encrypted token blob in tests.
+ */
+async function loadAuthWithStorage() {
+  const auth = await loadAuthModule();
+  const secureStorage = await import('@/lib/secure-storage');
+
+  return {
+    auth,
+    async seedStoredTokens(tokens: {
+      accessToken: string;
+      idToken: string;
+      refreshToken?: string;
+      expiresAt: number;
+    }) {
+      await auth.storeTokensFromPasswordless(tokens);
+    },
+    async readStoredTokens() {
+      const raw = window.localStorage.getItem(TOKEN_STORAGE_KEY);
+      if (!raw) {
+        return null;
+      }
+      const decrypted = await secureStorage.decryptFromBase64(raw);
+      return decrypted ? JSON.parse(decrypted) : null;
+    },
+  };
+}
+
 describe('auth helpers', () => {
   const originalEnv = { ...process.env };
 
@@ -78,19 +110,16 @@ describe('auth helpers', () => {
   });
 
   it('returns current tokens when not near expiry', async () => {
-    const auth = await loadAuthModule();
+    const { auth, seedStoredTokens } = await loadAuthWithStorage();
     const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
     const fetchMock = vi.mocked(fetch);
 
-    window.localStorage.setItem(
-      'admin_auth_tokens',
-      JSON.stringify({
-        accessToken: 'access',
-        idToken: 'id',
-        refreshToken: 'refresh',
-        expiresAt: 1_700_000_200_000,
-      })
-    );
+    await seedStoredTokens({
+      accessToken: 'access',
+      idToken: 'id',
+      refreshToken: 'refresh',
+      expiresAt: 1_700_000_200_000,
+    });
 
     const tokens = await auth.ensureFreshTokens();
 
@@ -104,20 +133,34 @@ describe('auth helpers', () => {
     nowSpy.mockRestore();
   });
 
+  it('does not persist tokens as clear text in localStorage', async () => {
+    const { seedStoredTokens } = await loadAuthWithStorage();
+
+    await seedStoredTokens({
+      accessToken: 'secret-access',
+      idToken: 'secret-id',
+      refreshToken: 'secret-refresh',
+      expiresAt: 1_700_000_200_000,
+    });
+
+    const raw = window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '';
+    expect(raw).not.toBe('');
+    expect(raw).not.toContain('secret-access');
+    expect(raw).not.toContain('secret-id');
+    expect(raw).not.toContain('secret-refresh');
+  });
+
   it('refreshes expired tokens using refresh token and stores new values', async () => {
-    const auth = await loadAuthModule();
+    const { auth, seedStoredTokens, readStoredTokens } = await loadAuthWithStorage();
     vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
     const fetchMock = vi.mocked(fetch);
 
-    window.localStorage.setItem(
-      'admin_auth_tokens',
-      JSON.stringify({
-        accessToken: 'old-access',
-        idToken: 'old-id',
-        refreshToken: 'old-refresh',
-        expiresAt: 1_700_000_010_000,
-      })
-    );
+    await seedStoredTokens({
+      accessToken: 'old-access',
+      idToken: 'old-id',
+      refreshToken: 'old-refresh',
+      expiresAt: 1_700_000_010_000,
+    });
 
     fetchMock.mockResolvedValueOnce({
       ok: true,
@@ -137,23 +180,23 @@ describe('auth helpers', () => {
       refreshToken: 'new-refresh',
     });
 
-    const stored = JSON.parse(window.localStorage.getItem('admin_auth_tokens') ?? '{}');
+    const stored = (await readStoredTokens()) ?? {};
     expect(stored.accessToken).toBe('new-access');
     expect(stored.idToken).toBe('new-id');
     expect(stored.refreshToken).toBe('new-refresh');
   });
 
   it('stores tokens from passwordless flow', async () => {
-    const auth = await loadAuthModule();
+    const { seedStoredTokens, readStoredTokens } = await loadAuthWithStorage();
 
-    auth.storeTokensFromPasswordless({
+    await seedStoredTokens({
       accessToken: 'pwd-access',
       idToken: 'pwd-id',
       refreshToken: 'pwd-refresh',
       expiresAt: 1_700_000_200_000,
     });
 
-    const stored = JSON.parse(window.localStorage.getItem('admin_auth_tokens') ?? '{}');
+    const stored = await readStoredTokens();
     expect(stored).toEqual({
       accessToken: 'pwd-access',
       idToken: 'pwd-id',

@@ -106,6 +106,17 @@ groups **`admin`**, **`manager`**, or **`instructor`**. Users who complete socia
 or passwordless sign-in without any of these groups must not see the admin
 dashboard; the client shows an access-denied state and sign out instead.
 
+Cognito session tokens (access, id, and refresh) are never written to
+`localStorage` in clear text. `apps/admin_web/src/lib/auth.ts` serializes the
+token bundle and encrypts it with AES-GCM via
+`apps/admin_web/src/lib/secure-storage.ts` before persisting it. The AES key is
+a non-extractable Web Crypto `CryptoKey` kept in IndexedDB so it survives
+reloads but cannot be serialized out of the browser; if IndexedDB is
+unavailable the key stays in memory for the current page session only. This is
+defense-in-depth for data at rest and does not replace standard XSS
+protections (CSP, input sanitization), since any in-page script can still ask
+the browser to decrypt.
+
 ### JWT audience / client verification
 
 Cognito ID tokens carry the app client id in the `aud` claim; access tokens use

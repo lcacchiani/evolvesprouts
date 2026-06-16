@@ -1,5 +1,6 @@
 import { appConfig, getCognitoDomain } from './config';
 import { generatePkcePair } from './pkce';
+import { decryptFromBase64, encryptToBase64 } from './secure-storage';
 
 /** Cognito group names that may use the admin web app and admin API (see user pool groups in CDK). */
 export const COGNITO_STAFF_ADMIN_GROUPS = ['admin', 'manager', 'instructor'] as const;
@@ -41,7 +42,7 @@ export interface LoginOptions {
   returnTo?: string;
 }
 
-function loadTokens() {
+async function loadTokens(): Promise<StoredTokens | null> {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -49,27 +50,33 @@ function loadTokens() {
   if (!raw) {
     return null;
   }
+  const decrypted = await decryptFromBase64(raw);
+  if (!decrypted) {
+    window.localStorage.removeItem(tokenStorageKey);
+    return null;
+  }
   try {
-    return JSON.parse(raw) as StoredTokens;
+    return JSON.parse(decrypted) as StoredTokens;
   } catch {
     return null;
   }
 }
 
-function storeTokens(tokens: StoredTokens) {
+async function storeTokens(tokens: StoredTokens): Promise<void> {
   if (typeof window === 'undefined') {
     return;
   }
-  window.localStorage.setItem(tokenStorageKey, JSON.stringify(tokens));
+  const encrypted = await encryptToBase64(JSON.stringify(tokens));
+  window.localStorage.setItem(tokenStorageKey, encrypted);
 }
 
-export function storeTokensFromPasswordless(tokens: {
+export async function storeTokensFromPasswordless(tokens: {
   accessToken: string;
   idToken: string;
   refreshToken?: string;
   expiresAt: number;
-}) {
-  storeTokens({
+}): Promise<void> {
+  await storeTokens({
     accessToken: tokens.accessToken,
     idToken: tokens.idToken,
     refreshToken: tokens.refreshToken,
@@ -255,7 +262,7 @@ export async function completeLogin() {
     refreshToken: data.refresh_token,
     expiresAt: Date.now() + expiresIn * 1000,
   };
-  storeTokens(tokens);
+  await storeTokens(tokens);
   window.sessionStorage.removeItem(pkceStorageKey);
   const redirectPath = resolveLoginRedirect();
   window.history.replaceState({}, document.title, url.pathname);
@@ -263,7 +270,7 @@ export async function completeLogin() {
 }
 
 export async function ensureFreshTokens() {
-  const tokens = loadTokens();
+  const tokens = await loadTokens();
   if (!tokens) {
     return null;
   }
@@ -299,7 +306,7 @@ export async function ensureFreshTokens() {
     refreshToken: data.refresh_token ?? tokens.refreshToken,
     expiresAt: Date.now() + expiresIn * 1000,
   };
-  storeTokens(refreshed);
+  await storeTokens(refreshed);
   return refreshed;
 }
 
