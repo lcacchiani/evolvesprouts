@@ -28,7 +28,7 @@
   }
 
   var gtmId = document.documentElement.getAttribute('data-gtm-id');
-  if (!gtmId || gtmId.indexOf('GTM-') !== 0) {
+  if (!gtmId || !/^GTM-[A-Z0-9]+$/.test(gtmId)) {
     return;
   }
 
@@ -37,6 +37,7 @@
 
   var script = document.createElement('script');
   script.async = true;
-  script.src = 'https://www.googletagmanager.com/gtm.js?id=' + gtmId;
+  script.src =
+    'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
   document.head.appendChild(script);
 })();

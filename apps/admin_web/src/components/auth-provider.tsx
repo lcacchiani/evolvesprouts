@@ -181,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const tokens = await respondToPasswordlessChallenge(cognitoUser, trimmedCode);
-        storeTokensFromPasswordless(tokens);
+        await storeTokensFromPasswordless(tokens);
         const profile = getUserProfile({
           accessToken: tokens.accessToken,
           idToken: tokens.idToken,

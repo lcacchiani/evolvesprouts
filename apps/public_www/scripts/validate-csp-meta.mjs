@@ -98,12 +98,12 @@ async function main() {
     }
 
     const cspValue = cspMetaMatch[1]
-      .replaceAll('&amp;', '&')
       .replaceAll('&quot;', '"')
       .replaceAll('&#x27;', "'")
       .replaceAll('&#39;', "'")
       .replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>');
+      .replaceAll('&gt;', '>')
+      .replaceAll('&amp;', '&');
     const scriptDirective = cspValue.match(/script-src\s+([^;]+)/i)?.[1] ?? '';
     const styleDirective = cspValue.match(/style-src\s+([^;]+)/i)?.[1] ?? '';
     const cspScriptHashes = collectCspHashes(scriptDirective);
