@@ -25,7 +25,7 @@ jobs:
     environment: staging
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Resolve public site domains from infrastructure params
         id: resolve_public_site_domains
