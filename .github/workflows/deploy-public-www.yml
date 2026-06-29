@@ -75,7 +75,7 @@ jobs:
           NEXT_PUBLIC_SITE_ORIGIN: ${{ steps.resolve_public_site_domains.outputs.production_site_origin }}
 
       - name: Restore Next.js build cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: apps/public_www/.next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('apps/public_www/package-lock.json') }}

@@ -55,7 +55,7 @@ jobs:
         working-directory: apps/training
 
       - name: Restore Next.js build cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: apps/training/.next/cache
           key: ${{ runner.os }}-nextjs-training-${{ hashFiles('apps/training/package-lock.json') }}
