@@ -19,18 +19,18 @@
   "license": "ISC",
   "dependencies": {
     "aws-cdk-lib": "^2.260.0",
-    "brace-expansion": "5.0.7",
+    "brace-expansion": "5.0.8",
     "constructs": "^10.6.0",
     "minimatch": "10.2.5",
     "yaml": "1.10.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
-    "@types/node": "^25.9.4",
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^25.9.5",
     "aws-cdk": "^2.1128.1",
-    "eslint": "^9.39.4",
+    "eslint": "^9.39.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.62.0"
+    "typescript-eslint": "^8.65.0"
   }
 }
