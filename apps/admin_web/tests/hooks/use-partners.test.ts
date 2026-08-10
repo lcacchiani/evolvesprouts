@@ -58,7 +58,6 @@ describe('usePartners', () => {
         name: 'Coop',
         organization_type: 'ngo',
         relationship_type: 'partner',
-        slug: 'coop',
         website: null,
         location_id: null,
         tag_ids: [],

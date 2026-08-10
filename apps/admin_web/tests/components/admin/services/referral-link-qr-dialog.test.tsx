@@ -7,7 +7,10 @@ vi.mock('@/lib/config', () => ({
   getPublicSiteBaseUrl: () => 'https://www.example.com',
 }));
 
-const generateSpy = vi.fn(async () => 'data:image/png;base64,AA');
+const generateSpy = vi.fn(async (...args: unknown[]) => {
+  void args;
+  return 'data:image/png;base64,AA';
+});
 
 vi.mock('@/lib/qr-code-image', () => ({
   generatePublicSiteQrPngDataUrl: (...args: unknown[]) => generateSpy(...args),

@@ -6,9 +6,10 @@ type DraftBody = components['schemas']['CreateDraftInvoiceRequest'];
 
 describe('CreateDraftInvoiceRequest typing', () => {
   it('allows omitting currency when sending enrollment ids only', () => {
-    const body = {
+    const body: DraftBody = {
+      draftKind: 'enrollment_merge',
       enrollmentIds: ['aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'],
-    } satisfies DraftBody;
+    };
     expect(body.currency).toBeUndefined();
   });
 });

@@ -168,6 +168,7 @@ describe('ContactsPanel', () => {
       tag_ids: [],
       tags: [],
       standalone_note_count: 0,
+      has_completion_certificate: false,
     };
     const familyOnly: components['schemas']['AdminContact'] = {
       ...baseRow,
@@ -237,6 +238,7 @@ describe('ContactsPanel', () => {
       tag_ids: [],
       tags: [],
       standalone_note_count: 0,
+      has_completion_certificate: false,
     };
     const clientOnly: components['schemas']['AdminContact'] = {
       ...baseRow,
@@ -356,6 +358,7 @@ describe('ContactsPanel', () => {
       family_location_summary: summary,
       organization_location_summary: summary,
       standalone_note_count: 0,
+      has_completion_certificate: false,
     };
     const contacts = buildContactsHook({ contacts: [row] });
 
@@ -409,6 +412,7 @@ describe('ContactsPanel', () => {
       family_ids: [],
       organization_ids: [],
       standalone_note_count: 0,
+      has_completion_certificate: false,
     };
     const contacts = buildContactsHook({
       deleteContact,
@@ -501,6 +505,7 @@ describe('ContactsPanel', () => {
       },
       organization_location_summary: null,
       standalone_note_count: 0,
+      has_completion_certificate: false,
     };
     const contacts = buildContactsHook({ contacts: [row] });
 
@@ -618,6 +623,7 @@ describe('ContactsPanel', () => {
       location_id: 'loc-1',
       location_summary: null,
       standalone_note_count: 0,
+      has_completion_certificate: false,
     };
     const contacts = buildContactsHook({
       updateContact,

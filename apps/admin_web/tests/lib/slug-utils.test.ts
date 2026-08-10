@@ -104,7 +104,7 @@ describe('computeSuggestedInstanceSlug', () => {
     expect(
       computeSuggestedInstanceSlug(
         'intro_call',
-        { ...baseService, serviceType: 'intro_call' },
+        { ...baseService },
         {
           title: 'x',
           cohort: 'y',

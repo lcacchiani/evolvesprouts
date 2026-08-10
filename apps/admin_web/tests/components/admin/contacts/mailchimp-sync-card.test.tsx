@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminApiError } from '@/lib/api-admin-client';
 import { MAILCHIMP_PRODUCTION_GATE_MESSAGE } from '@/hooks/use-mailchimp-sync';

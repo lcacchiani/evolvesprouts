@@ -82,7 +82,6 @@ describe('partners-api', () => {
       name: 'Beta',
       organization_type: 'ngo',
       relationship_type: 'partner',
-      slug: 'beta',
       website: null,
       location_id: null,
       tag_ids: [],

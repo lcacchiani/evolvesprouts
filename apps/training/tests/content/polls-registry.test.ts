@@ -33,7 +33,7 @@ describe('polls registry', () => {
   it('every content json file is registered with matching slug field', () => {
     const dir = path.resolve(__dirname, '../../src/content/polls');
     const files = readdirSync(dir).filter((name) => name.endsWith('.json'));
-    const registered = new Set(getAllPollSlugs());
+    const registered = new Set<string>(getAllPollSlugs());
     for (const fileName of files) {
       const slug = fileName.replace(/\.json$/, '');
       expect(registered.has(slug)).toBe(true);
