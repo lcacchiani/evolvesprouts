@@ -217,6 +217,7 @@ export async function startLogin(options?: LoginOptions) {
     params.set('identity_provider', options.provider);
   }
   const url = `${getCognitoDomain()}/oauth2/authorize?${params}`;
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- absolute URL to the external Cognito hosted UI, not an internal Next.js page
   window.location.assign(url);
 }
 
@@ -320,5 +321,6 @@ export function startLogout() {
     logout_uri: getLogoutRedirectUri(),
   });
   const url = `${getCognitoDomain()}/logout?${params}`;
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- absolute URL to the external Cognito logout endpoint, not an internal Next.js page
   window.location.assign(url);
 }

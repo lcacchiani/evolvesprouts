@@ -8,7 +8,10 @@ vi.mock('@/lib/config', () => ({
   getTrainingSiteBaseUrl: () => 'https://training.example.com',
 }));
 
-const generateSpy = vi.fn(async () => 'data:image/png;base64,AA');
+const generateSpy = vi.fn(async (...args: unknown[]) => {
+  void args;
+  return 'data:image/png;base64,AA';
+});
 
 vi.mock('@/lib/qr-code-image', () => ({
   generatePublicSiteQrPngDataUrl: (...args: unknown[]) => generateSpy(...args),
@@ -123,9 +126,9 @@ describe('WebsiteQrPage', () => {
     const createdAnchors: HTMLAnchorElement[] = [];
     vi.spyOn(document, 'createElement').mockImplementation((tag: string, options?: unknown) => {
       if (tag !== 'a') {
-        return originalCreateElement(tag, options as DocumentCreateElementOptions | undefined);
+        return originalCreateElement(tag, options as ElementCreationOptions | undefined);
       }
-      const anchor = originalCreateElement('a', options as DocumentCreateElementOptions | undefined);
+      const anchor = originalCreateElement('a', options as ElementCreationOptions | undefined);
       createdAnchors.push(anchor);
       vi.spyOn(anchor, 'click').mockImplementation(() => {});
       return anchor;
@@ -169,9 +172,9 @@ describe('WebsiteQrPage', () => {
     const createdAnchors: HTMLAnchorElement[] = [];
     vi.spyOn(document, 'createElement').mockImplementation((tag: string, options?: unknown) => {
       if (tag !== 'a') {
-        return originalCreateElement(tag, options as DocumentCreateElementOptions | undefined);
+        return originalCreateElement(tag, options as ElementCreationOptions | undefined);
       }
-      const anchor = originalCreateElement('a', options as DocumentCreateElementOptions | undefined);
+      const anchor = originalCreateElement('a', options as ElementCreationOptions | undefined);
       createdAnchors.push(anchor);
       vi.spyOn(anchor, 'click').mockImplementation(() => {});
       return anchor;

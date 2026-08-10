@@ -51,7 +51,7 @@ describe('BulkExpenseImportJobsPanel', () => {
     await waitFor(() => {
       expect(deleteAdminBulkExpenseImportJob).toHaveBeenCalledWith('job-1');
     });
-    expect(listAdminBulkExpenseImportJobs.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(vi.mocked(listAdminBulkExpenseImportJobs).mock.calls.length).toBeGreaterThanOrEqual(2);
     expect(onAfterMutation).toHaveBeenCalled();
   });
 });

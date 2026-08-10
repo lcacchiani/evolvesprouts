@@ -41,6 +41,7 @@ function makeContact(overrides: Partial<AdminContact> & Pick<AdminContact, 'id' 
     family_ids: [],
     organization_ids: [],
     standalone_note_count: 0,
+    has_completion_certificate: false,
     ...overrides,
   };
 }

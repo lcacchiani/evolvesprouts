@@ -54,7 +54,7 @@ const { mockUseServicesPage, state } = vi.hoisted(() => {
       createCoverImageUpload: vi.fn().mockResolvedValue(undefined),
     },
     instanceList: {
-      instances: [],
+      instances: [] as ServiceInstance[],
       filters: { status: '' },
       setFilter: vi.fn(),
       isLoading: false,
@@ -158,6 +158,7 @@ const INSTANCE_FOR_SEARCH: ServiceInstance = {
   serviceId: 'service-1',
   parentServiceTitle: 'Yoga',
   parentServiceTier: null,
+  parentServiceKey: null,
   parentServiceType: 'training_course',
   title: null,
   slug: 'instance-search-1',
