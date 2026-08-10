@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const toCanvasMock = vi.fn(async (canvas: HTMLCanvasElement) => {
-  void canvas;
+const toCanvasMock = vi.fn(async (...args: unknown[]) => {
+  void args;
 });
 
 vi.mock('qrcode', async () => {
-  const actual = await vi.importActual<typeof import('qrcode')>('qrcode');
+  const actual = await vi.importActual<{ default: typeof import('qrcode') }>('qrcode');
   return {
     default: {
       ...actual.default,
@@ -37,7 +37,7 @@ describe('generatePublicSiteQrPngDataUrl', () => {
             fillRect: fillRectSpy,
             drawImage: drawImageSpy,
           } as unknown as CanvasRenderingContext2D;
-        });
+        }) as unknown as HTMLCanvasElement['getContext'];
         canvas.toDataURL = toDataURLSpy;
         return canvas;
       },
@@ -106,7 +106,7 @@ describe('generatePublicSiteQrPngDataUrl', () => {
             fillRect: fillRectSpy,
             drawImage: drawImageSpy,
           } as unknown as CanvasRenderingContext2D;
-        });
+        }) as unknown as HTMLCanvasElement['getContext'];
         canvas.toDataURL = toDataURLSpy;
         return canvas;
       },
@@ -152,7 +152,7 @@ describe('generatePublicSiteQrPngDataUrl', () => {
             closePath: vi.fn(),
             fill: vi.fn(),
           } as unknown as CanvasRenderingContext2D;
-        });
+        }) as unknown as HTMLCanvasElement['getContext'];
         canvas.toDataURL = toDataURLSpy;
         return canvas;
       },

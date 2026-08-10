@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { InstanceDetailPanel } from '@/components/admin/services/instance-detail-panel';
 import * as entityApi from '@/lib/entity-api';
@@ -460,6 +460,7 @@ describe('InstanceDetailPanel', () => {
       serviceId: 'service-1',
       parentServiceTitle: null,
       parentServiceTier: null,
+      parentServiceKey: null,
       parentServiceType: 'training_course',
       title: 'Workshop A',
       slug: 'workshop-a',
@@ -569,6 +570,7 @@ describe('InstanceDetailPanel', () => {
       serviceId: 'service-1',
       parentServiceTitle: null,
       parentServiceTier: null,
+      parentServiceKey: null,
       parentServiceType: 'training_course',
       title: 'UTC slots',
       slug: 'utc-slots',
@@ -968,6 +970,7 @@ describe('InstanceDetailPanel', () => {
       serviceId: 'service-1',
       parentServiceTitle: null,
       parentServiceTier: null,
+      parentServiceKey: null,
       parentServiceType: 'training_course',
       title: 'No cap',
       slug: 'no-cap',
@@ -1057,6 +1060,7 @@ describe('InstanceDetailPanel', () => {
       serviceId: 'service-1',
       parentServiceTitle: null,
       parentServiceTier: null,
+      parentServiceKey: null,
       parentServiceType: 'training_course',
       title: 'Capped then unlimited',
       slug: 'capped-then-unlim',
@@ -1150,6 +1154,7 @@ describe('InstanceDetailPanel', () => {
       serviceId: 'service-1',
       parentServiceTitle: null,
       parentServiceTier: null,
+      parentServiceKey: null,
       parentServiceType: 'training_course',
       title: 'Capped',
       slug: 'capped-inst',
@@ -1241,6 +1246,7 @@ describe('InstanceDetailPanel', () => {
       serviceId: 'service-1',
       parentServiceTitle: null,
       parentServiceTier: null,
+      parentServiceKey: null,
       parentServiceType: 'training_course',
       title: 'EB status',
       slug: 'eb-status',

@@ -141,14 +141,15 @@ describe('useExpenses', () => {
     expect(secondCallArgs?.fetcher).toBe(firstCallArgs?.fetcher);
 
     const controller = new AbortController();
-    await firstCallArgs!.fetcher({
+    const fetcherParams = {
       query: '',
       status: '',
       parseStatus: '',
       cursor: null,
       limit: 50,
       signal: controller.signal,
-    });
+    };
+    await firstCallArgs!.fetcher(fetcherParams);
 
     expect(mockedListAdminExpenses).toHaveBeenCalledWith(
       {

@@ -398,7 +398,7 @@ describe('services tables value formatting', () => {
     expect(within(table).getByText('Waitlisted')).toBeInTheDocument();
     expect(
       within(table).getByText(
-        formatAmountInCurrency(Number.parseFloat(ENROLLMENT_FIXTURE.amountPaid), ENROLLMENT_FIXTURE.currency!),
+        formatAmountInCurrency(Number.parseFloat(ENROLLMENT_FIXTURE.amountPaid!), ENROLLMENT_FIXTURE.currency!),
       ),
     ).toBeInTheDocument();
     expect(within(table).getByText(formatDate(ENROLLMENT_FIXTURE.enrolledAt))).toBeInTheDocument();
