@@ -2,3 +2,8 @@ name: "Evolve Sprouts CodeQL Configuration"
 
 paths-ignore:
   - "apps/public_www/marketing/scripts"
+  # Build-time tooling whose sole purpose is downloading Figma REST API JSON
+  # into figma/files/ for later build steps. CodeQL's js/http-to-file-access
+  # query flags every network-to-file flow (it has no sanitizer concept), so
+  # this intended-by-design download script is excluded from analysis.
+  - "apps/public_www/scripts/figma/pull-figma-tokens.mjs"
