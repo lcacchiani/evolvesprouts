@@ -77,12 +77,20 @@ function setNestedValue(obj, dotPath, value) {
   let current = obj;
   for (let i = 0; i < parts.length - 1; i++) {
     const key = parts[i];
+    // Token names come from Figma API data; refuse prototype-polluting keys.
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      throw new Error(`Unsafe token path segment "${key}" in "${dotPath}"`);
+    }
     if (!current[key] || typeof current[key] !== 'object' || current[key].value !== undefined) {
       current[key] = {};
     }
     current = current[key];
   }
-  current[parts[parts.length - 1]] = value;
+  const lastKey = parts[parts.length - 1];
+  if (lastKey === '__proto__' || lastKey === 'constructor' || lastKey === 'prototype') {
+    throw new Error(`Unsafe token path segment "${lastKey}" in "${dotPath}"`);
+  }
+  current[lastKey] = value;
 }
 
 // ---------------------------------------------------------------------------
