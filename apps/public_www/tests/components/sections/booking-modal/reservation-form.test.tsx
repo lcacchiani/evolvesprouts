@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React, { type ReactNode } from 'react';
 
 import { BookingReservationForm } from '@/components/sections/booking-modal/reservation-form';

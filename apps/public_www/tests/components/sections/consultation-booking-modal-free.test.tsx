@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 
 import { ConsultationBookingModal } from '@/components/sections/consultations/consultation-booking-modal';
@@ -148,7 +148,7 @@ function buildPickerContent(
       p.weekdayShortWed,
       p.weekdayShortThu,
       p.weekdayShortFri,
-    ],
+    ] as [string, string, string, string, string],
     datePickerLegend: p.datePickerLegend,
     datePickerDayTemplate: p.datePickerDayTemplate,
     datePickerUnavailableDayTemplate: p.datePickerUnavailableDayTemplate,

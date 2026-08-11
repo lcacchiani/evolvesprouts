@@ -139,7 +139,9 @@ describe('TurnstileCaptcha script loading', () => {
   it('does not treat runtime challenge errors as hard load errors', async () => {
     const onTokenChange = vi.fn();
     const onLoadError = vi.fn();
-    const turnstileRender = vi.fn(() => 'test-widget-id');
+    const turnstileRender = vi.fn<
+      NonNullable<Window['turnstile']>['render']
+    >(() => 'test-widget-id');
     const turnstileRemove = vi.fn();
 
     window.turnstile = {

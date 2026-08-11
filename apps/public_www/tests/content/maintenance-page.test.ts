@@ -66,10 +66,10 @@ describe('maintenance static site assets', () => {
 
     expect(stylesCss).toContain('padding: 0.1875rem 1.5rem 1.5rem;');
     expect(stylesCss).toMatch(
-      /\.maintenance__contact-icon\s*\{[^}]*width:\s*3\.75rem;[^}]*height:\s*3\.75rem;[^}]*object-fit:\s*contain;/s,
+      /\.maintenance__contact-icon\s*\{[^}]*width:\s*3\.75rem;[^}]*height:\s*3\.75rem;[^}]*object-fit:\s*contain;/,
     );
     expect(stylesCss).toMatch(
-      /\.maintenance__contact-icon--whatsapp\s*\{[^}]*width:\s*3\.5rem;[^}]*height:\s*3\.5rem;/s,
+      /\.maintenance__contact-icon--whatsapp\s*\{[^}]*width:\s*3\.5rem;[^}]*height:\s*3\.5rem;/,
     );
   });
 

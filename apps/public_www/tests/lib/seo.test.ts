@@ -30,7 +30,8 @@ describe('seo metadata builder', () => {
       locale: 'zh-CN',
       siteName: 'Evolve Sprouts',
     });
-    expect(metadata.openGraph?.images?.[0]).toMatchObject({
+    const ogImages = metadata.openGraph?.images;
+    expect(Array.isArray(ogImages) ? ogImages[0] : ogImages).toMatchObject({
       url: DEFAULT_SOCIAL_IMAGE,
       alt: 'Evolve Sprouts',
     });
@@ -87,7 +88,8 @@ describe('seo metadata builder', () => {
       },
     });
 
-    expect(metadata.openGraph?.images?.[0]).toMatchObject({
+    const ogImages = metadata.openGraph?.images;
+    expect(Array.isArray(ogImages) ? ogImages[0] : ogImages).toMatchObject({
       url: '/images/seo/custom-og.png',
       alt: 'Custom OG image',
     });

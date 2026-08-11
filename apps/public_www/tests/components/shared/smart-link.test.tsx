@@ -37,7 +37,9 @@ vi.mock('next/link', () => ({
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
-  vi.mocked(usePathname).mockReturnValue(null);
+  // Next types usePathname() as string, but it is null before hydration and
+  // LocaleAwareLink guards with `?? '/'`; keep exercising that runtime path.
+  vi.mocked(usePathname).mockReturnValue(null as unknown as string);
 });
 
 describe('SmartLink', () => {

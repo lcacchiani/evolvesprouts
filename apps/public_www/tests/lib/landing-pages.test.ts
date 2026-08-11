@@ -62,7 +62,7 @@ describe('landing-pages registry', () => {
   });
 
   it('covers ROUTES first segments via RESERVED_PATH_SEGMENTS or landing-page slugs', () => {
-    const landingSlugs = new Set(getAllLandingPageSlugs());
+    const landingSlugs = new Set<string>(getAllLandingPageSlugs());
     for (const routePath of Object.values(ROUTES)) {
       const segment = routePath.replace(/^\/+|\/+$/g, '').split('/')[0] ?? '';
       if (segment) {
@@ -85,7 +85,7 @@ describe('landing-pages registry', () => {
 
   it('every root page that uses createLandingPageRootRedirect matches a registered slug', () => {
     const appDir = path.resolve(__dirname, '../../src/app');
-    const registered = new Set(getAllLandingPageSlugs());
+    const registered = new Set<string>(getAllLandingPageSlugs());
     const entries = readdirSync(appDir, { withFileTypes: true });
     for (const entry of entries) {
       if (!entry.isDirectory() || entry.name.startsWith('[') || entry.name.startsWith('(')) {
@@ -147,7 +147,7 @@ describe('landing-pages registry', () => {
 
   it('every static root app segment with page.tsx is reserved or a registered landing slug', () => {
     const appDir = path.resolve(__dirname, '../../src/app');
-    const landingSlugSet = new Set(getAllLandingPageSlugs());
+    const landingSlugSet = new Set<string>(getAllLandingPageSlugs());
     const entries = readdirSync(appDir, { withFileTypes: true });
     for (const entry of entries) {
       if (!entry.isDirectory() || entry.name.startsWith('[') || entry.name.startsWith('(')) {
