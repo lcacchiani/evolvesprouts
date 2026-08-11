@@ -323,7 +323,7 @@ Add SSH key setup step to the workflow before the match step:
 
 ```yaml
 - name: Setup SSH for match
-  uses: webfactory/ssh-agent@v0.9.0
+  uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
   with:
     ssh-private-key: ${{ secrets.MATCH_DEPLOY_KEY }}
 ```
