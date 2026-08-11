@@ -23,6 +23,7 @@ const originalIntersectionObserver = window.IntersectionObserver;
 class MockIntersectionObserver implements IntersectionObserver {
   readonly root = null;
   readonly rootMargin = '500px 0px';
+  readonly scrollMargin = '0px';
   readonly thresholds = [0];
 
   constructor(callback: ObserverCallback) {

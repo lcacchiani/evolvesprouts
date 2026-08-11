@@ -214,7 +214,7 @@ describe('ContactUsForm section', () => {
 
   it('omits the WhatsApp CTA when the provided contact URL is missing', () => {
     renderContactUsForm({
-      contactEmail: undefined,
+      contactEmail: defaultContactConfig.contactEmail,
       whatsappUrl: undefined,
       instagramUrl: undefined,
       linkedinUrl: undefined,

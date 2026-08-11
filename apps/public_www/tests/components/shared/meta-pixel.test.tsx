@@ -30,8 +30,8 @@ describe('MetaPixel', () => {
       .forEach((el) => el.remove());
     document.documentElement.removeAttribute('data-meta-pixel-id');
     document.documentElement.removeAttribute('data-meta-pixel-allowed-hosts');
-    delete (window as Record<string, unknown>).fbq;
-    delete (window as Record<string, unknown>)._fbq;
+    delete (window as unknown as Record<string, unknown>).fbq;
+    delete (window as unknown as Record<string, unknown>)._fbq;
   });
 
   it('renders a script tag when NEXT_PUBLIC_META_PIXEL_ID is set', () => {
@@ -70,7 +70,7 @@ describe('MetaPixel', () => {
     runInitMetaPixelScript();
 
     expect(document.querySelector(META_PIXEL_REMOTE_SCRIPT_SELECTOR)).not.toBeNull();
-    expect(typeof (window as Record<string, unknown>).fbq).toBe('function');
+    expect(typeof (window as unknown as Record<string, unknown>).fbq).toBe('function');
   });
 
   it('does not inject fbevents.js when current host is not allowlisted', () => {
@@ -114,7 +114,7 @@ describe('MetaPixel', () => {
 
     runInitMetaPixelScript();
 
-    const fbq = (window as Record<string, unknown>).fbq as { queue: unknown[][] };
+    const fbq = (window as unknown as Record<string, unknown>).fbq as { queue: unknown[][] };
     const queueAsArrays = fbq.queue.map((item) => Array.from(item));
     expect(queueAsArrays).toEqual(
       expect.arrayContaining([

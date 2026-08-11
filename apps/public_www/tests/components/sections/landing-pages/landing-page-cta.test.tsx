@@ -33,6 +33,7 @@ describe('LandingPageCta section', () => {
     variant: 'event',
     bookingSystem: 'event-booking',
     serviceKey: 'easter-workshop-cta-test',
+    instanceSlug: 'easter-workshop-cta-test-instance',
     title: 'Easter 2026 Montessori Play Coaching Workshop',
     subtitle: 'A practical workshop',
     originalAmount: 350,

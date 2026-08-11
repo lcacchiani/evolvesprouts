@@ -70,7 +70,10 @@ describe('sitemap', () => {
 
   it('does not block localized and redirect aliases in robots.txt', () => {
     const robotsMetadata = robots();
-    const crawlerRules = robotsMetadata.rules ?? [];
+    const rawCrawlerRules = robotsMetadata.rules ?? [];
+    const crawlerRules = Array.isArray(rawCrawlerRules)
+      ? rawCrawlerRules
+      : [rawCrawlerRules];
     const defaultCrawlerRule = crawlerRules.find((rule) => rule.userAgent === '*');
 
     expect(defaultCrawlerRule).toMatchObject({

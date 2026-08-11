@@ -26,20 +26,19 @@ afterEach(() => {
 });
 
 const heroBannerPropsSpy = vi.fn<
-  [{ content: { title: string }; ctaHref?: string }],
-  void
+  (props: { content: { title: string }; ctaHref?: string }) => void
 >();
 const pageLayoutPropsSpy = vi.fn<
-  [{ navbarContent: { bookNow: { href: string; label: string } } }],
-  void
+  (props: { navbarContent: { bookNow: { href: string; label: string } } }) => void
 >();
 const freeIntroSessionPropsSpy = vi.fn<
-  [{ content: { title: string; ctaHref: string } }],
-  void
+  (props: { content: { title: string; ctaHref: string } }) => void
 >();
 const servicesPropsSpy = vi.fn<
-  [{ content: { title: string }; commonAccessibility?: { carouselRoleDescription?: string } }],
-  void
+  (props: {
+    content: { title: string };
+    commonAccessibility?: { carouselRoleDescription?: string };
+  }) => void
 >();
 
 vi.mock('@/components/shared/page-layout', () => ({

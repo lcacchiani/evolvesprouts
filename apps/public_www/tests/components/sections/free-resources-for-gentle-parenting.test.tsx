@@ -27,7 +27,10 @@ function createResourcesContent(
   ) as ResourcesContent & {
     sectionConfig?: Record<string, string>;
   };
-  clonedContent.sectionConfig = sectionConfig;
+  clonedContent.sectionConfig = {
+    ...clonedContent.sectionConfig,
+    ...sectionConfig,
+  };
 
   return clonedContent;
 }

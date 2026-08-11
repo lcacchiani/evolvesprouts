@@ -70,11 +70,11 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'matchMedia');
 });
 
-function getCardDescriptionParagraph(card: HTMLElement | null): HTMLElement | null {
+function getCardDescriptionParagraph(card: Element | null): HTMLElement | null {
   return card?.querySelector('p.es-service-card-description') ?? null;
 }
 
-function getCardDescriptionPreview(card: HTMLElement | null): HTMLElement | null {
+function getCardDescriptionPreview(card: Element | null): HTMLElement | null {
   return card?.querySelector('.es-service-card-description-preview') ?? null;
 }
 

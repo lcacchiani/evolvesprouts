@@ -94,6 +94,7 @@ const mockBookingEventContent = {
     variant: 'event' as const,
     bookingSystem: 'event-booking' as const,
     serviceKey: 'mock-event',
+    instanceSlug: 'mock-event-instance',
     title: 'Mock Event Title',
     subtitle: 'Mock subtitle',
     originalAmount: 350,
