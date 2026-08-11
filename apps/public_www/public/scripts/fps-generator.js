@@ -244,7 +244,7 @@
         e.isAlphanumericSpecial =
           void 0),
       (e.isAlphanumericSpecial = function (t) {
-        return /^[A-z0-9.@_+-]+$/.test(t);
+        return /^[A-Za-z0-9.@_+-]+$/.test(t);
       }),
       (e.numberToValidId = function (t) {
         return ((t < 0 || t > 99) && (t = 0), ("00" + t).slice(-2));
@@ -373,7 +373,7 @@
               ? n.setError(`Length Exceeds Limit (>${e})`, !0)
               : a.isAlphanumericSpecial(t) ||
                 n.setError(
-                  "Should Contains Certain Characters Only (A-z0-9.@_+-)",
+                  "Should Contains Certain Characters Only (A-Za-z0-9.@_+-)",
                   !0,
                 ),
           n
